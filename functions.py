@@ -1,6 +1,7 @@
 from qutip import *
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.special import comb
 
 from variables import *
 
