@@ -1,11 +1,22 @@
 from qutip import *
+import numpy as np
+
+HBAR  = 1.054571817e-34
+PI = np.pi
+
+omegas = 2*PI * np.array([4.2e9 ,3.8e9, 7.5e9])
+gs = 2*PI * np.array([50e6, 50e6])
+alpha = -150e6
+
+gSt = basis(2,0)
+eSt = basis(2,1)
 
 sp = sigmap()
 sm = sigmam()
 sz = sigmaz()
 sx = sigmax()
 sy = sigmay()
-I = identity(2)
+I = qeye(2)
 
 sx1 = tensor(sx,I,I)
 sx2 = tensor(I,sx,I)
@@ -20,8 +31,3 @@ spTB = tensor(I,I,sp)
 sm1 = tensor(sm,I,I)
 sm2 = tensor(I,sm,I)
 smTB = tensor(I,I,sm)
-
-omega = [5e9 ,7e9, 7.5e9]
-g = [0.25, 0.25]
-delta = 0.1
-HBAR  = 1.054571817e-34
