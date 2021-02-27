@@ -4,9 +4,10 @@ import numpy as np
 HBAR  = 1.054571817e-34
 PI = np.pi
 
+# These are in rad/s:
 omegas = 2*PI * np.array([4.2e9 ,3.8e9, 7.5e9])
 gs = 2*PI * np.array([50e6, 50e6])
-alpha = -150e6
+alpha = -2*PI * 150e6
 
 gSt = basis(2,0)
 eSt = basis(2,1)
