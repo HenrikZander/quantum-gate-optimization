@@ -3,6 +3,8 @@ import numpy as np
 
 HBAR  = 1.054571817e-34
 PI = np.pi
+Q_e = 1.602176634e-19
+PHI0 = HBAR * PI / Q_e
 
 # These are in rad/s:
 omegas = 2*PI * np.array([4.2e9 ,3.8e9, 7.5e9])

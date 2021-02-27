@@ -20,7 +20,7 @@ def plotExpect(result):
         ax.plot(result.times, e)
     ax.set_xlabel('Time')
     ax.set_ylabel('Expectation values')
-    ax.legend(('Sigma1-z','Sigma2_z'))
+    ax.legend(('zProj1','zProj2')) # Detta var ('Sigma1-z','Sigma2_z') innan, men jag tycker inte det mejkar sens
     plt.show()
 
 

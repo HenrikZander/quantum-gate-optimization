@@ -25,8 +25,8 @@ def testHamiltonian():
     return 2 * np.pi * 0.1 * sigmax()
 
 
-def omegaPhi(omega):
-    pass
+def Phi(t, Theta, delta, omegaPhi):
+    return Theta + delta * np.cos(omegaPhi*t)
 
 
 def omegaTilde(omega):
