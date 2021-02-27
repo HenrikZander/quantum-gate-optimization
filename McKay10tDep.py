@@ -41,5 +41,3 @@ print(Xfinal)
 print(abs((Xtarg.dag() * Xfinal).tr()))
 print(abs(Xfinal.overlap(Xtarg)))
 print(fidelity(Xfinal, Xtarg))
-
-
