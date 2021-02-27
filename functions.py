@@ -4,9 +4,6 @@ import matplotlib.pyplot as plt
 
 from variables import *
 
-
-def fidelityNew(state, targetState):
-    return np.abs(np.sqrt(targetState.overlap(state)))
     
 
 def hamiltonian(omega, g):
