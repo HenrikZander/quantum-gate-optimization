@@ -19,7 +19,7 @@ def plotExpect(result):
     for e in lists:
         ax.plot(result.times, e)
     ax.set_xlabel('Time')
-    ax.set_ylabel('Expextation values')
+    ax.set_ylabel('Expectation values')
     ax.legend(('Sigma1-z','Sigma2_z'))
     plt.show()
 
