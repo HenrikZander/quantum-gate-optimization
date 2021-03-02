@@ -7,6 +7,7 @@ from variables import *
 
 
 def plotStates(result):
+    """Plots all the states in the "result"-structure on the same Bloch-sphere."""
     states = result.states
     fig = Bloch()
     fig.add_states(states)
@@ -14,6 +15,7 @@ def plotStates(result):
 
 
 def plotExpect(result):
+    """Plots the expectation values for an arbitraty amount of collapse operators."""
     lists = result.expect
     fig, ax = plt.subplots()
     for e in lists:
@@ -25,6 +27,7 @@ def plotExpect(result):
 
 
 def createFilename(path,index):
+    """Creates a filename for a .png-file using an index and the path to where the file should be placed."""
     path = path + "\\"
     numStr = str(index)
     if index < 10:
@@ -37,6 +40,7 @@ def createFilename(path,index):
 
 
 def createAnimationVideo(states, dirc, framerate=60):
+    """Creates the frames for the animation and stiches them together using the ffmpeg software."""
     b = Bloch()
     b.vector_color = ['r']
     b.view = [-40,30]
@@ -54,6 +58,6 @@ def createAnimationVideo(states, dirc, framerate=60):
     
 
 def animateStates(result, dirc):
-    """Animates two-level state vectors on the Bloch sphere"""
+    """Animates two-level state vectors on the Bloch sphere."""
     states = result.states
     createAnimationVideo(states, dirc)
