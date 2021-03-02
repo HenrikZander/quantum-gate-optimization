@@ -1,7 +1,8 @@
 from qutip import *
 import numpy as np
 
-# Vi vill ha enheter s.a. hbar = 1, Phi0 = 1, och använder ns som tidsenhet (=> GHz, Gigarad/s som frekvensenheter)
+# We reduce all constans with units which means that hbar = 1 and Phi0 = 1 for example. 
+# We also use nanoseconds as our time unit, which means our frequenzy unit becomes GHz and Gigarad/s.
 
 PI = np.pi
 # HBAR  = 1.054571817e-34
