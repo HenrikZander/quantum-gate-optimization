@@ -6,7 +6,7 @@ from functions import *
 from plotting import *
 
 ts = np.linspace(0,1,1000)
-psi0 = tensor(eSt,gSt,gSt)
+psi0 = tensor(eSt,gSt,gSt) #100
 
 pSt1 = tensor(eSt,gSt,gSt) # 100
 pOp1 = pSt1 * pSt1.dag()

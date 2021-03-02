@@ -26,6 +26,7 @@ sy = sigmay() #Pauli sigma-y matrice
 I = qeye(2) #Indentity operator for a two-level system
 
 # The upgraded operators that are given by the tensor product between the different basic operators and the identity operator
+# Upgraded states are defined as qubit one, qubit two and tunable bus in that order
 sx1 = tensor(sx,I,I)
 sx2 = tensor(I,sx,I)
 sy1 = tensor(sy,I,I)
