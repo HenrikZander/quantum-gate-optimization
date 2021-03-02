@@ -14,16 +14,18 @@ omegas = 2*PI * np.array([4.2 ,3.8, 7.5])
 gs = 2*PI * np.array([0.050, 0.050])
 alpha = -2*PI * 0.150
 
-gSt = basis(2,0)
-eSt = basis(2,1)
+gSt = basis(2,0) #Ground state
+eSt = basis(2,1) #Excited state
 
-sp = sigmap()
-sm = sigmam()
-sz = sigmaz()
-sx = sigmax()
-sy = sigmay()
-I = qeye(2)
+# Definition of basic operators 
+sp = sigmap() #Raising operator for a two-level system
+sm = sigmam() #Lowering operator for a two-level system
+sz = sigmaz() #Pauli sigma-z matrice
+sx = sigmax() #Pauli sigma-x matrice
+sy = sigmay() #Pauli sigma-y matrice
+I = qeye(2) #Indentity operator for a two-level system
 
+# The upgraded operators that are given by the tensor product between the different basic operators and the identity operator
 sx1 = tensor(sx,I,I)
 sx2 = tensor(I,sx,I)
 sy1 = tensor(sy,I,I)
