@@ -5,7 +5,7 @@ from variables import *
 from functions import *
 from plotting import *
 
-ts = np.linspace(0,2e-6,1000)
+ts = np.linspace(0,1000,1000)
 psi0 = tensor(eSt,gSt,gSt)
 
 pSt1 = tensor(eSt,gSt,gSt) # 100
@@ -21,14 +21,14 @@ H0 = -omegas[0] / 2.0 * sz1 + gs[0] * (sp1*smTB + sm1*spTB) - omegas[1] / 2.0 * 
 H1 = -omegas[2] / 2.0 * szTB
 
 # Rimliga startvärden?
-Theta = -0.108 * PHI0 # från McKay
-delta = 0.155 * PHI0 # från McKay
-omegaPhi = 2*PI * 850.6e6 # från McKay
+Theta = -0.1 # -0.108 från McKay, #Phi0
+delta = 0.21 # 0.155 från McKay, #Phi0
+omegaPhi = np.abs(omegas[0] - omegas[1])
 
 def H1_coeff(t, args):
-    return np.sqrt(np.abs(np.cos(PI * Phi(t, Theta, delta, omegaPhi) / PHI0)))
+    return np.sqrt(np.abs(np.cos(PI * Phi(t, Theta, delta, omegaPhi)))) # Phi i #Phi0
 
 H = [H0, [H1, H1_coeff]]
 
-output = mcsolve(H, psi0, ts, e_ops=[pOp1, pOp2, pOpTB]) # detta funkar inte?
+output = sesolve(H, psi0, ts, e_ops=[pOp1, pOp2, pOpTB]) # Verkar ta väldigt lång tid innan vi får övergång
 plotExpect(output)

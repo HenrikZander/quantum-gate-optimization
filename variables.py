@@ -1,15 +1,17 @@
 from qutip import *
 import numpy as np
 
-HBAR  = 1.054571817e-34
-PI = np.pi
-Q_e = 1.602176634e-19
-PHI0 = HBAR * PI / Q_e
+# Vi vill ha enheter s.a. hbar = 1, Phi0 = 1, och använder ns som tidsenhet (=> GHz, Gigarad/s som frekvensenheter)
 
-# These are in rad/s:
-omegas = 2*PI * np.array([4.2e9 ,3.8e9, 7.5e9])
-gs = 2*PI * np.array([50e6, 50e6])
-alpha = -2*PI * 150e6
+PI = np.pi
+# HBAR  = 1.054571817e-34
+# Q_e = 1.602176634e-19
+# PHI0 = HBAR * PI / Q_e
+
+# These are in Gigarad/s:
+omegas = 2*PI * np.array([4.2 ,3.8, 7.5])
+gs = 2*PI * np.array([0.050, 0.050])
+alpha = -2*PI * 0.150
 
 gSt = basis(2,0)
 eSt = basis(2,1)

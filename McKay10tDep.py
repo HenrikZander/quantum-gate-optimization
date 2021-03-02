@@ -3,8 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from variables import *
 from functions import *
+from plotting import *
 
-ts = np.linspace(0,1,100)
+ts = np.linspace(0,1,1000)
 psi0 = tensor(eSt,gSt,gSt)
 
 pSt1 = tensor(eSt,gSt,gSt) # 100
@@ -27,8 +28,8 @@ def H1_coeff(t, args):
 
 H = [H1, H1_coeff]
 
-# output = mesolve(H, psi0, ts, e_ops=[pOp1, pOp2, pOpTB])
-# plotExpect(output)
+output = sesolve(H, psi0, ts, e_ops=[pOp1, pOp2, pOpTB])
+plotExpect(output)
 
 Xtarg = tensor(gSt,eSt,gSt)
 XofT = mesolve(H, psi0, ts)
