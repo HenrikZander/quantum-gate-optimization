@@ -10,9 +10,15 @@ PI = np.pi
 # PHI0 = HBAR * PI / Q_e
 
 # These are in Gigarad/s:
-omegas = 2*PI * np.array([4.2 ,3.8, 7.5])
+omegas = 2*PI * np.array([4.2 ,3.8, 7.5, ])
 gs = 2*PI * np.array([0.050, 0.050])
 alpha = -2*PI * 0.150
+omegaPhi = np.abs(omegas[0] - omegas[1])
+
+
+Theta = -0.1 # DC flux on the tunable bus
+delta = 0.21 # Amplitude of AC flux on the tunable bus
+
 
 gSt = basis(2,0) #Ground state
 eSt = basis(2,1) #Excited state

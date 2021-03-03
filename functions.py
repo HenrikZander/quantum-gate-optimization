@@ -26,8 +26,8 @@ def Phi(t, Theta, delta, omegaPhi):
     return Theta + delta * np.cos(omegaPhi*t)
 
 
-def omegaTilde(omega):
-    pass
+def omegaTB(t, args):
+    return omega[2]*np.sqrt(np.abs(np.cos(PI*Phi(t,Theta,delta,omegaPhi))))
 
 
 def delta(time):
