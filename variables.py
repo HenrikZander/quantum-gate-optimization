@@ -20,8 +20,10 @@ Theta = -0.1 # DC flux on the tunable bus
 delta = 0.21 # Amplitude of AC flux on the tunable bus
 
 
-gSt = basis(2,0) #Ground state
-eSt = basis(2,1) #Excited state
+groundState = basis(2,0) #Ground state
+excitedState = basis(2,1) #Excited state
+gSt = groundState
+eSt = excitedState
 
 # Definition of basic operators 
 sp = sigmap() #Raising operator for a two-level system

@@ -5,7 +5,7 @@ from variables import *
 from functions import *
 from plotting import *
 
-ts = np.linspace(0,1000,1000)
+ts = np.linspace(0,5000,5000)
 psi0 = tensor(eSt,gSt,gSt)
 
 pSt1 = tensor(eSt,gSt,gSt) # 100
@@ -26,7 +26,7 @@ delta = 0.21 # 0.155 från McKay, #Phi0
 omegaPhi = np.abs(omegas[0] - omegas[1])
 
 def H1_coeff(t, args):
-    return np.sqrt(np.abs(np.cos(PI * Phi(t, Theta, delta, omegaPhi)))) # Phi i #Phi0
+    return np.sqrt(np.abs(np.cos(PI * Phi(t)))) # Phi i #Phi0
 
 H = [H0, [H1, H1_coeff]]
 
