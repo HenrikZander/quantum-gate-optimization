@@ -18,11 +18,15 @@ def plotExpect(result):
     """Plots the expectation values for an arbitraty amount of collapse operators."""
     lists = result.expect
     fig, ax = plt.subplots()
+    labels = []
+    i = 1
     for e in lists:
         ax.plot(result.times, e)
+        labels.append("Z Projection " + str(i))
+        i = i + 1
     ax.set_xlabel('Time')
     ax.set_ylabel('Expectation values')
-    ax.legend(('zProj1','zProj2'))
+    ax.legend(labels)
     plt.show()
 
 
