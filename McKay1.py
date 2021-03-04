@@ -11,7 +11,7 @@ H = [H0, [H1, omegaTB]]
 
 timeStamps = np.linspace(0,4000,4000)
 initialState = tensor(excitedState,groundState,groundState) # The states of qubit 1, qubit 2 and tunable bus, in that order. (100)
-collapseOperators = [sz1, sz2, szTB]
+projectionOperators = [sz1, sz2, szTB] # Used to calculate different expected values for the state as a function of time.
 
-result = sesolve(H, initialState, timeStamps, collapseOperators)
+result = sesolve(H, initialState, timeStamps, projectionOperators)
 plotExpect(result)
