@@ -2,6 +2,7 @@ from qutip import *
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import comb
+from skopt import gp_minimize
 
 from variables import *
 
@@ -28,3 +29,7 @@ def Phi(t):
 
 def omegaTB(t, args):
     return omegas[2]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
+
+
+def optimizeGate(hamiltonian, bounds, maxFunEvals=500, numOfStartsPoints=50):
+    res = gp_minimize(hamiltonian, bounds, acq_func="EI", n_calls=maxFunEvals, n_initial_points=numOfStartsPoints, random_state=1234)

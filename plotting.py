@@ -65,3 +65,11 @@ def animateStates(result, dirc):
     """Animates two-level state vectors on the Bloch sphere."""
     states = result.states
     createAnimationVideo(states, dirc)
+    
+def plotVectors(x,y):
+    """Plots the values in the lists x and y."""
+    fig, ax = plt.subplots()
+    ax.plot(x, y)
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    plt.show()
