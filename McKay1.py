@@ -14,12 +14,12 @@ def timeEvolutionH1():
     H = [H0, [H1, omegaTB]]
     timeStamps = np.linspace(0,3000,3000)
     initialState = tensor(excitedState,groundState,groundState) # The states of qubit 1, qubit 2 and tunable bus, in that order. (100)
-    projectionOperators = [sz1, sz2, szTB] # Used to calculate different expected values for the state as a function of time.
+    projectionOperators = [sz1, sz2, szTB] # Used to calculate different expected values for the state as a function of time. #THESE ARE NOT CORRECT CHANGE TO EMILS OPERATORS!!!!
     result = sesolve(H, initialState, timeStamps, projectionOperators)
     plotExpect(result)
 
 
-def optimizePulseH1():
+"""def optimizePulseH1():
     logger = logging.get_logger()
     log_level = logging.WARN #logging.INFO
     example_name = 'McKay1PulseOptim'
@@ -58,4 +58,4 @@ def optimizePulseH1():
     plt.show()
     
     
-optimizePulseH1()
+optimizePulseH1()"""

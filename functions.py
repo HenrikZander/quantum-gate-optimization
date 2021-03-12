@@ -31,5 +31,5 @@ def omegaTB(t, args):
     return omegas[2]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
 
 
-def optimizeGate(hamiltonian, bounds, maxFunEvals=500, numOfStartsPoints=50):
-    res = gp_minimize(hamiltonian, bounds, acq_func="EI", n_calls=maxFunEvals, n_initial_points=numOfStartsPoints, random_state=1234)
+def optimizeGate(hamiltonian, bounds, maxFunEvals=100, numOfStartsPoints=15):
+    return gp_minimize(hamiltonian, bounds, acq_func="EI", n_calls=maxFunEvals, n_initial_points=numOfStartsPoints, random_state=1234)

@@ -11,7 +11,7 @@ PI = np.pi
 
 # These are in Gigarad/s:
 omegas = 2*PI * np.array([4.2 ,3.8, 7.5, ])
-gs = 2*PI * np.array([0.1, 0.1])
+gs = 2*PI * np.array([0.05, 0.05])
 alpha = -2*PI * 0.150
 omegaPhi = np.abs(omegas[0] - omegas[1])
 
