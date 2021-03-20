@@ -24,7 +24,7 @@ def testGateOptimizer():
     for tempx in x:
         y.append(testFun([tempx]))
     plotVectors(x,y)
-    res = optimizeGate(testFun, [(-7, 7)])
+    res = optimizeGate(testFun, [(-7, 7)], funcEvals=50)
     print(res.x[0], res.fun)
 
 
