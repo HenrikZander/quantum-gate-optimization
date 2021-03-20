@@ -14,18 +14,12 @@ def main():
 
 def testFun(x):
     """A simple test funtion to be used by the testGateOptimizer-function"""
-    return x[0]**2 + 7*np.sin(np.pi*x[0]) + 2
+    return 3*(1-x[0])**2*np.exp(-(x[0]**2) - (x[1]+1)**2) - 10*(x[0]/5 - x[0]**3 - x[1]**5)*np.exp(-x[0]**2-x[1]**2) - 1/3*np.exp(-(x[0]+1)**2 - x[1]**2) 
 
 
 def testGateOptimizer():
     """Used to test the optimizeGate-function in functions.py"""
-    x = np.linspace(-10,10,500)
-    y=[]
-    for tempx in x:
-        y.append(testFun([tempx]))
-    plotVectors(x,y)
-    res = optimizeGate(testFun, [(-2, 2)])
-    print(res.x[0], res.fun)
+    res = optimizeGate(testFun, [(-4, 4),(-4,4)])
 
 
 def testStateAnimations():

@@ -10,7 +10,7 @@ from plotting import *
 
 def testFun(x):
     """A simple test funtion"""
-    return 7*x[0]**2 + 10*np.sin(5*np.pi*x[0]) + 2
+    return 3*(1-x[0])**2*np.exp(-(x[0]**2) - (x[1]+1)**2) - 10*(x[0]/5 - x[0]**3 - x[1]**5)*np.exp(-x[0]**2-x[1]**2) - 1/3*np.exp(-(x[0]+1)**2 - x[1]**2)
 
-res = gp_minimize(testFun, [(-1.5,0.5)])
-print(res.x[0], res.fun)
+res = gp_minimize(testFun, [(-4, 4),(-4,4)])
+print(res.x[0], res.x[1], res.fun)

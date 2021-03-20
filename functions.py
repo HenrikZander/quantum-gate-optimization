@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import comb
 from skopt import gp_minimize
+import time
+import scipy
 
 from variables import *
 
@@ -31,5 +33,24 @@ def omegaTB(t, args):
     return omegas[2]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
 
 
-def optimizeGate(costFunction, bounds, funcEvals=100, numOfStartsPoints=15):
-    return gp_minimize(costFunction, bounds, n_calls=funcEvals, n_initial_points=numOfStartsPoints, random_state=1234, noise=1e-20)
+def optimizeGate(costFunction, bounds):
+    #Optimization using the Bayesian optimization algoritm
+    """startTime = time.time()
+    resBayesian = gp_minimize(costFunction, bounds)
+    timeBayesian = time.time() - startTime"""
+    
+    startTime = time.time()
+    resSHG = scipy.optimize.shgo(costFunction, bounds)
+    timeSHG = time.time() - startTime
+    
+    startTime = time.time()
+    resDA = scipy.optimize.dual_annealing(costFunction, bounds)
+    timeDA = time.time() - startTime
+    
+    print("##################################################\n")
+    #print(f'The optimizaton using \"gp_minimize()\" took {round(timeBayesian,2)}s and it found a minimum of {resBayesian.fun} at the point {resBayesian.x}.\n')
+    print(f'The optimizaton using \"shgo()\" took {round(timeSHG,2)}s and it found a minimum of {resSHG.fun} at the point {resSHG.x}.\n')
+    print(f'The optimizaton using \"dual_annealing()\" took {round(timeDA,2)}s and it found a minimum of {resDA.fun} at the point {resDA.x}.\n')
+    print("##################################################")
+
+    return 0#[resBayesian,resSHG]
