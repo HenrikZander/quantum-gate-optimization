@@ -5,7 +5,7 @@ from plotting import *
 
 delta0 = 10
 H = 0.5 * delta0 * (sx1 * sx2 + sy1 * sy2)
-initialState = tensor(excitedState,groundState,groundState);
+initialState = tensor(excitedState,groundState,groundState)
 timeStamps = np.linspace(0,1,500)
 
 result = sesolve(H, initialState, timeStamps, [sz1, sz2]) 
