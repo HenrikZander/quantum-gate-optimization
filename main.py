@@ -8,6 +8,7 @@ from plotting import *
 
 
 def main():
+    testGateOptimizer()
     pass
 
 

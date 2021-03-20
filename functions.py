@@ -32,4 +32,4 @@ def omegaTB(t, args):
 
 
 def optimizeGate(hamiltonian, bounds, maxFunEvals=100, numOfStartsPoints=15):
-    return gp_minimize(hamiltonian, bounds, acq_func="EI", n_calls=maxFunEvals, n_initial_points=numOfStartsPoints, random_state=1234)
+    return gp_minimize(hamiltonian, bounds, n_calls=maxFunEvals, n_initial_points=numOfStartsPoints, random_state=1234)
