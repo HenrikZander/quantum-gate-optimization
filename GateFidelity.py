@@ -11,5 +11,7 @@ import matplotlib.pyplot as plt
 #ExGate existing gate
 #DeGate desired gate
 
+#not tested, not done
+
 
   GaFid=(ptrace(sqrt(sqrt(ExGate)*DeGate*sqrt(ExgitGate))))^2
