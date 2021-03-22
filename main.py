@@ -19,7 +19,8 @@ def testFun(x):
 
 def testGateOptimizer():
     """Used to test the optimizeGate-function in functions.py"""
-    res = optimizeGate(testFun, [(-4, 4),(-4,4)])
+    res = findMinimum(testFun, [(-4, 4),(-4,4)], runBayesianWithBH=True)
+    #print(res[0])
 
 
 def testStateAnimations():
