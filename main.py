@@ -9,7 +9,7 @@ from plotting import *
 
 def main():
     testGateOptimizer()
-    pass
+    return 0
 
 
 def testFun(x):

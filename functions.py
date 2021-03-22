@@ -33,24 +33,46 @@ def omegaTB(t, args):
     return omegas[2]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
 
 
-def optimizeGate(costFunction, bounds):
+def optimizeGate(costFunction, bounds, runBayesian=False, runSHG=True, runDA=True, runDE=True, runBH=True):
+    print("")
+    message = "##################################################\n"
+    result = []
+    
     #Optimization using the Bayesian optimization algoritm
-    """startTime = time.time()
-    resBayesian = gp_minimize(costFunction, bounds)
-    timeBayesian = time.time() - startTime"""
+    if(runBayesian):
+        startTime = time.time()
+        resBayesian = gp_minimize(costFunction, bounds)
+        timeBayesian = time.time() - startTime
+        message += f'The optimizaton using \"gp_minimize()\" took {round(timeBayesian,2)}s to execute and ended on a minimum of {resBayesian.fun} at the point {resBayesian.x}.\n'
+        result.append(resBayesian)
     
-    startTime = time.time()
-    resSHG = scipy.optimize.shgo(costFunction, bounds)
-    timeSHG = time.time() - startTime
+    if(runSHG):
+        startTime = time.time()
+        resSHG = scipy.optimize.shgo(costFunction, bounds)
+        timeSHG = time.time() - startTime
+        message += f'The optimizaton using the \"Simplicial Homology Global\"-algorithm took {round(timeSHG,2)}s to execute and ended on a minimum of {resSHG.fun} at the point {resSHG.x}.\n'
+        result.append(resSHG)
     
-    startTime = time.time()
-    resDA = scipy.optimize.dual_annealing(costFunction, bounds)
-    timeDA = time.time() - startTime
+    if(runDA):
+        startTime = time.time()
+        resDA = scipy.optimize.dual_annealing(costFunction, bounds)
+        timeDA = time.time() - startTime
+        message += f'The optimizaton using the \"Dual Annealing\"-algorithm took {round(timeDA,2)}s to execute and ended on a minimum of {resDA.fun} at the point {resDA.x}.\n'
+        result.append(resDA)
+        
+    if(runDE):
+        startTime = time.time()
+        resDE = scipy.optimize.differential_evolution(costFunction, bounds)
+        timeDE = time.time() - startTime
+        message += f'The optimizaton using the \"Differential Evolution\"-algorithm took {round(timeDE,2)}s to execute and ended on a minimum of {resDE.fun} at the point {resDE.x}.\n'
+        result.append(resDE)
     
-    print("##################################################\n")
-    #print(f'The optimizaton using \"gp_minimize()\" took {round(timeBayesian,2)}s and it found a minimum of {resBayesian.fun} at the point {resBayesian.x}.\n')
-    print(f'The optimizaton using \"shgo()\" took {round(timeSHG,2)}s and it found a minimum of {resSHG.fun} at the point {resSHG.x}.\n')
-    print(f'The optimizaton using \"dual_annealing()\" took {round(timeDA,2)}s and it found a minimum of {resDA.fun} at the point {resDA.x}.\n')
-    print("##################################################")
-
-    return 0#[resBayesian,resSHG]
+    if(runBH):
+        startTime = time.time()
+        resBH = scipy.optimize.basinhopping(costFunction, (0,0), niter=500)
+        timeBH = time.time() - startTime
+        message += f'The optimizaton using the \"Basin-hopping\"-algorithm took {round(timeBH,2)}s to execute and ended on a minimum of {resBH.fun} at the point {resBH.x}.\n'
+        result.append(resBH)
+    
+    print(message + "##################################################")
+    return result
