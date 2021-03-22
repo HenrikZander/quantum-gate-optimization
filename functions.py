@@ -66,7 +66,6 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
         resBayesian = gp_minimize(costFunction, bounds)
         timeBayesian = time.time() - startTime
         message += f'The optimizaton using \"gp_minimize()\" took {round(timeBayesian,2)}s to execute and ended on a minimum of {resBayesian.fun} at the point {resBayesian.x}.\n'
-        message += f'Function evaluations performed: {resBayesian.n_calls}\n'
         result.append(resBayesian)
     
     #Set the initial guess for the Basin-hopping algorithm to the result of the Bayesian algorithm.
@@ -112,7 +111,6 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
     if runBayesianWithBH:
         message += "##################################################\n"
         message += f'The optimizaton using the \"Basin-hopping\"-algorithm together with an initial guess from the \"gp_minimize()\" algorithm took {round(timeBH + timeBayesian,2)}s in total to execute and ended on a minimum of {resBH.fun} at the point {resBH.x}.\n'
-        message += f'Total function evaluations performed: {resBH.nfev + resBayesian.n_calls}\n'
             
     print(message + "##################################################")
     return result
