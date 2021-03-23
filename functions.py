@@ -126,10 +126,9 @@ def generateCostFunction(hamiltonian):
     return costFunction
 
 
-def optimizeGate(hamiltonian, parameterBounds, initialGuess, runBayesian=False, runSHG=True, runDA=True, runDE=True, runBH=True, runBayesianWithBH=False):
+def optimizeGate(hamiltonian, parameterBounds, initialGuess=None, runBayesian=False, runSHG=True, runDA=True, runDE=True, runBH=True, runBayesianWithBH=False):
     costFunction = generateCostFunction(hamiltonian)
     result = findMinimum(costFunction(), parameterBounds, initialGuess, runBayesian=runBayesian, runSHG=runSHG, runDA=runDA, runDE=runDE, runBH=runBH, runBayesianWithBH=runBayesianWithBH)
-    
     
     
     
