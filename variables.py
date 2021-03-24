@@ -10,7 +10,7 @@ PI = np.pi
 # PHI0 = HBAR * PI / Q_e
 
 # These are in Gigarad/s:
-omegas = 2*PI * np.array([4.2 ,3.8, 7.5, ])
+omegas = 2*PI * np.array([4.2 ,3.8, 7.5])
 gs = 2*PI * np.array([0.05, 0.05])
 alpha = -2*PI * 0.150
 omegaPhi = np.abs(omegas[0] - omegas[1])

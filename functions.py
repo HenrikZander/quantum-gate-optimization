@@ -7,7 +7,9 @@ import time
 import scipy
 
 from variables import *
+from plotting import *
 
+i=0
 
 def smoothstep(x, x_min=0, x_max=1, N=1):
     x = np.clip((x - x_min) / (x_max - x_min), 0, 1)
@@ -17,21 +19,22 @@ def smoothstep(x, x_min=0, x_max=1, N=1):
     result *= x ** (N + 1)
     return result
 
-#def hamiltonian(omega, g):
-#    return HBAR*( (-omega[0]/2)*sz1 + (-omega[1]/2)*sz2 + g[0]*(sp1*smTB + sm1*spTB) + g[1]*(sp2*smTB + sm2*spTB) + (-omega[2]/2)*szTB )
-
+"""
+def hamiltonian(omega, g):
+    return HBAR*( (-omega[0]/2)*sz1 + (-omega[1]/2)*sz2 + g[0]*(sp1*smTB + sm1*spTB) + g[1]*(sp2*smTB + sm2*spTB) + (-omega[2]/2)*szTB )
+"""
 
 def testHamiltonian():
     return 2 * np.pi * 0.1 * sigmax()
 
-
+"""
 def Phi(t):
     return Theta + delta*np.cos(omegaPhi*t)
 
 
 def omegaTB(t, args):
     return omegas[2]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
-
+"""
 
 def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, runDA=True, runDE=True, runBH=True, runBayesianWithBH=False, numOfIterBH = 500):
     """
@@ -75,7 +78,7 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
     #Optimization using the Simplicial Homology Global algorithm.
     if runSHG:
         startTime = time.time()
-        resSHG = scipy.optimize.shgo(costFunction, bounds, iters=5)
+        resSHG = scipy.optimize.shgo(costFunction, bounds, iters=4)
         timeSHG = time.time() - startTime
         message += f'The optimizaton using the \"Simplicial Homology Global\"-algorithm took {round(timeSHG,2)}s to execute and ended on a minimum of {resSHG.fun} at the point {resSHG.x}.\n'
         message += f'Function evaluations performed: {resSHG.nfev}\n'
@@ -116,19 +119,37 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
     return result
 
 
-def generateCostFunction(hamiltonian):
+def generateCostFunction(hamiltonian, projectionOperators, useGateFidelity=False, initialState=None, timeStamps=None):
+    if timeStamps is None:
+        timeStamps = np.linspace(0,1700,850)
+    
     def costFunction(x):
-        #Generate a hamiltonian based on the parameters in the list x.
-        #Calculate the time evolution of the Hamiltonian
-        #Calculate the maximum gate fidelity
-        return gateFidelity
+        H = hamiltonian(x)
+        print(x)
+        options = solver.Options()
+        options.nsteps = 3000
+        if useGateFidelity:
+            #Generate a hamiltonian based on the parameters in the list x.
+            #Calculate the time evolution of the Hamiltonian
+            #Calculate the maximum gate fidelity
+            return 0#gateFidelity
+        elif not initialState is None:
+            result = sesolve(H, initialState, timeStamps, projectionOperators, options=options)
+            allExpectedValues = result.expect
+            #plotExpect(result)
+            expectValue = np.amin(allExpectedValues[0])
+            print(expectValue)
+            return expectValue
+        else:
+            print("Calculation failed! Check format of initial quantum state if you have set useGateFidelity equal to True.")
+            return None
     
     return costFunction
 
 
-def optimizeGate(hamiltonian, parameterBounds, initialGuess=None, runBayesian=False, runSHG=True, runDA=True, runDE=True, runBH=True, runBayesianWithBH=False):
-    costFunction = generateCostFunction(hamiltonian)
-    result = findMinimum(costFunction(), parameterBounds, initialGuess, runBayesian=runBayesian, runSHG=runSHG, runDA=runDA, runDE=runDE, runBH=runBH, runBayesianWithBH=runBayesianWithBH)
+def optimizeGate(hamiltonian, parameterBounds, projectionOperators, initialGuess=None, initialState=None, runBayesian=False, runSHG=False, runDA=False, runDE=False, runBH=False, runBayesianWithBH=False):
+    costFunction = generateCostFunction(hamiltonian, projectionOperators, initialState=initialState)
+    result = findMinimum(costFunction, parameterBounds, initialGuess, runBayesian=runBayesian, runSHG=runSHG, runDA=runDA, runDE=runDE, runBH=runBH, runBayesianWithBH=runBayesianWithBH)
     
     
     

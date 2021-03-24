@@ -8,6 +8,17 @@ import qutip.control.pulseoptim as cpo
 import datetime
 
 
+def getHamiltonian1(x):
+    #The format of x is the following: x = [Theta, delta, omegaPhi, omegaTB0]
+    H0 = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
+    H1 = (-1/2)*szTB
+    def Phi(t):
+        return x[0] + x[1]*np.cos(x[2]*t)
+    def omegaTB(t, args):
+        return x[3]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
+    return [H0, [H1, omegaTB]]
+
+
 def timeEvolutionH1():
     H0 = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
     H1 = (-1/2)*szTB
