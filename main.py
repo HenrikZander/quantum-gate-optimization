@@ -11,27 +11,25 @@ import time
 
 def main():
     start = time.time()
-    testGateOptimizer()
-    print(time.time() - start)
+    #testFindMinimum()
+    #testGateOptimizer()
+    testGenerateCostFunction()
+    print(f'Total running time: {time.time() - start} seconds.')
 
 def testGateOptimizer():
     hamiltonian = McKay1.getHamiltonian1
     #x = [Theta, delta, omegaPhi, omegaTB0]
-    parameterBounds = [(-2,2),(-2,2),(20,60),(20,60)]
+    parameterBounds = [(-2,2),(0,2),(20,60),(20,60)]
     initialGuess = [Theta, delta, omegaPhi, omegas[2]]
     initialState = tensor(excitedState,groundState,groundState)
     
-    pSt1 = tensor(eSt,gSt,gSt) # 100
-    pOp1 = pSt1 * pSt1.dag()
-    pSt2 = tensor(gSt,eSt,gSt) # 010
-    pOp2 = pSt2 * pSt2.dag()
-    projectionOperators = [pOp1]
-    
-    optimizeGate(hamiltonian, parameterBounds, projectionOperators, initialGuess=initialGuess, initialState=initialState, runBH=True)
+    projectionOperators = McKay1.getProjectionOperators()
+    optimizeGate(hamiltonian, parameterBounds, projectionOperators, initialGuess=initialGuess, initialState=initialState, runBayesian=True)
     
 
 def testGenerateCostFunction():
-    x0 = [Theta, delta, omegaPhi, omegas[2]]
+    #x0 = [Theta, delta, omegaPhi, omegas[2]]
+    x0 = [0.27704506, -0.20963235, 2.30482495, 46.81909043]
     initialState = tensor(excitedState,groundState,groundState)
     
     pSt1 = tensor(eSt,gSt,gSt) # 100
@@ -40,7 +38,7 @@ def testGenerateCostFunction():
     pOp2 = pSt2 * pSt2.dag()
     pStTB = tensor(gSt,gSt,eSt) # 001
     pOpTB = pStTB * pStTB.dag()
-    projectionOperators = [pOp1]#, pOp2]
+    projectionOperators = McKay1.getProjectionOperators()
     
     hamiltonian = McKay1.getHamiltonian1
     cost = generateCostFunction(hamiltonian, projectionOperators, initialState=initialState)
@@ -54,7 +52,7 @@ def testFun(x):
 
 def testFindMinimum():
     """Used to test the optimizeGate-function in functions.py"""
-    res = findMinimum(testFun, [(-4, 4),(-4,4)], runBayesianWithBH=True)
+    res = findMinimum(testFun, [(-4, 4),(-4,4)], runBayesian=True)
     #print(res[0])
 
 

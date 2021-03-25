@@ -7,6 +7,15 @@ import qutip.logging_utils as logging
 import qutip.control.pulseoptim as cpo
 import datetime
 
+def getProjectionOperators():
+    pSt1 = tensor(eSt,gSt,gSt) # 100
+    pOp1 = pSt1 * pSt1.dag()
+    pSt2 = tensor(gSt,eSt,gSt) # 010
+    pOp2 = pSt2 * pSt2.dag()
+    pStTB = tensor(gSt,gSt,eSt) # 001
+    pOpTB = pStTB * pStTB.dag()
+    return [pOp1,pOp2,pOpTB]
+
 
 def getHamiltonian1(x):
     #The format of x is the following: x = [Theta, delta, omegaPhi, omegaTB0]
