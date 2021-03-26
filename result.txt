@@ -1,0 +1,8 @@
+Result from 2021-03-26 15:27:58.680980:
+The Basin-Hopping-Test algorithm gave a minimum of 0.027497118813522025 at the point [-0.56682599  0.2387175   2.52545336 47.62454201].
+
+Result from 2021-03-26 15:27:58.683972:
+The Basin-Hopping-Test algorithm gave a minimum of 0.14421442988796024 at the point [ 0.3425637   0.09072611  2.59462153 47.3480152 ].
+
+Result from 2021-03-26 15:27:58.684970:
+The Basin-Hopping-Test algorithm gave a minimum of 0.6968272194546247 at the point [-0.6596908  -0.15610402  2.71866775 47.2027924 ].

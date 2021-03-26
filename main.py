@@ -12,19 +12,25 @@ import time
 def main():
     start = time.time()
     #testFindMinimum()
-    #testGateOptimizer()
-    testGenerateCostFunction()
+    testGateOptimizer()
+    #testGenerateCostFunction()
     print(f'Total running time: {time.time() - start} seconds.')
+
+
+def testEvaluateResult():
+    a = [[[1,1],[2,2],[3,3]],[1,2,3]]
+    print(a)
+    print(evaluateResult([10,10],4,a))
+
 
 def testGateOptimizer():
     hamiltonian = McKay1.getHamiltonian1
-    #x = [Theta, delta, omegaPhi, omegaTB0]
-    parameterBounds = [(-2,2),(0,2),(20,60),(20,60)]
+    parameterBounds = [(-2,2),(0,2),(20,60),(20,60)] #Format of x: x = [Theta, delta, omegaPhi, omegaTB0]
     initialGuess = [Theta, delta, omegaPhi, omegas[2]]
     initialState = tensor(excitedState,groundState,groundState)
     
     projectionOperators = McKay1.getProjectionOperators()
-    optimizeGate(hamiltonian, parameterBounds, projectionOperators, initialGuess=initialGuess, initialState=initialState, runBayesian=True)
+    optimizeGate(hamiltonian, parameterBounds, projectionOperators, initialGuess=initialGuess, initialState=initialState, runBH=True)
     
 
 def testGenerateCostFunction():
@@ -52,7 +58,7 @@ def testFun(x):
 
 def testFindMinimum():
     """Used to test the optimizeGate-function in functions.py"""
-    res = findMinimum(testFun, [(-4, 4),(-4,4)], runBayesian=True)
+    res = findMinimum(testFun, [(-4, 4),(-4,4)], runBH=True)
     #print(res[0])
 
 

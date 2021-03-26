@@ -12,6 +12,7 @@ from plotting import *
 i=0
 startTime = 0
 
+
 def smoothstep(x, x_min=0, x_max=1, N=1):
     x = np.clip((x - x_min) / (x_max - x_min), 0, 1)
     result = 0
@@ -20,13 +21,11 @@ def smoothstep(x, x_min=0, x_max=1, N=1):
     result *= x ** (N + 1)
     return result
 
+
 """
 def hamiltonian(omega, g):
     return HBAR*( (-omega[0]/2)*sz1 + (-omega[1]/2)*sz2 + g[0]*(sp1*smTB + sm1*spTB) + g[1]*(sp2*smTB + sm2*spTB) + (-omega[2]/2)*szTB )
 """
-
-def testHamiltonian():
-    return 2 * np.pi * 0.1 * sigmax()
 
 """
 def Phi(t):
@@ -36,6 +35,10 @@ def Phi(t):
 def omegaTB(t, args):
     return omegas[2]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
 """
+
+def testHamiltonian():
+    return 2 * np.pi * 0.1 * sigmax()
+
 
 def bayesianCallback(result):
     global i
@@ -49,18 +52,62 @@ def bayesianCallback(result):
     passedTime = currentTime - startTime
     iterTime = currentTime - lastTime
     lastTime = currentTime
+    
     print(f'Time passed: {passedTime} seconds.')
     print(f'Time of last iteration: {iterTime} seconds.')
     i += 1
-    if i > 50:
+    if passedTime > 14400:
+        i = 0
         return True
     else: 
         return False
-    
-def callbackBH(x,fun):
-    return False
 
-def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, runDA=True, runDE=True, runBH=True, runBayesianWithBH=False, numOfIterBH = 500):
+
+def evaluateResult(x, fun, resultList, N=3):
+    if len(resultList[1]) < N:
+        resultList[0].append(x)
+        resultList[1].append(fun)
+    else:
+        if np.amax(resultList[1]) > fun:
+            indexOfMax = np.argmax(resultList[1])
+            resultList[0][indexOfMax] = x
+            resultList[1][indexOfMax] = fun
+    return resultList
+
+    
+def callbackBH(x, fun, accept):
+    global i
+    global startTime
+    global lastTime
+    global bestResults
+    if i == 0:
+        startTime = time.time()
+        lastTime = startTime
+        bestResults = [[],[]]
+    
+    currentTime = time.time()
+    passedTime = currentTime - startTime
+    iterTime = currentTime - lastTime
+    lastTime = currentTime
+    
+    print(f'Num of found minima: {i+1}')
+    bestResults = evaluateResult(x, fun, bestResults)
+    print(f'The Basin-Hopping algorithm gave a minimum of {fun} at the point {x}.')
+    print(f'Time passed: {passedTime} seconds.')
+    print(f'Time of last iteration: {iterTime} seconds.\n')
+    i += 1
+    if passedTime > 1800: #14400:
+        i = 0
+        result = []
+        for i in range(len(bestResults[1])):
+            result.append((bestResults[0][i],bestResults[1][i]))
+        saveResToFile(result, "Basin-Hopping-Test")
+        print("Optimization timeout triggered!")
+        return True
+    else: 
+        return False
+
+def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, runDA=True, runDE=True, runBH=True, runBayesianWithBH=False, numOfMinimaToFindBH = 500):
     """
     This function finds the minimum of the specified cost function, either within 
     the given bounds or close to the inital guess 'x0' depending on the algorithm 
@@ -90,7 +137,7 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
     #Optimization using the Bayesian optimization algoritm.
     if runBayesian:
         startTime = time.time()
-        resBayesian = gp_minimize(costFunction, bounds, callback=bayesianCallback, n_jobs=-1)
+        resBayesian = gp_minimize(costFunction, bounds, callback=bayesianCallback, n_jobs=-1, n_calls=25)
         timeBayesian = time.time() - startTime
         message += f'The optimizaton using \"gp_minimize()\" took {round(timeBayesian,2)}s to execute and ended on a minimum of {resBayesian.fun} at the point {resBayesian.x}.\n'
         result.append(resBayesian)
@@ -129,7 +176,7 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
     #Optimization using the Basin-hopping algorithm.
     if runBH:
         startTime = time.time()
-        resBH = scipy.optimize.basinhopping(costFunction, x0, niter=numOfIterBH)
+        resBH = scipy.optimize.basinhopping(costFunction, x0, niter=numOfMinimaToFindBH, callback=callbackBH)
         timeBH = time.time() - startTime
         message += f'The optimizaton using the \"Basin-hopping\"-algorithm took {round(timeBH,2)}s to execute and ended on a minimum of {resBH.fun} at the point {resBH.x}.\n'
         message += f'Function evaluations performed: {resBH.nfev}\n'
@@ -144,13 +191,12 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
     return result
 
 
-def generateCostFunction(hamiltonian, projectionOperators, useGateFidelity=False, initialState=None, timeStamps=None, maximumOperationTime=250):
+def generateCostFunction(hamiltonian, projectionOperators, useGateFidelity=False, initialState=None, timeStamps=None, maximumGateTime=250):
     if timeStamps is None:
-        timeStamps = np.linspace(0,maximumOperationTime,maximumOperationTime*3)
+        timeStamps = np.linspace(0,maximumGateTime,maximumGateTime*3)
     
     def costFunction(x):
         H = hamiltonian(x)
-        print(x)
         options = solver.Options()
         options.nsteps = 10000
         if useGateFidelity:
@@ -161,10 +207,9 @@ def generateCostFunction(hamiltonian, projectionOperators, useGateFidelity=False
         elif not initialState is None:
             result = sesolve(H, initialState, timeStamps, projectionOperators, options=options)
             allExpectedValues = result.expect
-            plotExpect(result)
+            #plotExpect(result)
             expectValueQ1 = np.amin(allExpectedValues[0])
             expectValueQ2 = 1 - np.amax(allExpectedValues[1])
-            #print(expectValue)
             return expectValueQ1 + expectValueQ2
         else:
             print("Calculation failed! Check format of initial quantum state if you have set useGateFidelity equal to True.")
@@ -173,8 +218,8 @@ def generateCostFunction(hamiltonian, projectionOperators, useGateFidelity=False
     return costFunction
 
 
-def optimizeGate(hamiltonian, parameterBounds, projectionOperators, initialGuess=None, initialState=None, maximumOperationTime=250, runBayesian=False, runSHG=False, runDA=False, runDE=False, runBH=False, runBayesianWithBH=False):
-    costFunction = generateCostFunction(hamiltonian, projectionOperators, initialState=initialState, maximumOperationTime=maximumOperationTime)
+def optimizeGate(hamiltonian, parameterBounds, projectionOperators, initialGuess=None, initialState=None, maximumGateTime=250, runBayesian=False, runSHG=False, runDA=False, runDE=False, runBH=False, runBayesianWithBH=False):
+    costFunction = generateCostFunction(hamiltonian, projectionOperators, initialState=initialState, maximumGateTime=maximumGateTime)
     result = findMinimum(costFunction, parameterBounds, initialGuess, runBayesian=runBayesian, runSHG=runSHG, runDA=runDA, runDE=runDE, runBH=runBH, runBayesianWithBH=runBayesianWithBH)
     
     

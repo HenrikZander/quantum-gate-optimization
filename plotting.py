@@ -2,8 +2,24 @@ from qutip import *
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 from variables import *
+
+
+def saveResToFile(result,algorithm):
+    for res in result:
+        x = res[0]
+        fun = res[1]
+        
+        todaysDate = datetime.now()
+        dateStr = f'Result from {todaysDate}:\n'
+        resultStr = f'The {algorithm} algorithm gave a minimum of {fun} at the point {x}.\n'
+        strList = [dateStr, resultStr, "\n"]
+        
+        resultFile = open("result.txt", "a")
+        resultFile.writelines(strList)
+        resultFile.close()
 
 
 def plotStates(result):
