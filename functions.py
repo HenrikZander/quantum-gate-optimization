@@ -207,7 +207,7 @@ def optimizeGate(hamiltonianModule, maximumGateTime=250, runBayesian=False, runS
     parameterBounds = hamiltonianModule.getParameterBounds()
     projectionOperators = hamiltonianModule.getProjectionOperators()
     initialState = hamiltonianModule.getInitialState()
-    initialGuess = hamiltonianModule.getInitialState()
+    initialGuess = hamiltonianModule.getInitialGuess()
     
     costFunction = generateCostFunction(hamiltonian, projectionOperators, initialState=initialState, maximumGateTime=maximumGateTime)
     result = findMinimum(costFunction, parameterBounds, initialGuess, runBayesian=runBayesian, runSHG=runSHG, runDA=runDA, runDE=runDE, runBH=runBH, runBayesianWithBH=runBayesianWithBH)
