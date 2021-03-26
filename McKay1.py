@@ -41,6 +41,15 @@ def getInitialState():
     return tensor(excitedState,groundState,groundState) #|100> ket
 
 
+def getInitialGuess():
+    return [Theta, delta, omegaPhi, omegas[2]]
+
+
+def getParameterBounds():
+    #Format of x: x = [Theta, delta, omegaPhi, omegaTB0]
+    return [(-2,2),(0,2),(20,60),(20,60)]
+
+
 def timeEvolutionH1():
     H0 = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
     H1 = (-1/2)*szTB
