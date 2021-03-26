@@ -9,58 +9,9 @@ import scipy
 from variables import *
 from plotting import *
 
-i=0
-startTime = 0
-
-
-def smoothstep(x, x_min=0, x_max=1, N=1):
-    x = np.clip((x - x_min) / (x_max - x_min), 0, 1)
-    result = 0
-    for n in range(N + 1):
-         result += comb(N + n, n) * comb(2 * N + 1, N - n) * (-x) ** n
-    result *= x ** (N + 1)
-    return result
-
-
-"""
-def hamiltonian(omega, g):
-    return HBAR*( (-omega[0]/2)*sz1 + (-omega[1]/2)*sz2 + g[0]*(sp1*smTB + sm1*spTB) + g[1]*(sp2*smTB + sm2*spTB) + (-omega[2]/2)*szTB )
-"""
-
-"""
-def Phi(t):
-    return Theta + delta*np.cos(omegaPhi*t)
-
-
-def omegaTB(t, args):
-    return omegas[2]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
-"""
-
-def testHamiltonian():
-    return 2 * np.pi * 0.1 * sigmax()
-
-
-def bayesianCallback(result):
-    global i
-    global startTime
-    global lastTime
-    if i == 0:
-        startTime = time.time()
-        lastTime = startTime
-    
-    currentTime = time.time()
-    passedTime = currentTime - startTime
-    iterTime = currentTime - lastTime
-    lastTime = currentTime
-    
-    print(f'Time passed: {passedTime} seconds.')
-    print(f'Time of last iteration: {iterTime} seconds.')
-    i += 1
-    if passedTime > 14400:
-        i = 0
-        return True
-    else: 
-        return False
+i = 0
+global maxRuntime
+maxRuntime = 4500
 
 
 def evaluateResult(x, fun, resultList, N=3):
@@ -74,14 +25,12 @@ def evaluateResult(x, fun, resultList, N=3):
             resultList[1][indexOfMax] = fun
     return resultList
 
-    
-def callbackBH(x, fun, accept):
+
+def bayesianCallback(result):
     global i
-    global startTime
     global lastTime
     global bestResults
     if i == 0:
-        startTime = time.time()
         lastTime = startTime
         bestResults = [[],[]]
     
@@ -90,18 +39,52 @@ def callbackBH(x, fun, accept):
     iterTime = currentTime - lastTime
     lastTime = currentTime
     
-    print(f'Num of found minima: {i+1}')
+    fun = result.fun
+    x = result.x
+    
     bestResults = evaluateResult(x, fun, bestResults)
-    print(f'The Basin-Hopping algorithm gave a minimum of {fun} at the point {x}.')
-    print(f'Time passed: {passedTime} seconds.')
-    print(f'Time of last iteration: {iterTime} seconds.\n')
+    print(f'Num of found minima: {i+1}')
+    print(f'The Bayesian Optimization algorithm gave a minimum of {fun} at the point {x}.')
+    print(f'Total time passed: {passedTime} seconds.')
+    print(f'Iteration time: {iterTime} seconds.\n')
     i += 1
-    if passedTime > 1800: #14400:
+    if passedTime > maxRuntime:
         i = 0
         result = []
         for i in range(len(bestResults[1])):
             result.append((bestResults[0][i],bestResults[1][i]))
-        saveResToFile(result, "Basin-Hopping-Test")
+        saveResToFile(result, "Bayesian Optimization")
+        print("Optimization timeout triggered!")
+        return True
+    else: 
+        return False
+
+    
+def callbackBH(x, fun, accept):
+    global i
+    global lastTime
+    global bestResults
+    if i == 0:
+        lastTime = startTime
+        bestResults = [[],[]]
+    
+    currentTime = time.time()
+    passedTime = currentTime - startTime
+    iterTime = currentTime - lastTime
+    lastTime = currentTime
+    
+    bestResults = evaluateResult(x, fun, bestResults)
+    print(f'Num of found minima: {i+1}')
+    print(f'The Basin-Hopping algorithm gave a minimum of {fun} at the point {x}.')
+    print(f'Total time passed: {passedTime} seconds.')
+    print(f'Iteration time: {iterTime} seconds.\n')
+    i += 1
+    if passedTime > maxRuntime:
+        i = 0
+        result = []
+        for i in range(len(bestResults[1])):
+            result.append((bestResults[0][i],bestResults[1][i]))
+        saveResToFile(result, "Basin-Hopping")
         print("Optimization timeout triggered!")
         return True
     else: 
@@ -113,6 +96,8 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
     the given bounds or close to the inital guess 'x0' depending on the algorithm 
     in use. A number of different algorithms can be used simultaneously.
     """
+    
+    global startTime 
     
     #Initial formatting tasks.
     print("")
@@ -207,7 +192,6 @@ def generateCostFunction(hamiltonian, projectionOperators, useGateFidelity=False
         elif not initialState is None:
             result = sesolve(H, initialState, timeStamps, projectionOperators, options=options)
             allExpectedValues = result.expect
-            #plotExpect(result)
             expectValueQ1 = np.amin(allExpectedValues[0])
             expectValueQ2 = 1 - np.amax(allExpectedValues[1])
             return expectValueQ1 + expectValueQ2
@@ -221,11 +205,19 @@ def generateCostFunction(hamiltonian, projectionOperators, useGateFidelity=False
 def optimizeGate(hamiltonian, parameterBounds, projectionOperators, initialGuess=None, initialState=None, maximumGateTime=250, runBayesian=False, runSHG=False, runDA=False, runDE=False, runBH=False, runBayesianWithBH=False):
     costFunction = generateCostFunction(hamiltonian, projectionOperators, initialState=initialState, maximumGateTime=maximumGateTime)
     result = findMinimum(costFunction, parameterBounds, initialGuess, runBayesian=runBayesian, runSHG=runSHG, runDA=runDA, runDE=runDE, runBH=runBH, runBayesianWithBH=runBayesianWithBH)
+
     
+def simulateHamiltonian(hamiltonianModule, x0, simulationTime=500):
+    hamiltonian = hamiltonianModule.getHamiltonian(x0)
+    initialState = hamiltonianModule.getInitialState()
+    projectionOperators = hamiltonianModule.getAllProjectionOperators()
     
+    options = solver.Options()
+    options.nsteps = 10000
+    timeStamps = np.linspace(0,simulationTime,simulationTime*3)
     
-    
-    
+    result = sesolve(hamiltonian, initialState, timeStamps, projectionOperators, options=options)
+    plotExpect(result)
     
     
     

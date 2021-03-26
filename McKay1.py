@@ -7,6 +7,7 @@ import qutip.logging_utils as logging
 import qutip.control.pulseoptim as cpo
 import datetime
 
+
 def getProjectionOperators():
     pSt1 = tensor(eSt,gSt,gSt) # 100
     pOp1 = pSt1 * pSt1.dag()
@@ -25,7 +26,7 @@ def getAllProjectionOperators():
     return [pOp1,pOp2,pOpTB]
 
 
-def getHamiltonian1(x):
+def getHamiltonian(x):
     #The format of x is the following: x = [Theta, delta, omegaPhi, omegaTB0]
     H0 = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
     H1 = (-1/2)*szTB
@@ -34,6 +35,10 @@ def getHamiltonian1(x):
     def omegaTB(t, args):
         return x[3]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
     return [H0, [H1, omegaTB]]
+
+
+def getInitialState():
+    return tensor(excitedState,groundState,groundState) #|100> ket
 
 
 def timeEvolutionH1():
@@ -45,6 +50,15 @@ def timeEvolutionH1():
     projectionOperators = [sz1, sz2, szTB] # Used to calculate different expected values for the state as a function of time. #THESE ARE NOT CORRECT CHANGE TO EMILS OPERATORS!!!!
     result = sesolve(H, initialState, timeStamps, projectionOperators)
     plotExpect(result)
+    
+    
+def smoothstep(x, x_min=0, x_max=1, N=1):
+    x = np.clip((x - x_min) / (x_max - x_min), 0, 1)
+    result = 0
+    for n in range(N + 1):
+         result += comb(N + n, n) * comb(2 * N + 1, N - n) * (-x) ** n
+    result *= x ** (N + 1)
+    return result
 
 
 """def optimizePulseH1():
@@ -87,3 +101,12 @@ def timeEvolutionH1():
     
     
 optimizePulseH1()"""
+
+"""
+def Phi(t):
+    return Theta + delta*np.cos(omegaPhi*t)
+
+
+def omegaTB(t, args):
+    return omegas[2]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
+"""
