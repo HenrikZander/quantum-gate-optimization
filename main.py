@@ -11,10 +11,11 @@ import time
 
 def main():
     start = time.time()
+    # print("Hej!")
     #testFindMinimum()
     #testGateOptimizer()
     #testGenerateCostFunction()
-    optimizeGate(McKay1, runBH=True)
+    optimizeGate(McKay1, runDE=True, runBH=True)
     #simulateHamiltonian(McKay1, [-0.56682599, 0.2387175, 2.52545336, 47.62454201])
     print(f'Total running time: {time.time() - start} seconds.')
 
@@ -43,7 +44,7 @@ def testFun(x):
 
 def testFindMinimum():
     """Used to test the optimizeGate-function in functions.py"""
-    res = findMinimum(testFun, [(-4, 4),(-4,4)], runBH=True)
+    res = findMinimum(testFun, [(-4, 4),(-4,4)])
     #print(res[0])
 
 

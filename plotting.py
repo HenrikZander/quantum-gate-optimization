@@ -6,20 +6,44 @@ from datetime import datetime
 
 from variables import *
 
-
-def saveResToFile(result,algorithm):
+def saveAllFinalResults(results, algorithm, runtime, fileName="result.txt"):
+    resultFile = open(fileName, "a")
+    todaysDate = datetime.now()
+    for i in range(len(results)):
+        dateStr = f'Result (full) from: {todaysDate}\n'
+        algorithmStr = f'Algorithm: {algorithm[i]}\n'
+        runtimeStr = f'Total runtime: {runtime[i]} seconds\n'
+        dividerStr = "##################################################\n"
+        resultStr = str(results[i])
+        
+        strList = [dividerStr, dateStr, algorithmStr, runtimeStr, dividerStr, resultStr, "\n", dividerStr]
+        resultFile.writelines(strList)
+    resultFile.close()
+    
+    
+def saveResToFile(result, algorithmName, iterations, runtime, algorithmDE=False, fileName="result.txt"):
+    resultFile = open(fileName, "a")
+    todaysDate = datetime.now()
+    
+    dateStr = f'Result (timeout) from: {todaysDate}\n'
+    iterStr = f'Total iterations performed (or minima found): {iterations}\n'
+    runtimeStr = f'Total runtime for algorithm: {runtime} seconds.\n'
+    dividerStr = "##################################################\n"
+    strList = [dividerStr, dateStr, iterStr, runtimeStr, dividerStr, "\n"]
+    resultFile.writelines(strList)
+    
     for res in result:
         x = res[0]
         fun = res[1]
         
-        todaysDate = datetime.now()
-        dateStr = f'Result from {todaysDate}:\n'
-        resultStr = f'The {algorithm} algorithm gave a minimum of {fun} at the point {x}.\n'
-        strList = [dateStr, resultStr, "\n"]
+        if algorithmDE:
+            resultStr = f'The {algorithmName} algorithm gave a minimum at the point {x} with a convergence of {fun}.\n'
+        else: 
+            resultStr = f'The {algorithmName} algorithm gave a minimum of {fun} at the point {x}.\n'
         
-        resultFile = open("result.txt", "a")
-        resultFile.writelines(strList)
-        resultFile.close()
+        resultFile.writelines([resultStr, "\n"])
+    resultFile.write(dividerStr)
+    resultFile.close()
 
 
 def plotStates(result):
