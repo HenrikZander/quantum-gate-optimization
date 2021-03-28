@@ -15,8 +15,8 @@ def main():
     #testFindMinimum()
     #testGateOptimizer()
     #testGenerateCostFunction()
-    optimizeGate(McKay1, runDE=True, runBH=True)
-    #simulateHamiltonian(McKay1, [-0.56682599, 0.2387175, 2.52545336, 47.62454201])
+    optimizeGate(McKay1, runDA=True, runSHG=True, runBayesian=True)
+    #simulateHamiltonian(McKay1, [-1.11740019, 0.90085377, 2.52085547, 49.17815508])
     print(f'Total running time: {time.time() - start} seconds.')
 
 
@@ -28,7 +28,8 @@ def testEvaluateResult():
 
 def testGenerateCostFunction():
     #x0 = [Theta, delta, omegaPhi, omegas[2]]
-    x0 = [0.27704506, -0.20963235, 2.30482495, 46.81909043]
+    # x0 = [0.27704506, -0.20963235, 2.30482495, 46.81909043]
+    x0 = [-1.11740019, 0.90085377, 2.52085547, 49.17815508]
     initialState = McKay1.getInitialState()
     projectionOperators = McKay1.getProjectionOperators()
     

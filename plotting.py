@@ -21,7 +21,7 @@ def saveAllFinalResults(results, algorithm, runtime, fileName="result.txt"):
     resultFile.close()
     
     
-def saveResToFile(result, algorithmName, iterations, runtime, algorithmDE=False, fileName="result.txt"):
+def saveResToFile(result, algorithmName, iterations, runtime, algorithmDE=False, algorithmSHG=False, fileName="result.txt"):
     resultFile = open(fileName, "a")
     todaysDate = datetime.now()
     
@@ -38,6 +38,8 @@ def saveResToFile(result, algorithmName, iterations, runtime, algorithmDE=False,
         
         if algorithmDE:
             resultStr = f'The {algorithmName} algorithm gave a minimum at the point {x} with a convergence of {fun}.\n'
+        elif algorithmSHG:
+            resultStr = f'The {algorithmName} algorithm was examining the point {x}.\n'
         else: 
             resultStr = f'The {algorithmName} algorithm gave a minimum of {fun} at the point {x}.\n'
         

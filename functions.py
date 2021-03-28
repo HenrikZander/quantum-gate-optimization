@@ -74,7 +74,7 @@ def callbackBH(x, fun, accept):
     lastTime = currentTime
     
     bestResults = evaluateResult(x, fun, bestResults)
-    print(f'Num of found minima: {i+1}')
+    print(f'Num of minima found: {i+1}')
     print(f'The Basin-Hopping algorithm gave a minimum of {fun} at the point {x}.')
     print(f'Total time passed: {passedTime} seconds.')
     print(f'Iteration time: {iterTime} seconds.\n')
@@ -117,6 +117,64 @@ def callbackDE(x,convergence=None):
         return True
     else: 
         return False
+
+
+def callbackDA(x, fun, context):
+    global i
+    global lastTime
+    global bestResults
+    if i == 0:
+        lastTime = startTime
+        bestResults = [[],[]]
+    
+    currentTime = time.time()
+    passedTime = currentTime - startTime
+    iterTime = currentTime - lastTime
+    lastTime = currentTime
+    
+    bestResults = evaluateResult(x, fun, bestResults)
+    print(f'Num of minima found: {i+1}')
+    print(f'The Dual Anneling algorithm gave a minimum of {fun} at the point {x}.')
+    print(f'Total time passed: {passedTime} seconds.')
+    print(f'Iteration time: {iterTime} seconds.\n')
+    i += 1
+    if passedTime > maxRuntime:
+        result = []
+        for i in range(len(bestResults[1])):
+            result.append((bestResults[0][i],bestResults[1][i]))
+        saveResToFile(result, "Dual Anneling", i, passedTime)
+        i = 0
+        print("Optimization timeout triggered!")
+        return True
+    else: 
+        return False
+
+
+def callbackSHG(x):
+    global i
+    global lastTime
+    global bestResults
+    if i == 0:
+        lastTime = startTime
+        bestResults = [[],[]]
+    
+    currentTime = time.time()
+    passedTime = currentTime - startTime
+    iterTime = currentTime - lastTime
+    lastTime = currentTime
+    
+    print(f'Num of iterations: {i+1}')
+    print(f'The current point of examination by the Simplicial Homology Global algorithm is {x}.')
+    print(f'Total time passed: {passedTime} seconds.')
+    print(f'Iteration time: {iterTime} seconds.\n')
+    i += 1
+    if passedTime > maxRuntime:
+        i = 0
+        print("Optimization timeout triggered!")
+        return True
+    else: 
+        return False
+
 
 def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, runDA=True, runDE=True, runBH=True, runBayesianWithBH=False, numOfMinimaToFindBH = 500):
     """
@@ -166,7 +224,7 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
     #Optimization using the Simplicial Homology Global algorithm.
     if runSHG:
         startTime = time.time()
-        resSHG = scipy.optimize.shgo(costFunction, bounds, iters=4)
+        resSHG = scipy.optimize.shgo(costFunction, bounds, iters=4, callback=callbackSHG)
         timeSHG = time.time() - startTime
         message += f'The optimizaton using the \"Simplicial Homology Global\"-algorithm took {round(timeSHG,2)}s to execute and ended on a minimum of {resSHG.fun} at the point {resSHG.x}.\n'
         message += f'Function evaluations performed: {resSHG.nfev}\n'
@@ -177,7 +235,7 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
     #Optimization using the Dual Annealing algorithm. 
     if runDA:
         startTime = time.time()
-        resDA = scipy.optimize.dual_annealing(costFunction, bounds)
+        resDA = scipy.optimize.dual_annealing(costFunction, bounds, callback=callbackDA)
         timeDA = time.time() - startTime
         message += f'The optimizaton using the \"Dual Annealing\"-algorithm took {round(timeDA,2)}s to execute and ended on a minimum of {resDA.fun} at the point {resDA.x}.\n'
         message += f'Function evaluations performed: {resDA.nfev}\n'
