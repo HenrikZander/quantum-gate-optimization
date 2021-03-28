@@ -7,3 +7,72 @@ The Basin-Hopping algorithm gave a minimum of 0.14421442988796024 at the point [
 Result from 2021-03-26 15:27:58.684970:
 The Basin-Hopping algorithm gave a minimum of 0.6968272194546247 at the point [-0.6596908  -0.15610402  2.71866775 47.2027924 ].
 
+##################################################
+Result (timeout) from: 2021-03-28 01:06:03.819485
+Total iterations performed (or minima found): 23
+Total runtime for algorithm: 11122.281002521515 seconds.
+##################################################
+
+The Differential Evolution algorithm gave a minimum at the point [ 1.04245268  1.40691511 46.64471664 34.49398537] with a convergence of 0.09990077563110633.
+
+##################################################
+##################################################
+Result (timeout) from: 2021-03-28 05:28:25.965626
+Total iterations performed (or minima found): 4
+Total runtime for algorithm: 11058.930540323257 seconds.
+##################################################
+
+The Basin-Hopping algorithm gave a minimum of 0.0028857110788127987 at the point [-1.42465745  0.57298549  2.52355871 49.01101584].
+
+The Basin-Hopping algorithm gave a minimum of 0.04970388675628238 at the point [-0.81511931  1.04880583  2.53802426 48.55645324].
+
+The Basin-Hopping algorithm gave a minimum of 0.09346755564461164 at the point [-1.21197395  1.07522453  2.54611698 49.01617116].
+
+The Basin-Hopping algorithm gave a minimum of 7.0384730303278105e-06 at the point [-1.11740019  0.90085377  2.52085547 49.17815508].
+
+The Basin-Hopping algorithm gave a minimum of 0.2295385590238168 at the point [-0.97953978  0.7369005   2.39307001 48.1177318 ].
+
+##################################################
+##################################################
+Result (full) from: 2021-03-28 05:28:25.967201
+Algorithm: Differential Evolution
+Total runtime: 12205.497571468353 seconds
+##################################################
+     fun: 0.9799211117714018
+     jac: array([14511.57799464, 32080.1866537 , 14544.53440363, 34310.28117795])
+ message: 'callback function requested stop early by returning True'
+    nfev: 1580
+     nit: 23
+ success: False
+       x: array([ 1.04245268,  1.40691511, 46.64471659, 34.49398541])
+##################################################
+##################################################
+Result (full) from: 2021-03-28 05:28:25.967201
+Algorithm: Basin-Hopping
+Total runtime: 11058.933113098145 seconds
+##################################################
+                        fun: 7.0384730303278105e-06
+ lowest_optimization_result:       fun: 7.0384730303278105e-06
+ hess_inv: array([[ 9.44697143e-07,  5.85229087e-07,  3.23123221e-08,
+        -5.29383819e-06],
+       [ 5.85229087e-07,  7.88848233e-07,  3.44119636e-08,
+        -9.71714946e-06],
+       [ 3.23123221e-08,  3.44119636e-08,  1.17506884e-08,
+         1.37521090e-07],
+       [-5.29383819e-06, -9.71714946e-06,  1.37521090e-07,
+         9.67683092e-04]])
+      jac: array([ 7.17047551e-03, -2.47457361e-03, -3.85981968e-01, -2.44784937e-04])
+  message: 'Desired error not necessarily achieved due to precision loss.'
+     nfev: 568
+      nit: 44
+     njev: 112
+   status: 2
+  success: False
+        x: array([-1.11740019,  0.90085377,  2.52085547, 49.17815508])
+                    message: ['callback function requested stop early byreturning True']
+      minimization_failures: 25
+                       nfev: 9949
+                        nit: 24
+                       njev: 1941
+                          x: array([-1.11740019,  0.90085377,  2.52085547, 49.17815508])
+##################################################
