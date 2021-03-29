@@ -76,3 +76,128 @@ Total runtime: 11058.933113098145 seconds
                        njev: 1941
                           x: array([-1.11740019,  0.90085377,  2.52085547, 49.17815508])
 ##################################################
+##################################################
+Result (timeout) from: 2021-03-29 10:02:27.062450
+Total iterations performed (or minima found): 4
+Total runtime for algorithm: 10898.286268949509 seconds.
+##################################################
+
+The Dual Anneling algorithm gave a minimum of 0.9808668901917552 at the point [-1.13618217  1.53178462 58.93656379 35.93475261].
+
+The Dual Anneling algorithm gave a minimum of 0.9816720814159231 at the point [-1.13618217  0.37593016 34.78691548 35.93475261].
+
+The Dual Anneling algorithm gave a minimum of 0.9814889766580488 at the point [-1.13618217  0.37593016 56.01728332 35.93475261].
+
+The Dual Anneling algorithm gave a minimum of 0.9814829250552559 at the point [-1.13618217  0.37593016 56.5208061  35.93475261].
+
+The Dual Anneling algorithm gave a minimum of 0.9814774371023722 at the point [-1.13618217  0.37593016 58.93656379 35.93475261].
+
+##################################################
+##################################################
+Result (full) from: 2021-03-29 10:02:27.064415
+Algorithm: Bayesian Optimization
+Total runtime: 255.6958692073822 seconds
+##################################################
+          fun: 1.0366876580710662
+    func_vals: array([1.99959178, 1.84333804, 1.99961851, 1.99535774, 1.98357144,
+       1.99896308, 1.86947902, 1.87583521, 1.99244412, 1.99278316,
+       1.99087017, 1.98739428, 1.98976468, 1.99898589, 1.86947902,
+       1.86947902, 1.86947902, 1.96261261, 1.03904498, 1.03946578,
+       1.03832631, 1.03668766, 1.03813947, 1.03832631, 1.03691075])
+       models: [GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5) + WhiteKernel(noise_level=1),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697)]
+ random_state: RandomState(MT19937) at 0x1F38AF54D40
+        space: Space([Integer(low=-2, high=2, prior='uniform', transform='normalize'),
+       Integer(low=0, high=2, prior='uniform', transform='normalize'),
+       Integer(low=20, high=60, prior='uniform', transform='normalize'),
+       Integer(low=20, high=60, prior='uniform', transform='normalize')])
+        specs: {'args': {'func': <function generateCostFunction.<locals>.costFunction at 0x000001F390AB7670>, 'dimensions': Space([Integer(low=-2, high=2, prior='uniform', transform='normalize'),
+       Integer(low=0, high=2, prior='uniform', transform='normalize'),
+       Integer(low=20, high=60, prior='uniform', transform='normalize'),
+       Integer(low=20, high=60, prior='uniform', transform='normalize')]), 'base_estimator': GaussianProcessRegressor(kernel=1**2 * Matern(length_scale=[1, 1, 1, 1], nu=2.5),
+                         n_restarts_optimizer=2, noise='gaussian',
+                         normalize_y=True, random_state=260327697), 'n_calls': 25, 'n_random_starts': None, 'n_initial_points': 10, 'initial_point_generator': 'random', 'acq_func': 'gp_hedge', 'acq_optimizer': 'auto', 'x0': None, 'y0': None, 'random_state': RandomState(MT19937) at 0x1F38AF54D40, 'verbose': False, 'callback': <function bayesianCallback at 0x000001F39091C790>, 'n_points': 10000, 'n_restarts_optimizer': 5, 'xi': 0.01, 'kappa': 1.96, 'n_jobs': -1, 'model_queue_size': None}, 'function': 'base_minimize'}
+            x: [0, 1, 60, 32]
+      x_iters: [[0, 0, 40, 58], [1, 1, 52, 34], [2, 0, 51, 59], [0, 1, 20, 44], [2, 2, 24, 39], [-1, 2, 39, 58], [1, 0, 48, 28], [-1, 1, 59, 30], [0, 2, 56, 42], [2, 1, 59, 23], [1, 0, 21, 33], [-1, 0, 49, 32], [1, 0, 58, 20], [1, 2, 50, 58], [0, 0, 55, 28], [0, 0, 53, 28], [0, 0, 55, 28], [0, 1, 53, 28], [-2, 1, 22, 32], [-1, 1, 21, 32], [1, 1, 60, 32], [0, 1, 60, 32], [-2, 1, 58, 32], [1, 1, 60, 32], [-2, 1, 60, 32]]
+##################################################
+##################################################
+Result (full) from: 2021-03-29 10:02:27.064415
+Algorithm: Simplicial Homology Global
+Total runtime: 31445.809494256973 seconds
+##################################################
+     fun: 1.2756010130634767
+    funl: array([1.27560101, 1.51398427, 1.51477442, 1.85486869, 1.87723434,
+       1.9087083 , 1.9088671 , 1.90952983, 1.91067952])
+ message: 'Optimization terminated successfully.'
+    nfev: 3569
+     nit: 4
+   nlfev: 2688
+   nlhev: 0
+   nljev: 188
+ success: True
+       x: array([ 1.96395499,  0.49401894, 59.96691234, 40.04995014])
+      xl: array([[ 1.96395499e+00,  4.94018940e-01,  5.99669123e+01,
+         4.00499501e+01],
+       [-1.99672493e+00,  1.50011166e+00,  5.99629688e+01,
+         3.99916873e+01],
+       [ 1.99849828e+00,  1.49952848e+00,  4.99899794e+01,
+         3.99967695e+01],
+       [-1.99492240e+00,  4.99474063e-01,  5.99590713e+01,
+         4.00400384e+01],
+       [-1.82112913e-03,  5.00233232e-01,  5.99770195e+01,
+         4.00068057e+01],
+       [ 9.98228449e-01,  1.99699946e+00,  5.99640835e+01,
+         2.99978399e+01],
+       [ 1.99322219e+00,  1.99752151e+00,  3.99743167e+01,
+         2.99967889e+01],
+       [-2.44784344e-03,  1.99892055e+00,  2.00148456e+01,
+         2.99925163e+01],
+       [-9.98935507e-01,  1.99708687e+00,  4.00113972e+01,
+         2.99407558e+01]])
+##################################################
+##################################################
+Result (full) from: 2021-03-29 10:02:27.064415
+Algorithm: Dual Annealing
+Total runtime: 10898.290260076523 seconds
+##################################################
+     fun: 0.9808668901917552
+ message: ['Callback function requested to stop early by returning True']
+    nfev: 1819
+    nhev: 0
+     nit: 44
+    njev: 292
+  status: 0
+ success: False
+       x: array([-1.13618217,  1.53178462, 58.93656379, 35.93475261])
+##################################################
