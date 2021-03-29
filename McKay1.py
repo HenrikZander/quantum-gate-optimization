@@ -37,6 +37,22 @@ def getHamiltonian(x):
     return [H0, [H1, omegaTB]]
 
 
+def getSStepHamiltonian(x):
+    #The format of x is the following: x = [Theta, deltamax, omegaPhi, omegaTB0]
+    H0 = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
+    H1 = (-1/2)*szTB
+    # tWait should in reality not be hardcoded, but is approximately the same as the gate operation time for constant delta:
+    tRise = 1.0
+    tWait = 270.0 - tRise
+    def deltaSStep(t):
+        return x[1]*( smoothstep(t, 0, tRise) - smoothstep(t, tWait + tRise, tWait + 2*tRise) )
+    def Phi(t):
+        return x[0] + deltaSStep(t)*np.cos(x[2]*t)
+    def omegaTB(t, args):
+        return x[3]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
+    return [H0, [H1, omegaTB]]
+
+
 def getInitialState():
     return tensor(excitedState,groundState,groundState) #|100> ket
 
