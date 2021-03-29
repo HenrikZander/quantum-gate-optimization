@@ -210,7 +210,7 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
     #Optimization using the Bayesian optimization algoritm.
     if runBayesian:
         startTime = time.time()
-        resBayesian = gp_minimize(costFunction, bounds, callback=bayesianCallback, n_jobs=-1, n_calls=25)
+        resBayesian = gp_minimize(costFunction, bounds, callback=bayesianCallback, n_jobs=-1, n_calls=4000, n_initial_points=100)
         timeBayesian = time.time() - startTime
         message += f'The optimizaton using \"gp_minimize()\" took {round(timeBayesian,2)}s to execute and ended on a minimum of {resBayesian.fun} at the point {resBayesian.x}.\n'
         result.append(resBayesian)
