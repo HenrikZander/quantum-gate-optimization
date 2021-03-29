@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from variables import *
 from functions import *
 from plotting import *
+from McKay1 import *
 
 ts = np.linspace(0,1,1000)
 psi0 = tensor(eSt,gSt,gSt) #100
