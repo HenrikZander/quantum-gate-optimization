@@ -42,7 +42,7 @@ def getInitialGuess():
 
 def getParameterBounds():
     #Format of x: x = [Theta, delta, omegaPhi, omegaTB0]
-    return [(-0.5,0.5),(0,0.3),(0,5),(20,60)]
+    return [(-0.5,0.5),(0,0.25),(0,5),(20,60)]
 
 # I did not make a version of McKay1's 'timeEvolutionH1()', because it seems to use omegaTB without defining it
 
