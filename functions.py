@@ -291,9 +291,8 @@ def generateCostFunction(hamiltonian, projectionOperators, useGateFidelity=False
         elif not initialState is None:
             result = sesolve(H, initialState, timeStamps, projectionOperators, options=options)
             allExpectedValues = result.expect
-            expectValueQ1 = np.amin(allExpectedValues[0])
-            expectValueQ2 = 1 - np.amax(allExpectedValues[1])
-            return expectValueQ1 + expectValueQ2
+            expectValue = -np.amax(allExpectedValues[0])
+            return expectValue
         else:
             print("Calculation failed! Check format of initial quantum state if you have set useGateFidelity equal to True.")
             return None

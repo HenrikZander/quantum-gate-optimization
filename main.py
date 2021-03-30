@@ -15,8 +15,8 @@ def main():
     #testFindMinimum()
     #testGateOptimizer()
     #testGenerateCostFunction()
-    optimizeGate(McKay1, runBayesian=True)
-    #simulateHamiltonian(McKay1, [-1.11740019, 0.90085377, 2.52085547, 49.17815508])
+    # optimizeGate(McKay1, runBayesian=True)
+    simulateHamiltonian(McKay1, [-1.13618217,  1.53178462, 58.93656379, 35.93475261], simulationTime=50)
     print(f'Total running time: {time.time() - start} seconds.')
 
 

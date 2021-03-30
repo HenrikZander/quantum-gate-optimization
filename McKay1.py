@@ -13,7 +13,7 @@ def getProjectionOperators():
     pOp1 = pSt1 * pSt1.dag()
     pSt2 = tensor(gSt,eSt,gSt) # 010
     pOp2 = pSt2 * pSt2.dag()
-    return [pOp1,pOp2]
+    return [pOp2]
 
 
 def getAllProjectionOperators():
@@ -63,7 +63,7 @@ def getInitialGuess():
 
 def getParameterBounds():
     #Format of x: x = [Theta, delta, omegaPhi, omegaTB0]
-    return [(-2,2),(0,2),(20,60),(20,60)]
+    return [(-2,2),(0,2),(0,5),(20,60)]
 
 
 def timeEvolutionH1():
