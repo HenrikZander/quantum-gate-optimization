@@ -11,12 +11,11 @@ import time
 
 def main():
     start = time.time()
-    # print("Hej!")
-    #testFindMinimum()
-    #testGateOptimizer()
-    #testGenerateCostFunction()
-    # optimizeGate(McKay1, runBayesian=True)
-    simulateHamiltonian(McKay1, [-1.13618217,  1.53178462, 58.93656379, 35.93475261], simulationTime=50)
+    # testFindMinimum()
+    # testGateOptimizer()
+    # testGenerateCostFunction()
+    optimizeGate(McKay1, runBayesian=True)
+    # simulateHamiltonian(McKay1, [-1.13618217,  1.53178462, 58.93656379, 35.93475261], simulationTime=50)
     print(f'Total running time: {time.time() - start} seconds.')
 
 

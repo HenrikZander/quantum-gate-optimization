@@ -5,9 +5,8 @@ from scipy.special import comb
 from skopt import gp_minimize
 import time
 import scipy
-
-from variables import *
 from plotting import *
+
 
 i = 0
 global maxRuntime
@@ -322,7 +321,4 @@ def simulateHamiltonian(hamiltonianModule, x0, simulationTime=500):
     
     result = sesolve(hamiltonian, initialState, timeStamps, projectionOperators, options=options)
     plotExpect(result)
-    
-    
-    
     

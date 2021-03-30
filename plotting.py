@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-from variables import *
 
 def saveAllFinalResults(results, algorithm, runtime, fileName="result.txt"):
     resultFile = open(fileName, "a")
