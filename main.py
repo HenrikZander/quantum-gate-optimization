@@ -28,7 +28,7 @@ def testEvaluateResult():
 def testGenerateCostFunction():
     #x0 = [Theta, delta, omegaPhi, omegas[2]]
     # x0 = [0.27704506, -0.20963235, 2.30482495, 46.81909043]
-    x0 = [-1.11740019, 0.90085377, 2.52085547, 49.17815508]
+    x0 = [-1.11740019,  0.90085377,  2.52085547, 49.17815508]
     initialState = McKay1.getInitialState()
     projectionOperators = McKay1.getProjectionOperators()
     
