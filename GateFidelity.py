@@ -13,7 +13,7 @@ avg_gate_fidelity=(abs((M*U.dag()).tr())^2)/(ISWAP.shape[1]*(ISWAP.shape[1]+1))
 
 phi=np.angle(M11)
 theta1=np.angle(M12)+(np.pi/2)-phi
-theta2=np.angle(M21)+(np.pi/2)-phi)
+theta2=np.angle(M21)+(np.pi/2)-phi
 
 r1=tensor(gSt,gSt) # |00>
 r2=tensor(gSt,eSt) # |01>
