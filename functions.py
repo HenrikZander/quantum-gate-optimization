@@ -12,6 +12,19 @@ i = 0
 global maxRuntime
 maxRuntime = 10800
 
+def smoothstep(x, x_min=0, x_max=1, N=1):
+    x = np.clip((x - x_min) / (x_max - x_min), 0, 1)
+    result = 0
+    for n in range(N + 1):
+         result += comb(N + n, n) * comb(2 * N + 1, N - n) * (-x) ** n
+    result *= x ** (N + 1)
+    return result
+
+def sinstep(x, x_min=0, x_max=1):
+    x = np.clip((x - x_min) / (x_max - x_min), 0, 1)
+    result = 0.5 - 0.5*np.cos(np.pi*x)
+    return result
+
 
 def evaluateResult(x, fun, resultList, N=5):
     if len(resultList[1]) < N:

@@ -37,17 +37,18 @@ def getHamiltonian(x):
     return [H0, [H1, omegaTB]]
 
 
-def getSStepHamiltonian(x):
+def getSStepHamiltonian(x,operationTime=300.0):
     #The format of x is the following: x = [Theta, deltamax, omegaPhi, omegaTB0]
     H0 = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
     H1 = (-1/2)*szTB
-    # tWait should in reality not be hardcoded, but is approximately the same as the gate operation time for constant delta:
-    tRise = 1.0
-    tWait = 270.0 - tRise
-    def deltaSStep(t):
-        return x[1]*( smoothstep(t, 0, tRise) - smoothstep(t, tWait + tRise, tWait + 2*tRise) )
+    
+    tRise = 2.0
+    tWait = operationTime - tRise
+    smoothness = 1
+    def smoothBox(t):
+        return smoothstep(t, 0, tRise, smoothness) - smoothstep(t, tWait + tRise, tWait + 2*tRise, smoothness)
     def Phi(t):
-        return x[0] + deltaSStep(t)*np.cos(x[2]*t)
+        return x[0] + smoothBox(t) * x[1]*np.cos(x[2]*t)
     def omegaTB(t, args):
         return x[3]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
     return [H0, [H1, omegaTB]]
@@ -75,15 +76,6 @@ def timeEvolutionH1():
     projectionOperators = [sz1, sz2, szTB] # Used to calculate different expected values for the state as a function of time. #THESE ARE NOT CORRECT CHANGE TO EMILS OPERATORS!!!!
     result = sesolve(H, initialState, timeStamps, projectionOperators)
     plotExpect(result)
-    
-    
-def smoothstep(x, x_min=0, x_max=1, N=1):
-    x = np.clip((x - x_min) / (x_max - x_min), 0, 1)
-    result = 0
-    for n in range(N + 1):
-         result += comb(N + n, n) * comb(2 * N + 1, N - n) * (-x) ** n
-    result *= x ** (N + 1)
-    return result
 
 
 """def optimizePulseH1():

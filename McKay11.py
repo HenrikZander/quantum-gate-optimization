@@ -33,6 +33,37 @@ def getHamiltonian(x):
         return x[3]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
     return [H0, [H1, omegaTB]]
 
+def getSStepHamiltonian(x,operationTime=300.0):
+    #The format of x is the following: x = [Theta, deltamax, omegaPhi, omegaTB0]
+    H0 = omegas[0]*ad3_1*a3_1 - (alphas[0]/2.0)*(1-ad3_1*a3_1)*ad3_1*a3_1 + omegas[1]*ad3_2*a3_2 - (alphas[1]/2.0)*(1-ad3_2*a3_2)*ad3_2*a3_2 - (alphas[2]/2.0)*(1-ad3_TB*a3_TB)*ad3_TB*a3_TB + gs[0]*(ad3_1 + a3_1)*(ad3_TB + a3_TB) + gs[1]*(ad3_2 + a3_2)*(ad3_TB + a3_TB)
+    H1 = ad3_TB*a3_TB
+    
+    tRise = 2.0
+    tWait = operationTime - tRise
+    smoothness = 1
+    def smoothBox(t):
+        return smoothstep(t, 0, tRise, smoothness) - smoothstep(t, tWait + tRise, tWait + 2*tRise, smoothness)
+    def Phi(t):
+        return x[0] + smoothBox(t) * x[1]*np.cos(x[2]*t)
+    def omegaTB(t, args):
+        return x[3]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
+    return [H0, [H1, omegaTB]]
+
+def getSinStepHamiltonian(x,operationTime=300.0):
+    #The format of x is the following: x = [Theta, deltamax, omegaPhi, omegaTB0]
+    H0 = omegas[0]*ad3_1*a3_1 - (alphas[0]/2.0)*(1-ad3_1*a3_1)*ad3_1*a3_1 + omegas[1]*ad3_2*a3_2 - (alphas[1]/2.0)*(1-ad3_2*a3_2)*ad3_2*a3_2 - (alphas[2]/2.0)*(1-ad3_TB*a3_TB)*ad3_TB*a3_TB + gs[0]*(ad3_1 + a3_1)*(ad3_TB + a3_TB) + gs[1]*(ad3_2 + a3_2)*(ad3_TB + a3_TB)
+    H1 = ad3_TB*a3_TB
+    
+    tRise = 2.0
+    tWait = operationTime - tRise
+    def sinBox(t):
+        return sinstep(t, 0, tRise) - sinstep(t, tWait + tRise, tWait + 2*tRise)
+    def Phi(t):
+        return x[0] + sinBox(t) * x[1]*np.cos(x[2]*t)
+    def omegaTB(t, args):
+        return x[3]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
+    return [H0, [H1, omegaTB]]
+
 
 def getInitialState():
     return tensor(excitedState3,groundState3,groundState3) #|100> ket
@@ -45,11 +76,3 @@ def getParameterBounds():
     return [(-0.5,0.5),(0,0.25),(0,5),(20,60)]
 
 # I did not make a version of McKay1's 'timeEvolutionH1()', because it seems to use omegaTB without defining it
-
-def smoothstep(x, x_min=0, x_max=1, N=1):
-    x = np.clip((x - x_min) / (x_max - x_min), 0, 1)
-    result = 0
-    for n in range(N + 1):
-         result += comb(N + n, n) * comb(2 * N + 1, N - n) * (-x) ** n
-    result *= x ** (N + 1)
-    return result

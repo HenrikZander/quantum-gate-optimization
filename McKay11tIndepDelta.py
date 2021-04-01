@@ -13,6 +13,7 @@ pOps = getAllProjectionOperators()
 
 x1 = [1.0-0.56682599, 0.2387175, 2.52545336, 47.62454201] # Theta, delta, omegaPhi, omegaTB0
 x2 = [2.0-1.42465745, 0.57298549, 2.52355871, 49.01101584] # Theta, delta, omegaPhi, omegaTB0
+x3 = [-0.380725997,  0.0937065073, 0.0159535441,  39.0881746] # Theta, delta, omegaPhi, omegaTB0
 
 H = getHamiltonian(x1)
 
