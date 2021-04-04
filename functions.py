@@ -25,6 +25,10 @@ def sinstep(x, x_min=0, x_max=1):
     result = 0.5 - 0.5*np.cos(np.pi*x)
     return result
 
+def getEigenstates(x, H_const, H_omegaTB):
+    H = H_const + x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0]))) * H_omegaTB
+    return H.eigenstates()
+
 
 def evaluateResult(x, fun, resultList, N=5):
     if len(resultList[1]) < N:
