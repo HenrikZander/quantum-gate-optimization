@@ -19,7 +19,9 @@ x4 = [-0.33206001,  0.47870109, 1.26839156, 26.54997568] # Theta, delta, omegaPh
 x0401DE = [-0.380725997,  0.0937065073,  0.0159535441,  39.0881746] # Theta, delta, omegaPhi, omegaTB0 # tOp = 112.5
 x0401DA = [-0.35236044,  0.10932302,  0.84559989, 31.59465913] # Theta, delta, omegaPhi, omegaTB0 # tOp = 50
 
-H = getSStepHamiltonian(x0401DA,operationTime=50)
+H = getSStepHamiltonian(x0401DA,operationTime=50.4)
 
-output = sesolve(H, psi0, ts, e_ops=pOps) # Verkar funka
+eigpOps = getAllEigenProjectionOperators(x0401DA)
+
+output = sesolve(H, psi0, ts, e_ops=eigpOps) # Verkar funka
 plotExpect(output)

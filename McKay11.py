@@ -6,6 +6,8 @@ from functions import *
 from plotting import *
 
 
+# Projection operators for projecting onto the bare states of the system:
+
 def getProjectionOperators():
     pSt1 = tensor(eSt3,gSt3,gSt3) # 100
     pOp1 = pSt1 * pSt1.dag()
@@ -19,6 +21,48 @@ def getAllProjectionOperators():
     pSt2 = tensor(gSt3,eSt3,gSt3) # 010
     pOp2 = pSt2 * pSt2.dag()
     pStTB = tensor(gSt3,gSt3,eSt3) # 001
+    pOpTB = pStTB * pStTB.dag()
+    return [pOp1,pOp2,pOpTB]
+
+
+# Projection operators for projecting onto the eigenstates of the hamiltonian:
+
+def getEigenProjectionOperators(x):
+    H0 = omegas[0]*ad3_1*a3_1 - (alphas[0]/2.0)*(1-ad3_1*a3_1)*ad3_1*a3_1 + omegas[1]*ad3_2*a3_2 - (alphas[1]/2.0)*(1-ad3_2*a3_2)*ad3_2*a3_2 - (alphas[2]/2.0)*(1-ad3_TB*a3_TB)*ad3_TB*a3_TB + gs[0]*(ad3_1 + a3_1)*(ad3_TB + a3_TB) + gs[1]*(ad3_2 + a3_2)*(ad3_TB + a3_TB)
+    H1 = ad3_TB*a3_TB
+    eigSts = getEigenstates(x,H_const=H0,H_omegaTB=H1)
+
+    pSt1 = eigSts[1][3] # 100
+    pOp1 = pSt1 * pSt1.dag()
+    pSt2 = eigSts[1][2] # 010
+    pOp2 = pSt2 * pSt2.dag()
+    return [pOp2]
+
+def getAllEigenProjectionOperators(x):
+    H0 = omegas[0]*ad3_1*a3_1 - (alphas[0]/2.0)*(1-ad3_1*a3_1)*ad3_1*a3_1 + omegas[1]*ad3_2*a3_2 - (alphas[1]/2.0)*(1-ad3_2*a3_2)*ad3_2*a3_2 - (alphas[2]/2.0)*(1-ad3_TB*a3_TB)*ad3_TB*a3_TB + gs[0]*(ad3_1 + a3_1)*(ad3_TB + a3_TB) + gs[1]*(ad3_2 + a3_2)*(ad3_TB + a3_TB)
+    H1 = ad3_TB*a3_TB
+    eigSts = getEigenstates(x,H_const=H0,H_omegaTB=H1)
+
+    omegaTB_Th = x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0])))
+
+    if omegaTB_Th < omegas[1] and omegaTB_Th < omegas[0]:
+        i_100 = 3
+        i_010 = 2
+        i_001 = 1
+    elif omegaTB_Th >= omegas[1] and omegaTB_Th < omegas[0]:
+        i_100 = 3
+        i_010 = 1
+        i_001 = 2 
+    elif omegaTB_Th >= omegas[1] and omegaTB_Th >= omegas[0]:
+        i_100 = 2
+        i_010 = 1
+        i_001 = 3 
+
+    pSt1 = eigSts[1][i_100] # 100
+    pOp1 = pSt1 * pSt1.dag()
+    pSt2 = eigSts[1][i_010] # 010
+    pOp2 = pSt2 * pSt2.dag()
+    pStTB = eigSts[1][i_001] # 001
     pOpTB = pStTB * pStTB.dag()
     return [pOp1,pOp2,pOpTB]
 
