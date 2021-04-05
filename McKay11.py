@@ -32,9 +32,25 @@ def getEigenProjectionOperators(x):
     H1 = ad3_TB*a3_TB
     eigSts = getEigenstates(x,H_const=H0,H_omegaTB=H1)
 
-    pSt1 = eigSts[1][3] # 100
+    omegaTB_Th = x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0])))
+
+    # OBS detta antar att omega1 > omega2 och att omega1, omega2 och omegaTB_Th inte är för nära varandra:
+    if omegaTB_Th < omegas[1] and omegaTB_Th < omegas[0]:
+        i_100 = 3
+        i_010 = 2
+        i_001 = 1
+    elif omegaTB_Th >= omegas[1] and omegaTB_Th < omegas[0]:
+        i_100 = 3
+        i_010 = 1
+        i_001 = 2 
+    elif omegaTB_Th >= omegas[1] and omegaTB_Th >= omegas[0]:
+        i_100 = 2
+        i_010 = 1
+        i_001 = 3 
+
+    pSt1 = eigSts[1][i_100] # 100
     pOp1 = pSt1 * pSt1.dag()
-    pSt2 = eigSts[1][2] # 010
+    pSt2 = eigSts[1][i_010] # 010
     pOp2 = pSt2 * pSt2.dag()
     return [pOp2]
 
@@ -45,6 +61,7 @@ def getAllEigenProjectionOperators(x):
 
     omegaTB_Th = x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0])))
 
+    # OBS detta antar att omega_1 > omega_2 och att omega1, omega2 och omegaTB_Th inte är för nära varandra:
     if omegaTB_Th < omegas[1] and omegaTB_Th < omegas[0]:
         i_100 = 3
         i_010 = 2
