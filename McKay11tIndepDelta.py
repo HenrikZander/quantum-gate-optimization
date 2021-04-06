@@ -22,7 +22,7 @@ x0401DA = [-0.35236044,  0.10932302,  0.84559989, 31.59465913] # Theta, delta, o
 xUsed = x0401DA
 
 eigpsi0 = getInitialEigenState(xUsed)
-eigpOps = getAllEigenProjectionOperators(xUsed)
+eigpOps = getAllFinalEigenProjectionOperators(xUsed)
 H = getHamiltonian(xUsed)
 
 output = sesolve(H, eigpsi0, ts, e_ops=eigpOps) # Verkar funka

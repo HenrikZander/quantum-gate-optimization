@@ -6,7 +6,7 @@ from functions import *
 from plotting import *
 from McKay11 import *
 
-ts = np.linspace(0,60,500)
+ts = np.linspace(0,350,500)
 psi0 = getInitialState()
 
 pOps = getAllProjectionOperators()
@@ -17,13 +17,13 @@ x3 = [-0.380725997,  0.0937065073, 0.0159535441,  39.0881746] # Theta, delta, om
 x4 = [-0.33206001,  0.47870109, 1.26839156, 26.54997568] # Theta, delta, omegaPhi, omegaTB0
 
 x0401DE = [-0.380725997,  0.0937065073,  0.0159535441,  39.0881746] # Theta, delta, omegaPhi, omegaTB0 # tOp = 112.5 / 295.5
-x0401DA = [-0.35236044,  0.10932302,  0.84559989, 31.59465913] # Theta, delta, omegaPhi, omegaTB0 # tOp = 50.0 / 50.4
+x0401DA = [-0.35236044,  0.10932302,  0.84559989, 31.59465913] # Theta, delta, omegaPhi, omegaTB0 # tOp = 50.0 / 50.28
 
-xUsed = x0401DA
+xUsed = x1
 
 eigpsi0 = getInitialEigenState(xUsed)
-eigpOps = getAllEigenProjectionOperators(xUsed)
-H = getSStepHamiltonian(xUsed,operationTime=50.28)
+eigpOps = getAllFinalEigenProjectionOperators(xUsed)
+H = getSStepHamiltonian(xUsed,operationTime=300)
 
 output = sesolve(H, eigpsi0, ts, e_ops=eigpOps) # Verkar funka
 plotExpect(output)
