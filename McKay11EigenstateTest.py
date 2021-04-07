@@ -17,7 +17,19 @@ x0401DA = [-0.35236044,  0.10932302,  0.84559989, 31.59465913] # Theta, delta, o
 H0 = omegas[0]*ad3_1*a3_1 - (alphas[0]/2.0)*(1-ad3_1*a3_1)*ad3_1*a3_1 + omegas[1]*ad3_2*a3_2 - (alphas[1]/2.0)*(1-ad3_2*a3_2)*ad3_2*a3_2 - (alphas[2]/2.0)*(1-ad3_TB*a3_TB)*ad3_TB*a3_TB + gs[0]*(ad3_1 + a3_1)*(ad3_TB + a3_TB) + gs[1]*(ad3_2 + a3_2)*(ad3_TB + a3_TB)
 H1 = ad3_TB*a3_TB
 
-eigSts = getZeroEigenstates(x0401DA, H_const=H0, H_omegaTB=H1)
+xUsed = x0401DA
+
+# eigSts = getZeroEigenstates(xUsed, H_const=H0, H_omegaTB=H1)
+# print(eigSts[1])
+
+Phis = [0, 0.05]
+pOps = []
+eigenStateIndices = [2, 1, 3]
+for k in range(len(eigenStateIndices)):
+    pOps.append([])
+    for Phi in Phis:
+        pOps[k].append(getEigenProjectionOperator(xUsed,Phi,eigenStateIndices[k]))
 
 
-print(eigSts[1])
+
+print(pOps[0])

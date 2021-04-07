@@ -29,15 +29,15 @@ def getAllProjectionOperators():
 
 # Projection operators for projecting onto the eigenstates of the hamiltonian:
 
-def getFinalEigenProjectionOperators(x):
-    eigSts = getFinalEigenstates(x,H_const=H0,H_omegaTB=H1)
+def getThetaEigenProjectionOperators(x):
+    eigSts = getThetaEigenstates(x,H_const=H0,H_omegaTB=H1)
 
     pSt2 = eigSts[1][1] # 010
     pOp2 = pSt2 * pSt2.dag()
     return [pOp2]
 
-def getAllFinalEigenProjectionOperators(x):
-    eigSts = getFinalEigenstates(x,H_const=H0,H_omegaTB=H1)
+def getAllThetaEigenProjectionOperators(x):
+    eigSts = getThetaEigenstates(x,H_const=H0,H_omegaTB=H1)
 
     pSt1 = eigSts[1][2] # 100
     pOp1 = pSt1 * pSt1.dag()
@@ -54,8 +54,8 @@ def getEigenProjectionOperator(x,Phi,eigenStateIndex):
 
     pSt = eigSts[1][eigenStateIndex] 
     pOp = pSt * pSt.dag()
-    return [pOp]
-
+    return pOp
+  
 
 def getHamiltonian(x):
     #The format of x is the following: x = [Theta, delta, omegaPhi, omegaTB0]
@@ -65,11 +65,10 @@ def getHamiltonian(x):
         return x[3]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
     return [H0, [H1, omegaTB]]
 
-def getSStepHamiltonian(x,operationTime=300.0):
+def getSStepHamiltonian(x,operationTime=300.0,tRise=25.0):
     #The format of x is the following: x = [Theta, deltamax, omegaPhi, omegaTB0]
     
-    tRise = 2.0
-    tWait = operationTime - tRise
+    tWait = operationTime - 2*tRise
     smoothness = 1
     def smoothBox(t):
         return smoothstep(t, 0, tRise, smoothness) - smoothstep(t, tWait + tRise, tWait + 2*tRise, smoothness)
@@ -79,11 +78,10 @@ def getSStepHamiltonian(x,operationTime=300.0):
         return x[3]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
     return [H0, [H1, omegaTB]]
 
-def getSinStepHamiltonian(x,operationTime=300.0):
+def getSinStepHamiltonian(x,operationTime=300.0,tRise=25.0):
     #The format of x is the following: x = [Theta, deltamax, omegaPhi, omegaTB0]
     
-    tRise = 2.0
-    tWait = operationTime - tRise
+    tWait = operationTime - 2*tRise
     def sinBox(t):
         return sinstep(t, 0, tRise) - sinstep(t, tWait + tRise, tWait + 2*tRise)
     def Phi(t):
@@ -99,7 +97,7 @@ def getInitialState():
 # Using eigenStateIndex (provided omegaTB0 > omega1 > omega2): 
 # 1 for |010>, 2 for |100>, 3 for |001>, 4 for |020>, 5 for |110>, 6 for |200>
 def getInitialEigenState(x,eigenStateIndex=2):
-    eigSts = getFinalEigenstates(x,H_const=H0,H_omegaTB=H1)
+    eigSts = getThetaEigenstates(x,H_const=H0,H_omegaTB=H1)
 
     return eigSts[1][eigenStateIndex]
 
@@ -109,5 +107,38 @@ def getInitialGuess():
 def getParameterBounds():
     #Format of x: x = [Theta, delta, omegaPhi, omegaTB0]
     return [(-0.5,0.5),(0,0.25),(0,5),(30,60)]
+
+# Ideally, Phis should be calculated from x and result.times, 
+# but this requires specifying whether Phi is smoothstepped or not,
+# so I included it as an input variable instead:
+def plotEigenExpect(result, Phis, x, eigenStateIndices=[2, 1, 3]):
+    """Plots the expectation values for an arbitrary number of eigenstate projection operators."""
+    stateEvolution = result.states
+    times = result.times
+
+    expvalsList = []
+
+    # The nested for loops below make a nested list expvalsList,
+    # where expvalsList[k] consists of the expectation values of the (time dependent) projection operator
+    # projecting onto the eigenstate corresponding to eigenStateIndices[k],
+    # i.e. expvalsList[k](t) = |<Psi(t)|eigpOp_eigenStateIndices[k](t)>|^2
+    
+    for k in range(len(eigenStateIndices)):
+        expvalsList.append([])
+        for tIndex in range(len(times)):
+            eigpOp = getEigenProjectionOperator(x,Phis[tIndex],eigenStateIndices[k])
+            expvalsList[k].append(expect(eigpOp,stateEvolution[tIndex]))
+
+    fig, ax = plt.subplots()
+    labels = ["Qubit 1", "Qubit 2", "Coupler"] #[]
+    #i = 1
+    for e in expvalsList:
+        ax.plot(times, e)
+        #labels.append("Z Projection " + str(i))
+        #i = i + 1
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Expectation values')
+    ax.legend(labels)
+    plt.show()
 
 # I did not make a version of McKay1's 'timeEvolutionH1()', because it seems to use omegaTB without defining it

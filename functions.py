@@ -29,7 +29,7 @@ def sinstep(x, x_min=0, x_max=1):
 # but I kept the other two for convenience (and in case we want them calculated more quickly I guess)
 
 # Eigenstates when Phi = Theta:
-def getFinalEigenstates(x, H_const, H_omegaTB):
+def getThetaEigenstates(x, H_const, H_omegaTB):
     H = H_const + x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0]))) * H_omegaTB
     return H.eigenstates()
 

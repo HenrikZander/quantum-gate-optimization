@@ -56,7 +56,7 @@ def plotStates(result):
 
 
 def plotExpect(result):
-    """Plots the expectation values for an arbitrary amount of collapse operators."""
+    """Plots the expectation values for an arbitrary number of projection operators."""
     lists = result.expect
     fig, ax = plt.subplots()
     labels = ["Qubit 1", "Qubit 2", "Coupler"] #[]
