@@ -305,51 +305,44 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
     return result
 
 
-def generateCostFunction(hamiltonian, projectionOperators, useGateFidelity=False, initialState=None, timeStamps=None, maximumGateTime=250):
+def generateCostFunction(hamiltonian, getEigenStates, timeStamps=None, maximumGateTime=250):
     if timeStamps is None:
         timeStamps = np.linspace(0,maximumGateTime,maximumGateTime*3)
+    options = solver.Options()
+    options.nsteps = 10000
     
     def costFunction(x):
         H = hamiltonian(x)
-        options = solver.Options()
-        options.nsteps = 10000
-        if useGateFidelity:
-            #Generate a hamiltonian based on the parameters in the list x.
-            #Calculate the time evolution of the Hamiltonian
-            #Calculate the maximum gate fidelity
-            return 0#gateFidelity
-        elif not initialState is None:
-            result = sesolve(H, initialState, timeStamps, projectionOperators, options=options)
-            allExpectedValues = result.expect
-            expectValue = -np.amax(allExpectedValues[0])
-            return expectValue
-        else:
-            print("Calculation failed! Check format of initial quantum state if you have set useGateFidelity equal to True.")
-            return None
-    
+        initialState, targetState = getEigenStates(x, hamiltonian)
+        projectionOperators = [targetState * targetState.dag()]
+        result = sesolve(H, initialState, timeStamps, projectionOperators, options=options)
+        allExpectedValues = result.expect
+        expectValue = -np.amax(allExpectedValues[0])
+        return expectValue
     return costFunction
 
 
 def optimizeGate(hamiltonianModule, maximumGateTime=250, runBayesian=False, runSHG=False, runDA=False, runDE=False, runBH=False, runBayesianWithBH=False):
     hamiltonian = hamiltonianModule.getHamiltonian
     parameterBounds = hamiltonianModule.getParameterBounds()
-    projectionOperators = hamiltonianModule.getProjectionOperators()
-    initialState = hamiltonianModule.getInitialState()
     initialGuess = hamiltonianModule.getInitialGuess()
+    eigenStates = hamiltonianModule.getEigenStates
     
-    costFunction = generateCostFunction(hamiltonian, projectionOperators, initialState=initialState, maximumGateTime=maximumGateTime)
+    costFunction = generateCostFunction(hamiltonian, eigenStates, maximumGateTime=maximumGateTime)
     findMinimum(costFunction, parameterBounds, initialGuess, runBayesian=runBayesian, runSHG=runSHG, runDA=runDA, runDE=runDE, runBH=runBH, runBayesianWithBH=runBayesianWithBH)
 
     
 def simulateHamiltonian(hamiltonianModule, x0, simulationTime=500):
     hamiltonian = hamiltonianModule.getHamiltonian(x0)
-    initialState = hamiltonianModule.getInitialState()
-    projectionOperators = hamiltonianModule.getAllProjectionOperators()
     
     options = solver.Options()
     options.nsteps = 10000
     timeStamps = np.linspace(0,simulationTime,simulationTime*3)
     
+    initialState, targetState = hamiltonianModule.getEigenStates(x0, hamiltonianModule.getHamiltonian)
+    projectionOperators = [targetState * targetState.dag()]
+        
     result = sesolve(hamiltonian, initialState, timeStamps, projectionOperators, options=options)
     plotExpect(result)
+
     

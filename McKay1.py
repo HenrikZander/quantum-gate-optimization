@@ -26,15 +26,18 @@ def getAllProjectionOperators():
     return [pOp1,pOp2,pOpTB]
 
 
-def getHamiltonian(x):
+def getHamiltonian(x, getEigenStates = False):
     #The format of x is the following: x = [Theta, delta, omegaPhi, omegaTB0]
     H0 = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
     H1 = (-1/2)*szTB
-    def Phi(t):
-        return x[0] + x[1]*np.cos(x[2]*t)
-    def omegaTB(t, args):
-        return x[3]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
-    return [H0, [H1, omegaTB]]
+    if getEigenStates:
+        return H0 + x[3]*np.sqrt(np.abs(np.cos(PI*x[0])))*H1
+    else:
+        def Phi(t):
+            return x[0] + x[1]*np.cos(x[2]*t)
+        def omegaTB(t, args):
+            return x[3]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
+        return [H0, [H1, omegaTB]]
 
 
 def getSStepHamiltonian(x,operationTime=300.0):
@@ -54,6 +57,12 @@ def getSStepHamiltonian(x,operationTime=300.0):
     return [H0, [H1, omegaTB]]
 
 
+def getEigenStates(x, hamiltonian):
+    H = hamiltonian(x, getEigenStates=True)
+    eigenStates = H.eigenstates()
+    return eigenStates[1][2], eigenStates[1][1]
+    
+    
 def getInitialState():
     return tensor(excitedState,groundState,groundState) #|100> ket
 
