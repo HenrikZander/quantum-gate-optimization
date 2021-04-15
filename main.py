@@ -8,14 +8,21 @@ from plotting import *
 import McKay1
 import time
 
+# print(tensor(gSt,eSt,gSt))
+# print(tensor(eSt,gSt,gSt))
+# print(tensor(gSt,gSt,eSt))
+
 
 def main():
     start = time.time()
+    pointOfInterest = [-0.15699011,  0.24032847,  1.80621235, 23.72449437]
+    currentHamiltonianModule = McKay1
     # testFindMinimum()
     # testGateOptimizer()
     # testGenerateCostFunction()
-    optimizeGate(McKay1, runDE=True)
-    # simulateHamiltonian(McKay1, [ 0.23994094,  0.1349009 ,  1.25079812, 29.60619763], simulationTime=250)
+    optimizeGate(currentHamiltonianModule, runDE=True)
+    # simulateHamiltonian(currentHamiltonianModule, pointOfInterest, simulationTime=100)
+    # simulateEigenEnergies(currentHamiltonianModule, pointOfInterest)
     print(f'Total running time: {time.time() - start} seconds.')
 
 
