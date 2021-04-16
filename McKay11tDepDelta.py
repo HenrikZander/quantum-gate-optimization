@@ -20,27 +20,26 @@ xTest = [-0.25, 0.1, 2*PI*0.4, 2*PI*7.5] # funkar hyfsat -0.45, 0.0326, 0.18, 2*
 
 xUsed = x0416DE
 
-tMax = 76.16+5.0
-ts = np.linspace(0,tMax,500)
-psi0 = getInitialState()
+opTime = 55.5
 
-pOps = getAllProjectionOperators()
+tMax = opTime+5.0
+ts = np.linspace(0,tMax,500)
+# psi0 = getInitialState()
+# pOps = getAllProjectionOperators()
 
 eigpsi0 = getInitialEigenState(xUsed)
 eigpOps = getAllThetaEigenProjectionOperators(xUsed)
 
-opTime = tMax-5.0
-tRise = 25.0
+tRise = 10.0
 tWait = opTime - 2*tRise
-def sinBox(t):
-    return sinstep(t, 0, tRise) - sinstep(t, tWait + tRise, tWait + 2*tRise)
-def Phi(x,t):
-    return x[0] + sinBox(t) * x[1]*np.cos(x[2]*t)
-
-Phis = Phi(xUsed,ts)
+# def sinBox(t):
+#     return sinstep(t, 0, tRise) - sinstep(t, tWait + tRise, tWait + 2*tRise)
+# def Phi(x,t):
+#     return x[0] + sinBox(t) * x[1]*np.cos(x[2]*t)
+# Phis = Phi(xUsed,ts)
 
 H = getSinStepHamiltonian(xUsed,opTime,tRise)
 
-output = sesolve(H, eigpsi0, ts) # Verkar funka # , e_ops=eigpOps
+output = sesolve(H, eigpsi0, ts, e_ops=eigpOps) # Verkar funka.
 
-plotEigenExpect(output, Phis, xUsed)
+plotExpect(output)
