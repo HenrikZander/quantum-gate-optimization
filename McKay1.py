@@ -6,7 +6,7 @@ from variables import *
 import qutip.logging_utils as logging
 import qutip.control.pulseoptim as cpo
 import datetime
-
+from numba import jit
 
 def getProjectionOperators():
     pSt1 = tensor(eSt,gSt,gSt) # 100

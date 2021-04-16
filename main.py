@@ -20,8 +20,8 @@ def main():
     # testFindMinimum()
     # testGateOptimizer()
     # testGenerateCostFunction()
-    # optimizeGate(currentHamiltonianModule, runDE=True)
-    simulateHamiltonian(currentHamiltonianModule, pointOfInterest, simulationTime=100)
+    optimizeGate(currentHamiltonianModule, runDE=True)
+    # simulateHamiltonian(currentHamiltonianModule, pointOfInterest, simulationTime=100)
     # simulateEigenEnergies(currentHamiltonianModule, pointOfInterest)
     print(f'Total running time: {time.time() - start} seconds.')
 

@@ -337,7 +337,7 @@ def simulateHamiltonian(hamiltonianModule, x0, simulationTime=500):
     
     options = solver.Options()
     options.nsteps = 10000
-    timeStamps = np.linspace(0,simulationTime,simulationTime*3)
+    timeStamps = np.linspace(0,simulationTime,simulationTime*5)
     
     initialState, targetState = hamiltonianModule.getEigenStates(x0, hamiltonianModule.getHamiltonian)
     projectionOperators = [targetState * targetState.dag()]
