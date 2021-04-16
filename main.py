@@ -1,6 +1,7 @@
 from qutip import *
 import numpy as np
 import matplotlib.pyplot as plt
+from numba import njit
 
 from variables import *
 from functions import *
@@ -15,12 +16,16 @@ import time
 
 def main():
     start = time.time()
-    pointOfInterest = [0.2467117,  0.0433039,  0.46700076, 27.07391683]
-    currentHamiltonianModule = McKay1
+    # pointOfInterest = [0.2467117,  0.0433039,  0.46700076, 27.07391683] #x = [Theta, delta, omegaPhi, omegaTB0]
+    # currentHamiltonianModule = McKay1
+    temp = 0
+    for i in range(5000000):
+        temp = omegaTB(1,{'theta': 0.2467117, 'delta': 0.0433039, 'omegaphi':0.46700076, 'omegatb0': 27.07391683})
+    print(temp)
     # testFindMinimum()
     # testGateOptimizer()
     # testGenerateCostFunction()
-    optimizeGate(currentHamiltonianModule, runDE=True)
+    # optimizeGate(currentHamiltonianModule, runDE=True)
     # simulateHamiltonian(currentHamiltonianModule, pointOfInterest, simulationTime=100)
     # simulateEigenEnergies(currentHamiltonianModule, pointOfInterest)
     print(f'Total running time: {time.time() - start} seconds.')
@@ -61,6 +66,32 @@ def testStateAnimations():
     result = sesolve(H, state, times, [])
     animateStates(result, "temp")
 
+#######################################################################################
+#Code for testing Numba and how it can be used to speed up the code.
+#x = [Theta, delta, omegaPhi, omegaTB0]
+
+
+@njit
+def Phi(t, theta, delta, omegaphi):
+    phi = theta + delta*np.cos(omegaphi*t)
+    return phi
+
+
+@njit
+def tunnableBus(t, theta, delta, omegaphi, omegatb0):
+    oTB = omegatb0*np.sqrt(np.abs(np.cos(PI*Phi(t, theta, delta, omegaphi))))
+    return oTB
+
+ 
+def omegaTB(t, args):
+    theta = args['theta']
+    delta = args['delta']
+    omegaphi = args['omegaphi']
+    omegatb0 = args['omegatb0']
+    return tunnableBus(t, theta, delta, omegaphi, omegatb0)
+
+
+#######################################################################################
 
 if __name__ == "__main__":
     main()
