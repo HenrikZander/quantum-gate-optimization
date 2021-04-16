@@ -356,7 +356,7 @@ def simulateEigenEnergies(hamiltonianModule, x, numOfEnergyLevels=4, pointResolu
     
     H = hamiltonian(0)
     eigenList = H.eigenstates()   
-    print(eigenList[1][1:4])
+    # print(eigenList[1][1:4])
     
     fig, ax = plt.subplots()
     labels = []

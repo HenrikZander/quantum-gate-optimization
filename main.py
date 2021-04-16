@@ -21,7 +21,7 @@ def main():
     # testGateOptimizer()
     # testGenerateCostFunction()
     # optimizeGate(currentHamiltonianModule, runDE=True)
-    # simulateHamiltonian(currentHamiltonianModule, pointOfInterest, simulationTime=100)
+    simulateHamiltonian(currentHamiltonianModule, pointOfInterest, simulationTime=100)
     # simulateEigenEnergies(currentHamiltonianModule, pointOfInterest)
     print(f'Total running time: {time.time() - start} seconds.')
 
