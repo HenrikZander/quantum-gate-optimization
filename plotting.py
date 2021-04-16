@@ -70,6 +70,41 @@ def plotExpect(result):
     ax.legend(labels)
     plt.show()
 
+# plotEigenExpect nedan är egentligen inte särskilt nödvändig, tror jag, men jag låter den ligga kvar här tillsvidare.
+
+# Ideally, Phis should be calculated from x and result.times, 
+# but this requires specifying whether Phi is smoothstepped or not,
+# so I included it as an input variable instead:
+def plotEigenExpect(result, Phis, x, eigenStateIndices=[2, 1, 3]):
+    """Plots the expectation values for an arbitrary number of eigenstate projection operators."""
+    stateEvolution = result.states
+    times = result.times
+
+    expvalsList = []
+
+    # The nested for loops below make a nested list expvalsList,
+    # where expvalsList[k] consists of the expectation values of the (time dependent) projection operator
+    # projecting onto the eigenstate corresponding to eigenStateIndices[k],
+    # i.e. expvalsList[k](t) = |<Psi(t)|eigpOp_eigenStateIndices[k](t)>|^2
+
+    for k in range(len(eigenStateIndices)):
+        expvalsList.append([])
+        for tIndex in range(len(times)):
+            eigpOp = getEigenProjectionOperator(x,Phis[tIndex],eigenStateIndices[k])
+            expvalsList[k].append(expect(eigpOp,stateEvolution[tIndex]))
+
+    fig, ax = plt.subplots()
+    labels = ["Qubit 1", "Qubit 2", "Coupler"] #[]
+    #i = 1
+    for e in expvalsList:
+        ax.plot(times, e)
+        #labels.append("Z Projection " + str(i))
+        #i = i + 1
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Expectation values')
+    ax.legend(labels)
+    plt.show()
+
 
 def createFilename(path,index):
     """Creates a filename for a .png-file using an index and the path to where the file should be placed."""
