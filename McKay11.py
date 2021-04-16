@@ -5,7 +5,7 @@ from variables import *
 from functions import *
 from plotting import *
 
-H0 = omegas[0]*ad3_1*a3_1 - (alphas[0]/2.0)*(1-ad3_1*a3_1)*ad3_1*a3_1 + omegas[1]*ad3_2*a3_2 - (alphas[1]/2.0)*(1-ad3_2*a3_2)*ad3_2*a3_2 - (alphas[2]/2.0)*(1-ad3_TB*a3_TB)*ad3_TB*a3_TB + gs[0]*(ad3_1 + a3_1)*(ad3_TB + a3_TB) + gs[1]*(ad3_2 + a3_2)*(ad3_TB + a3_TB)
+H0 = omegas[0]*ad3_1*a3_1 - (alphas[0]/2.0)*(1-ad3_1*a3_1)*ad3_1*a3_1 + omegas[1]*ad3_2*a3_2 - (alphas[1]/2.0)*(1-ad3_2*a3_2)*ad3_2*a3_2 - (alphas[2]/2.0)*(1-ad3_TB*a3_TB)*ad3_TB*a3_TB  + gs[0]*(ad3_1 + a3_1)*(ad3_TB + a3_TB) + gs[1]*(ad3_2 + a3_2)*(ad3_TB + a3_TB)
 H1 = ad3_TB*a3_TB
 
 # Projection operators for projecting onto the bare states of the system:
@@ -107,38 +107,5 @@ def getInitialGuess():
 def getParameterBounds():
     #Format of x: x = [Theta, delta, omegaPhi, omegaTB0]
     return [(-0.5,0.5),(0,0.25),(0,5),(30,60)]
-
-# Ideally, Phis should be calculated from x and result.times, 
-# but this requires specifying whether Phi is smoothstepped or not,
-# so I included it as an input variable instead:
-def plotEigenExpect(result, Phis, x, eigenStateIndices=[2, 1, 3]):
-    """Plots the expectation values for an arbitrary number of eigenstate projection operators."""
-    stateEvolution = result.states
-    times = result.times
-
-    expvalsList = []
-
-    # The nested for loops below make a nested list expvalsList,
-    # where expvalsList[k] consists of the expectation values of the (time dependent) projection operator
-    # projecting onto the eigenstate corresponding to eigenStateIndices[k],
-    # i.e. expvalsList[k](t) = |<Psi(t)|eigpOp_eigenStateIndices[k](t)>|^2
-    
-    for k in range(len(eigenStateIndices)):
-        expvalsList.append([])
-        for tIndex in range(len(times)):
-            eigpOp = getEigenProjectionOperator(x,Phis[tIndex],eigenStateIndices[k])
-            expvalsList[k].append(expect(eigpOp,stateEvolution[tIndex]))
-
-    fig, ax = plt.subplots()
-    labels = ["Qubit 1", "Qubit 2", "Coupler"] #[]
-    #i = 1
-    for e in expvalsList:
-        ax.plot(times, e)
-        #labels.append("Z Projection " + str(i))
-        #i = i + 1
-    ax.set_xlabel('Time')
-    ax.set_ylabel('Expectation values')
-    ax.legend(labels)
-    plt.show()
 
 # I did not make a version of McKay1's 'timeEvolutionH1()', because it seems to use omegaTB without defining it
