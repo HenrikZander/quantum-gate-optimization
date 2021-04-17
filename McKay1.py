@@ -6,7 +6,68 @@ from variables import *
 import qutip.logging_utils as logging
 import qutip.control.pulseoptim as cpo
 import datetime
-from numba import jit
+from numba import njit
+
+
+@njit
+def sinstep(x, x_min, x_max):
+    x = (x - x_min)/(x_max - x_min)
+    if x < 0:
+        x = 0
+    elif x > 1:
+        x = 1
+    result = 0.5 - 0.5*np.cos(np.pi*x)
+    return result
+
+    
+@njit
+def Phi(t, theta, delta, omegaphi):
+    phi = theta + delta*np.cos(omegaphi*t)
+    return phi
+
+
+@njit
+def tunnableBus(t, theta, delta, omegaphi, omegatb0):
+    oTB = omegatb0*np.sqrt(np.abs(np.cos(PI*Phi(t, theta, delta, omegaphi))))
+    return oTB
+
+
+def omegaTB(t, args):
+    theta = args['theta']
+    delta = args['delta']
+    omegaphi = args['omegaphi']
+    omegatb0 = args['omegatb0']
+    return tunnableBus(t, theta, delta, omegaphi, omegatb0)
+
+
+def sinBox(t, operationTime):
+    tRise = 25
+    tWait = operationTime - 2*tRise
+    funVal = sinstep(t, 0, tRise) - sinstep(t, tWait + tRise, tWait + 2*tRise)
+    return funVal
+
+
+@njit
+def PhiSinStep(t, theta, delta, omegaphi, sinBoxVal):
+    phi = theta + sinBoxVal*delta*np.cos(omegaphi*t)
+    return phi
+
+
+@njit
+def tunnableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal):
+    oTB = omegatb0*np.sqrt(np.abs(np.cos(PI*PhiSinStep(t, theta, delta, omegaphi, sinBoxVal))))
+    return oTB
+
+ 
+def omegaTBSinStep(t, args):
+    theta = args['theta']
+    delta = args['delta']
+    omegaphi = args['omegaphi']
+    omegatb0 = args['omegatb0']
+    operationTime = args['operationTime']
+    sinBoxVal = sinBox(t,operationTime)
+    return tunnableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal)
+
 
 def getProjectionOperators():
     pSt1 = tensor(eSt,gSt,gSt) # 100
@@ -26,7 +87,7 @@ def getAllProjectionOperators():
     return [pOp1,pOp2,pOpTB]
 
 
-def getHamiltonian(x, getEigenStates = False, getEigenEnergies=False):
+def getHamiltonian(x, getEigenStates = False, getEigenEnergies=False, sinStepHamiltonian=False):
     #The format of x is the following: x = [Theta, delta, omegaPhi, omegaTB0]
     H0 = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
     H1 = (-1/2)*szTB
@@ -36,11 +97,9 @@ def getHamiltonian(x, getEigenStates = False, getEigenEnergies=False):
         def hamiltonian(currentPhi):
             return H0 + x[3]*np.sqrt(np.abs(np.cos(PI*currentPhi)))*H1
         return hamiltonian
+    elif sinStepHamiltonian:
+        return [H0, [H1, omegaTBSinStep]]
     else:
-        def Phi(t):
-            return x[0] + x[1]*np.cos(x[2]*t)
-        def omegaTB(t, args):
-            return x[3]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
         return [H0, [H1, omegaTB]]
 
 
@@ -72,12 +131,12 @@ def getInitialState():
 
 
 def getInitialGuess():
-    return [Theta, delta, omegaPhi, omegas[2]]
+    return [Theta, delta, omegaPhi, omegas[2], 100]
 
 
 def getParameterBounds():
-    #Format of x: x = [Theta, delta, omegaPhi, omegaTB0]
-    return [(-0.5,0.5),(0,0.25),(0,5),(27.5,60)]
+    #Format of x: x = [Theta, delta, omegaPhi, omegaTB0, operationTime]
+    return [(-0.5,0.5),(0,0.25),(0,5),(27.5,60),(50,240)]
 
 
 def timeEvolutionH1():

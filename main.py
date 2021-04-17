@@ -2,6 +2,7 @@ from qutip import *
 import numpy as np
 import matplotlib.pyplot as plt
 from numba import njit
+import multiprocessing
 
 from variables import *
 from functions import *
@@ -16,17 +17,15 @@ import time
 
 def main():
     start = time.time()
-    # pointOfInterest = [0.2467117,  0.0433039,  0.46700076, 27.07391683] #x = [Theta, delta, omegaPhi, omegaTB0]
-    # currentHamiltonianModule = McKay1
-    temp = 0
-    for i in range(5000000):
-        temp = omegaTB(1,{'theta': 0.2467117, 'delta': 0.0433039, 'omegaphi':0.46700076, 'omegatb0': 27.07391683})
-    print(temp)
+    pointOfInterest = [0.38416891,   0.18051406,   3.84487738,  30.23212348, 101.4918881] #x = [Theta, delta, omegaPhi, omegaTB0, operationTime]
+    currentHamiltonianModule = McKay1
+    testMultiprocessing(currentHamiltonianModule, pointOfInterest)
+    # testNumbaSpeedup(currentHamiltonianModule)
     # testFindMinimum()
     # testGateOptimizer()
     # testGenerateCostFunction()
-    # optimizeGate(currentHamiltonianModule, runDE=True)
-    # simulateHamiltonian(currentHamiltonianModule, pointOfInterest, simulationTime=100)
+    # optimizeGate(currentHamiltonianModule, runDE=True, sinStepHamiltonian=True)
+    # simulateHamiltonian(currentHamiltonianModule, pointOfInterest, simulationTime=200, sinStepHamiltonian=True)
     # simulateEigenEnergies(currentHamiltonianModule, pointOfInterest)
     print(f'Total running time: {time.time() - start} seconds.')
 
@@ -67,31 +66,46 @@ def testStateAnimations():
     animateStates(result, "temp")
 
 #######################################################################################
-#Code for testing Numba and how it can be used to speed up the code.
-#x = [Theta, delta, omegaPhi, omegaTB0]
+# Code for testing Numba and how it can be used to speed up the code.
+# x = [Theta, delta, omegaPhi, omegaTB0, operationTime]
 
 
-@njit
-def Phi(t, theta, delta, omegaphi):
-    phi = theta + delta*np.cos(omegaphi*t)
-    return phi
-
-
-@njit
-def tunnableBus(t, theta, delta, omegaphi, omegatb0):
-    oTB = omegatb0*np.sqrt(np.abs(np.cos(PI*Phi(t, theta, delta, omegaphi))))
-    return oTB
-
- 
-def omegaTB(t, args):
-    theta = args['theta']
-    delta = args['delta']
-    omegaphi = args['omegaphi']
-    omegatb0 = args['omegatb0']
-    return tunnableBus(t, theta, delta, omegaphi, omegatb0)
+def testNumbaSpeedup(hamiltonianModule):
+    fun = hamiltonianModule.omegaTB
+    temp = 0
+    start = time.time()
+    for i in range(10000000):
+        temp = fun(1,{'theta': 0.2467117, 'delta': 0.0433039, 'omegaphi':0.46700076, 'omegatb0': 27.07391683, 'operationTime': 150})
+    print(f'Total running time for none-sinstep omegaTB: {time.time() - start} seconds.')
+    print("Temp=", temp)
+    
+    fun = hamiltonianModule.omegaTBSinStep
+    temp = 0
+    start = time.time()
+    for i in range(10000000):
+        temp = fun(1,{'theta': 0.2467117, 'delta': 0.0433039, 'omegaphi':0.46700076, 'omegatb0': 27.07391683, 'operationTime': 150})
+    print(f'Total running time for sinstep omegaTB: {time.time() - start} seconds.')
+    print("Temp=", temp)
 
 
 #######################################################################################
+# Code for testing the possibility of multiprocessing the costfunction.
+
+
+def testMultiprocessing(hamiltonianModule, x):
+    processes = []
+    
+    for _ in range(100):
+        p = multiprocessing.Process(target=costTemp, args=[x])
+        p.start()
+        processes.append(p)
+    
+    for process in processes:
+        process.join()
+
+
+#######################################################################################
+
 
 if __name__ == "__main__":
     main()

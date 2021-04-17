@@ -5,7 +5,9 @@ from scipy.special import comb
 from skopt import gp_minimize
 import time
 import scipy
+from numba import njit
 from plotting import *
+import McKay1
 
 
 i = 0
@@ -20,8 +22,14 @@ def smoothstep(x, x_min=0, x_max=1, N=1):
     result *= x ** (N + 1)
     return result
 
-def sinstep(x, x_min=0, x_max=1):
-    x = np.clip((x - x_min) / (x_max - x_min), 0, 1)
+
+@njit
+def sinstep(x, x_min, x_max):
+    x = (x - x_min)/(x_max - x_min)
+    if x < 0:
+        x = 0
+    elif x > 1:
+        x = 1
     result = 0.5 - 0.5*np.cos(np.pi*x)
     return result
 
@@ -305,35 +313,37 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
     return result
 
 
-def generateCostFunction(hamiltonian, getEigenStates, timeStamps=None, maximumGateTime=250):
+def generateCostFunction(hamiltonian, getEigenStates, timeStamps=None, maximumGateTime=250, sinStepHamiltonian=False):
     if timeStamps is None:
         timeStamps = np.linspace(0,maximumGateTime,maximumGateTime*3)
     options = solver.Options()
     options.nsteps = 10000
     
     def costFunction(x):
-        H = hamiltonian(x)
+        #print("Sin-Step hamiltonian: ", sinStepHamiltonian)
+        H = hamiltonian(x, sinStepHamiltonian=sinStepHamiltonian)
         initialState, targetState = getEigenStates(x, hamiltonian)
         projectionOperators = [targetState * targetState.dag()]
-        result = sesolve(H, initialState, timeStamps, projectionOperators, options=options)
+        result = sesolve(H, initialState, timeStamps, projectionOperators, options=options, args={'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': x[3], 'operationTime': x[4]})
         allExpectedValues = result.expect
-        expectValue = -np.amax(allExpectedValues[0])
+        expectValue = -allExpectedValues[0][-1]
         return expectValue
     return costFunction
 
 
-def optimizeGate(hamiltonianModule, maximumGateTime=250, runBayesian=False, runSHG=False, runDA=False, runDE=False, runBH=False, runBayesianWithBH=False):
+def optimizeGate(hamiltonianModule, maximumGateTime=250, sinStepHamiltonian=False, runBayesian=False, runSHG=False, runDA=False, runDE=False, runBH=False, runBayesianWithBH=False):
+    print("Use sinus-step hamiltonian?: ", sinStepHamiltonian)
     hamiltonian = hamiltonianModule.getHamiltonian
     parameterBounds = hamiltonianModule.getParameterBounds()
     initialGuess = hamiltonianModule.getInitialGuess()
     eigenStates = hamiltonianModule.getEigenStates
     
-    costFunction = generateCostFunction(hamiltonian, eigenStates, maximumGateTime=maximumGateTime)
+    costFunction = generateCostFunction(hamiltonian, eigenStates, maximumGateTime=maximumGateTime, sinStepHamiltonian=sinStepHamiltonian)
     findMinimum(costFunction, parameterBounds, initialGuess, runBayesian=runBayesian, runSHG=runSHG, runDA=runDA, runDE=runDE, runBH=runBH, runBayesianWithBH=runBayesianWithBH)
 
     
-def simulateHamiltonian(hamiltonianModule, x0, simulationTime=500):
-    hamiltonian = hamiltonianModule.getHamiltonian(x0)
+def simulateHamiltonian(hamiltonianModule, x0, simulationTime=500, sinStepHamiltonian=False):
+    hamiltonian = hamiltonianModule.getHamiltonian(x0, sinStepHamiltonian=sinStepHamiltonian)
     
     options = solver.Options()
     options.nsteps = 10000
@@ -342,7 +352,7 @@ def simulateHamiltonian(hamiltonianModule, x0, simulationTime=500):
     initialState, targetState = hamiltonianModule.getEigenStates(x0, hamiltonianModule.getHamiltonian)
     projectionOperators = [targetState * targetState.dag()]
         
-    result = sesolve(hamiltonian, initialState, timeStamps, projectionOperators, options=options)
+    result = sesolve(hamiltonian, initialState, timeStamps, projectionOperators, options=options, args={'theta': x0[0], 'delta': x0[1], 'omegaphi': x0[2], 'omegatb0': x0[3], 'operationTime': x0[4]})
     plotExpect(result)
 
 
@@ -359,7 +369,7 @@ def simulateEigenEnergies(hamiltonianModule, x, numOfEnergyLevels=4, pointResolu
     # print(eigenList[1][1:4])
     
     fig, ax = plt.subplots()
-    labels = []
+    labels = ["|010><010|"]
     for phi in listOfPhis:
         H = hamiltonian(phi)
         eigenList = H.eigenstates()
@@ -369,8 +379,29 @@ def simulateEigenEnergies(hamiltonianModule, x, numOfEnergyLevels=4, pointResolu
     
     for index, energy in enumerate(eigenEnergies, start=1):
         ax.plot(listOfPhis, energy)
-        labels.append("Eigenenergy " + str(index))
+        #labels.append("Eigenenergy " + str(index))
     ax.set_xlabel('Flux')
     ax.set_ylabel('Energy')
     ax.legend(labels)
     plt.show()
+
+
+#######################################################################################
+# Code for testing the possibility of multiprocessing the costfunction.
+def costTemp(x):
+    timeStamps = np.linspace(0,250,250*3)
+    options = solver.Options()
+    options.nsteps = 10000
+        
+    #print("Sin-Step hamiltonian: ", sinStepHamiltonian)
+    H = McKay1.getHamiltonian(x, sinStepHamiltonian=True)
+    initialState, targetState = McKay1.getEigenStates(x, McKay1.getHamiltonian)
+    projectionOperators = [targetState * targetState.dag()]
+    result = sesolve(H, initialState, timeStamps, projectionOperators, options=options, args={'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': x[3], 'operationTime': x[4]})
+    allExpectedValues = result.expect
+    expectValue = -allExpectedValues[0][-1]
+    print(expectValue)
+    return expectValue
+
+
+#######################################################################################

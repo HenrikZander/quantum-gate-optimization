@@ -3890,3 +3890,39 @@ Total runtime: 2649.796273469925 seconds
  success: True
        x: array([ 0.2467117 ,  0.0433039 ,  0.46700076, 27.07391683])
 ##################################################
+##################################################
+Result (full) from: 2021-04-17 01:27:43.437424
+Algorithm: Differential Evolution
+Total runtime: 1288.6620140075684 seconds
+##################################################
+     fun: -0.9999872320652998
+     jac: array([ 1.57366342e-03, -2.14335216e-03, -9.81870141e-04, -7.30859757e-05])
+ message: 'Optimization terminated successfully.'
+    nfev: 3335
+     nit: 53
+ success: True
+       x: array([ 0.48826892,  0.19140363,  0.08669693, 33.36171818])
+##################################################
+##################################################
+Result (timeout) from: 2021-04-17 22:37:32.833671
+Total iterations performed (or minima found): 273
+Total runtime for algorithm: 10812.30231332779 seconds.
+##################################################
+
+The Differential Evolution algorithm gave a minimum at the point [  0.38430664   0.18058124   3.84518955  30.23219273 101.49189208] with a convergence of 0.2796895160891919.
+
+##################################################
+##################################################
+Result (full) from: 2021-04-17 22:49:26.455522
+Algorithm: Differential Evolution
+Total runtime: 11525.92912888527 seconds
+##################################################
+     fun: -0.9968601991379137
+     jac: array([1.26226116, 1.00835536, 1.32063802, 0.00384259, 0.01033083])
+ message: 'callback function requested stop early by returning True'
+    nfev: 21678
+     nit: 273
+ success: False
+       x: array([  0.38416891,   0.18051406,   3.84487738,  30.23212348,
+       101.4918881 ])
+##################################################
