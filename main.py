@@ -19,12 +19,13 @@ def main():
     start = time.time()
     pointOfInterest = [0.38416891,   0.18051406,   3.84487738,  30.23212348, 101.4918881] #x = [Theta, delta, omegaPhi, omegaTB0, operationTime]
     currentHamiltonianModule = McKay1
-    testMultiprocessing(currentHamiltonianModule, pointOfInterest)
+    # testMultiprocessing(currentHamiltonianModule, pointOfInterest)
     # testNumbaSpeedup(currentHamiltonianModule)
     # testFindMinimum()
     # testGateOptimizer()
     # testGenerateCostFunction()
     # optimizeGate(currentHamiltonianModule, runDE=True, sinStepHamiltonian=True)
+    optimizeGateParallell(currentHamiltonianModule, runDE=True)
     # simulateHamiltonian(currentHamiltonianModule, pointOfInterest, simulationTime=200, sinStepHamiltonian=True)
     # simulateEigenEnergies(currentHamiltonianModule, pointOfInterest)
     print(f'Total running time: {time.time() - start} seconds.')
@@ -93,16 +94,23 @@ def testNumbaSpeedup(hamiltonianModule):
 
 
 def testMultiprocessing(hamiltonianModule, x):
+    numOfTimes = 500
+
+    start = time.time()
     processes = []
-    
-    for _ in range(100):
-        p = multiprocessing.Process(target=costTemp, args=[x])
+    for _ in range(numOfTimes):
+        p = multiprocessing.Process(target=costParallell, args=[x])
         p.start()
         processes.append(p)
     
     for process in processes:
         process.join()
+    print(f'Total running time for cost evaluation in parallell: {time.time() - start} seconds.')
 
+    start = time.time()
+    for _ in range(numOfTimes):
+        costParallell(x)
+    print(f'Total running time for cost evaluation in a series: {time.time() - start} seconds.')
 
 #######################################################################################
 

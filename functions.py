@@ -12,7 +12,7 @@ import McKay1
 
 i = 0
 global maxRuntime
-maxRuntime = 10800
+maxRuntime = 21600
 
 def smoothstep(x, x_min=0, x_max=1, N=1):
     x = np.clip((x - x_min) / (x_max - x_min), 0, 1)
@@ -284,7 +284,7 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
     #Optimization using the Differential Evolution algorithm.
     if runDE:
         startTime = time.time()
-        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE)
+        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1)
         timeDE = time.time() - startTime
         message += f'The optimizaton using the \"Differential Evolution\"-algorithm took {round(timeDE,2)}s to execute and ended on a minimum of {resDE.fun} at the point {resDE.x}.\n'
         message += f'Function evaluations performed: {resDE.nfev}\n'
@@ -388,20 +388,22 @@ def simulateEigenEnergies(hamiltonianModule, x, numOfEnergyLevels=4, pointResolu
 
 #######################################################################################
 # Code for testing the possibility of multiprocessing the costfunction.
-def costTemp(x):
+def costParallell(x):
     timeStamps = np.linspace(0,250,250*3)
     options = solver.Options()
     options.nsteps = 10000
-        
-    #print("Sin-Step hamiltonian: ", sinStepHamiltonian)
+    
     H = McKay1.getHamiltonian(x, sinStepHamiltonian=True)
     initialState, targetState = McKay1.getEigenStates(x, McKay1.getHamiltonian)
     projectionOperators = [targetState * targetState.dag()]
     result = sesolve(H, initialState, timeStamps, projectionOperators, options=options, args={'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': x[3], 'operationTime': x[4]})
     allExpectedValues = result.expect
     expectValue = -allExpectedValues[0][-1]
-    print(expectValue)
     return expectValue
 
-
+def optimizeGateParallell(hamiltonianModule, runBayesian=False, runSHG=False, runDA=False, runDE=False, runBH=False, runBayesianWithBH=False):
+    parameterBounds = hamiltonianModule.getParameterBounds()
+    initialGuess = hamiltonianModule.getInitialGuess()
+    
+    findMinimum(costParallell, parameterBounds, initialGuess, runBayesian=runBayesian, runSHG=runSHG, runDA=runDA, runDE=runDE, runBH=runBH, runBayesianWithBH=runBayesianWithBH)
 #######################################################################################
