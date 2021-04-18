@@ -24,13 +24,13 @@ pOp01 = r2 * r2.dag()
 pOp10 = r3 * r3.dag()
 pOp11 = r4 * r4.dag()
 
-ts=np.linspace(0,500,500):
+ts=np.linspace(0,500,500)
 
 M = np.zeros((4,4))
 
 for t in ts:
 
-    # Define the optimized hamiltioninans parameters
+    # Define the optimized hamiltonian parameters
     x = [1.0-0.56682599, 0.2387175, 2.52545336, 47.62454201] # Theta, delta, omegaPhi, omegaTB0
 
     def Phi(t):

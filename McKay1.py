@@ -8,7 +8,7 @@ import qutip.control.pulseoptim as cpo
 import datetime
 from numba import njit
 
-
+#'''    This shouldn't be necessary, since we already have this in functions?
 @njit
 def sinstep(x, x_min, x_max):
     x = (x - x_min)/(x_max - x_min)
@@ -18,8 +18,8 @@ def sinstep(x, x_min, x_max):
         x = 1
     result = 0.5 - 0.5*np.cos(np.pi*x)
     return result
+#'''
 
-    
 @njit
 def Phi(t, theta, delta, omegaphi):
     phi = theta + delta*np.cos(omegaphi*t)
@@ -119,6 +119,20 @@ def getSStepHamiltonian(x,operationTime=300.0):
         return x[3]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
     return [H0, [H1, omegaTB]]
 
+# Denna är inpastead tillfälligt medan jag ser om jag kan få gate fidelity att funka:
+def getSinStepHamiltonian(x,operationTime=300.0,tRise=25.0):
+    #The format of x is the following: x = [Theta, deltamax, omegaPhi, omegaTB0]
+    H0 = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
+    H1 = (-1/2)*szTB
+    
+    tWait = operationTime - 2*tRise
+    def sinBox(t):
+        return sinstep(t, 0, tRise) - sinstep(t, tWait + tRise, tWait + 2*tRise)
+    def Phi(t):
+        return x[0] + sinBox(t) * x[1]*np.cos(x[2]*t)
+    def omegaTB(t, args):
+        return x[3]*np.sqrt(np.abs(np.cos(PI*Phi(t))))
+    return [H0, [H1, omegaTB]]
 
 def getEigenStates(x, hamiltonian):
     H = hamiltonian(x, getEigenStates=True)
