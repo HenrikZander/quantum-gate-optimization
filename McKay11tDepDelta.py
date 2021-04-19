@@ -18,19 +18,22 @@ x0416DE = [0.2467117, 0.0433039, 0.46700076, 27.07391683]
 
 xTest = [-0.25, 0.1, 2*PI*0.4, 2*PI*7.5] # funkar hyfsat -0.45, 0.0326, 0.18, 2*PI*7.5
 
-xUsed = x0416DE
+x0417DE = [0.38416891, 0.18051406, 3.84487738, 30.23212348, 101.4918881] # Theta, delta, omegaPhi, omegaTB0, tOp
+x0418DE = [0.35779783, 0.16539164, 1.57643895, 28.25386814, 95.16742431]
 
-opTime = 55.5
+xUsed = x0418DE
 
-tMax = opTime+5.0
+opTime = xUsed[4]
+
+tMax = opTime + 5.0
 ts = np.linspace(0,tMax,500)
 # psi0 = getInitialState()
 # pOps = getAllProjectionOperators()
 
-eigpsi0 = getInitialEigenState(xUsed)
+eigpsi0 = getInitialEigenState(xUsed,2)
 eigpOps = getAllThetaEigenProjectionOperators(xUsed)
 
-tRise = 10.0
+tRise = 25.0
 tWait = opTime - 2*tRise
 # def sinBox(t):
 #     return sinstep(t, 0, tRise) - sinstep(t, tWait + tRise, tWait + 2*tRise)

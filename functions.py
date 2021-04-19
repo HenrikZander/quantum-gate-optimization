@@ -22,7 +22,6 @@ def smoothstep(x, x_min=0, x_max=1, N=1):
     result *= x ** (N + 1)
     return result
 
-
 @njit
 def sinstep(x, x_min, x_max):
     x = (x - x_min)/(x_max - x_min)
