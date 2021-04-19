@@ -6,15 +6,15 @@ from variables import *
 from functions import *
 from plotting import *
 from McKay1 import *
-# import scipy.integrate as integrate
+import scipy.integrate as integrate
 
-H0prime = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 # Kan vara så att bara detta är roterande delen
 H0 = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
 H1 = (-1/2)*szTB
 
+x0417DE = [0.38416891, 0.18051406, 3.84487738, 30.23212348, 101.4918881]
 x0418DE = [0.35779783, 0.16539164, 1.57643895, 28.25386814, 95.16742431]
 
-xUsed = x0418DE
+xUsed = x0417DE
 
 # Calculate eigenstates at Phi = Theta and store them in a list r
 eigpsi0 = getThetaEigenstates(xUsed, H0, H1)
@@ -35,8 +35,12 @@ for i in range(len(c)):
     output = sesolve(H, c[i], ts)
     c[i] = output.states[-1]
 
-# Since H0 is time-independent (right?), we can calculate rotating frame unitary like
+# Calculate U_rf:
+H0prime = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + xUsed[3]*np.sqrt(np.abs(np.cos(PI*xUsed[0]))) * (-1/2)*szTB
+
 U_rf = (1j*H0prime*ts[-1]).expm()
+
+print(U_rf)
 
 # Transform c into the rotating frame
 c_rf = U_rf * c
@@ -54,7 +58,7 @@ phi = np.angle(M[0][0])
 theta1 = np.angle(M[0][1]) + PI/2 - phi
 theta2 = np.angle(M[1][0]) + PI/2 - phi
 
-# Change type of M to matrix to simplify calculating fidelity
+# Change M's type to matrix to simplify calculating fidelity
 M = np.matrix(M)
 
 # Ideal iSWAP gate matrix (with phases):
