@@ -8,6 +8,7 @@ from plotting import *
 from McKay1 import *
 # import scipy.integrate as integrate
 
+H0prime = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 # Kan vara så att bara detta är roterande delen
 H0 = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
 H1 = (-1/2)*szTB
 
@@ -35,7 +36,7 @@ for i in range(len(c)):
     c[i] = output.states[-1]
 
 # Since H0 is time-independent (right?), we can calculate rotating frame unitary like
-U_rf = (1j*H0*ts[-1]).expm()
+U_rf = (1j*H0prime*ts[-1]).expm()
 
 # Transform c into the rotating frame
 c_rf = U_rf * c
