@@ -17,48 +17,44 @@ x0418DEb = [-0.422849290, 0.0583265568, 4.40324141, 50.0444593, 131.164936]
 
 xUsed = x0418DE
 
-# Calculate eigenstates at Phi = Theta and store them in a list r
-eigpsi0 = getThetaEigenstates(xUsed, H0, H1)
-r = eigpsi0[1]
+nLevels = 2
+D = nLevels**3
+
+# Calculate eigenstates in the bare basis at Phi = Theta and use them to construct U_e
+eigStsBB = getThetaEigenstates(xUsed, H0, H1)
+
+# Define a list r of eigenstates in the eigenbasis
+r = []
+U_e = Qobj()
+for i in range(D):
+    r.append(Qobj(basis(D,i),dims=[[2,2,2],[1,1,1]]))
+    U_e += r[i] * eigStsBB[1][i].dag()
+# NB: r and U_e are ordered based on eigenenergies
 
 # We are especially interested in |000>, |010>, |100> and |110>
 eigIndices = [0, 1, 2, 4]
 
 # Simulate evolution of eigenstates
+# Calculate the eigenbasis hamiltonian
 opTime = xUsed[4]
 ts = np.linspace(0,opTime,500)
-H = getSinStepHamiltonian(xUsed, operationTime=opTime)
+HBB = getSinStepHamiltonian(xUsed, operationTime=opTime)
+
+HEB = [U_e * HBB[0] * U_e.dag(), [U_e * HBB[1][0] * U_e.dag(), HBB[1][1]]]
 
 # Initialise a list c of the time-evolved eigenstates
 c = r
 # Calculate final states and store them in c
 for i in range(len(c)):
-    output = sesolve(H, c[i], ts)
+    output = sesolve(HEB, c[i], ts)
     c[i] = output.states[-1]
+# NB: c is ordered based on eigenenergies
 
 # Calculate U_rf:
-# Approximate Phi = Theta:
-H0prime = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + xUsed[3]*np.sqrt(np.abs(np.cos(PI*xUsed[0]))) * (-1/2)*szTB
-intOmegaTB = xUsed[3]*np.sqrt(np.abs(np.cos(PI*xUsed[0]))) * ts[-1]
-intH0prime = H0prime * ts[-1]
+HBB_Th = H0 + xUsed[3]*np.sqrt(np.abs(np.cos(PI*xUsed[0]))) * H1
+HEB_Th = U_e * HBB_Th * U_e.dag()
 
-# Integrate using trapezoid:
-'''
-tRise = 25.0
-tWait = opTime - 2*tRise
-def getSinPhi(x,t):
-    return x[0] + sinBox(t,opTime) * x[1]*np.cos(x[2]*t)
-def getOmegaTB(x,t):
-    return x[3]*np.sqrt(np.abs(np.cos(PI*getSinPhi(x,t))))
-omegaTBs = []
-for t in ts:
-    omegaTBs.append(getOmegaTB(xUsed,t))
-intOmegaTB = integrate.trapz(omegaTBs,ts)
-intH0prime = ( (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 ) * ts[-1] + intOmegaTB * (-1/2)*szTB
-'''
-
-print(intOmegaTB)
-U_rf = (1j*intH0prime).expm()
+U_rf = (1j*HEB_Th*ts[-1]).expm()
 
 # Transform c into the rotating frame
 c_rf = U_rf * c

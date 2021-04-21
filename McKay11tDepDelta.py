@@ -22,7 +22,7 @@ x0417DE = [0.38416891, 0.18051406, 3.84487738, 30.23212348, 101.4918881] # Theta
 x0418DE = [0.35779783, 0.16539164, 1.57643895, 28.25386814, 95.16742431]
 x0418DEb = [-0.422849290, 0.0583265568, 4.40324141, 50.0444593, 131.164936]
 
-xUsed = x0418DEb
+xUsed = x0418DE
 
 opTime = xUsed[4]
 
@@ -31,7 +31,7 @@ ts = np.linspace(0,tMax,500)
 # psi0 = getInitialState()
 # pOps = getAllProjectionOperators()
 
-eigpsi0 = getInitialEigenState(xUsed,2)
+eigpsi0 = getInitialEigenState(xUsed,1)
 eigpOps = getAllThetaEigenProjectionOperators(xUsed)
 
 tRise = 25.0
