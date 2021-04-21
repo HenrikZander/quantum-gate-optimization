@@ -65,6 +65,7 @@ def getEBUnitary(x,H0BB,H1BB,nLevels):
     # NB: U_e is ordered based on eigenenergies
     return U_e
 
+# Unitary for transforming into the rotating frame
 def getRFUnitary(x,HBBComps,U_e,t):
     # Calculate U_rf:
     HBB_Th = HBBComps[0] + x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0]))) * HBBComps[1]

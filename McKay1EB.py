@@ -88,7 +88,7 @@ def getAllProjectionOperators():
     return [pOp1,pOp2,pOpTB]
 
 
-def getHamiltonian(x, getBBHamiltonianComps=False, getEigenStatesBB = False, getEigenEnergies=False, sinStepHamiltonian=False):
+def getHamiltonian(x, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB = False, getEigenEnergies=False, sinStepHamiltonian=False):
     #The format of x is the following: x = [Theta, delta, omegaPhi, omegaTB0, operationTime]
     H0BB = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
     H1BB = (-1/2)*szTB
@@ -103,7 +103,6 @@ def getHamiltonian(x, getBBHamiltonianComps=False, getEigenStatesBB = False, get
         return hamiltonian
     else:
         n = getnLevels() # Could be calculated from the size of H0
-        U_e = getEBUnitary(x,H0BB,H1BB,n)
         H0EB = U_e*H0BB*U_e.dag()
         H1EB = U_e*H1BB*U_e.dag()
         if sinStepHamiltonian:
@@ -164,8 +163,8 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False):
     # Simulate evolution of eigenstates:
     # Calculate the eigenbasis hamiltonian
     opTime = x[4]
-    ts = np.linspace(0,opTime,500)
-    HEB = getHamiltonian(x, sinStepHamiltonian=True)
+    ts = np.linspace(0,opTime,opTime*3)
+    HEB = getHamiltonian(x, U_e=U_e, sinStepHamiltonian=True) # HEB har (väl) egenenergierna på diagonalen? Isf är det snabbare att definiera den utifrån det.
 
     # Initialise a list c of the time-evolved eigenstates
     c = r
@@ -179,18 +178,18 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False):
     U_rf = getRFUnitary(x, HBBComps, U_e, ts[-1])
 
     # Transform c into the rotating frame
-    c_rf = U_rf * c
+    c_rf = U_rf * c # Kanske går att trunkera innan detta eftersom U_rf är diagonal?
 
     # We are especially interested in |000>, |010>, |100> and |110>:
-    eigIndices = [0, 1, 2, 4]
+    eigIndices = [0, 1, 2, 4] # Är vi även intresserade av tillstånden där TB:n är exciterad?
 
     # Calculate M-matrix such that M_ij = <r_i|c_j>_rf:
     # Initialize as a 4x4 zero nested list
     M = [[0]*4]*4
     # Assign values to elements M_ij
-    for i in range(4):
-        for j in range(4):
-            M[i][j] = r[eigIndices[i]].overlap(c_rf[eigIndices[j]])
+    for i, ei in enumerate(eigIndices):
+        for j, ej in enumerate(eigIndices):
+            M[i][j] = r[ei].overlap(c_rf[ej])
 
     if wantiSWAP:
         # Calculate phases (iSWAP):
