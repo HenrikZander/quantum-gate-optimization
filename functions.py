@@ -66,9 +66,9 @@ def getEBUnitary(x,H0BB,H1BB,nLevels):
     return U_e
 
 # Unitary for transforming into the rotating frame
-def getRFUnitary(x,HBBComps,U_e,t):
+def getRFUnitary(x,H0BB,H1BB,U_e,t):
     # Calculate U_rf:
-    HBB_Th = HBBComps[0] + x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0]))) * HBBComps[1]
+    HBB_Th = H0BB + x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0]))) * H1BB
     HEB_Th = U_e * HBB_Th * U_e.dag()
 
     U_rf = (1j*HEB_Th*t).expm()

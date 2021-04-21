@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from variables import *
 from functions import *
 from plotting import *
-from McKay1EB import *
+from McKay11EB_3lvl import *
 
 x0417DE = [0.38416891, 0.18051406, 3.84487738, 30.23212348, 101.4918881]
 x0418DE = [0.35779783, 0.16539164, 1.57643895, 28.25386814, 95.16742431]
