@@ -34,6 +34,7 @@ def sinstep(x, x_min, x_max):
 
 # One could definitely make an argument for only keeping getEigenstates() out of these three,
 # but I kept the other two for convenience (and in case we want them calculated more quickly I guess)
+# NB: These functions give the eigenstates in the bare basis, ordered according to ascending eigenenergy
 
 # Eigenstates when Phi = Theta:
 def getThetaEigenstates(x, H_const, H_omegaTB):
@@ -50,6 +51,28 @@ def getEigenstates(x, Phi, H_const, H_omegaTB):
     H = H_const + x[3]*np.sqrt(np.abs(np.cos(np.pi*Phi))) * H_omegaTB
     return H.eigenstates()
 
+# Unitary for transforming from the bare basis into the eigenbasis:
+def getEBUnitary(x,H0BB,H1BB,nLevels):
+    D = nLevels**3
+
+    # Calculate eigenstates in the bare basis at Phi = Theta
+    eigStsBB = getThetaEigenstates(x, H0BB, H1BB)
+
+    # Construct U_e
+    U_e = Qobj()
+    for i in range(D):
+        U_e += Qobj(basis(D,i),dims=[[nLevels,nLevels,nLevels],[1,1,1]]) * eigStsBB[1][i].dag()
+    # NB: U_e is ordered based on eigenenergies
+    return U_e
+
+def getRFUnitary(x,HBBComps,U_e,t):
+    # Calculate U_rf:
+    HBB_Th = HBBComps[0] + x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0]))) * HBBComps[1]
+    HEB_Th = U_e * HBB_Th * U_e.dag()
+
+    U_rf = (1j*HEB_Th*t).expm()
+    # NB: This is usable only when working in the eigenbasis
+    return U_rf
 
 def evaluateResult(x, fun, resultList, N=5):
     if len(resultList[1]) < N:
