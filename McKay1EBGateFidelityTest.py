@@ -14,3 +14,6 @@ x0418DEb = [-0.422849290, 0.0583265568, 4.40324141, 50.0444593, 131.164936]
 xUsed = x0418DE
 
 print(getGateFidelity(xUsed,wantiSWAP=True))
+
+# c = [basis(8,0),basis(8,1)]
+# print(c[1][1].item(0))

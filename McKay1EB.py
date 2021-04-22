@@ -184,25 +184,25 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False):
 
     # Calculate M-matrix such that M_ij = <r_i|c_j>_rf:
     # Initialize as a 4x4 zero nested list
-    M = [[0]*4]*4
+    M = [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]]
     # Assign values to elements M_ij
     for i, ei in enumerate(eigIndices):
         for j, ej in enumerate(eigIndices):
-            M[i][j] = r[ei].overlap(c_rf[ej])
+            M[i][j] = c_rf[ej][ei].item(0)
 
     if wantiSWAP:
         # Calculate phases (iSWAP):
         phi = np.angle(M[0][0])
-        theta1 = np.angle(M[0][1]) + PI/2 - phi
-        theta2 = np.angle(M[1][0]) + PI/2 - phi
+        theta1 = np.angle(M[1][2]) + PI/2 - phi
+        theta2 = np.angle(M[2][1]) + PI/2 - phi
 
         # Ideal iSWAP gate matrix (with phases):
         U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, 0, np.exp(1j*(-PI/2 + theta1 + phi)), 0], [0, np.exp(1j*(-PI/2 + theta2 + phi)), 0, 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + 2*phi))]])
     elif wantCZ:
         # Calculate phases (CZ):
         phi = np.angle(M[0][0])
-        theta1 = np.angle(M[0][0]) - phi
-        theta2 = np.angle(M[1][1]) - phi
+        theta1 = np.angle(M[1][1]) - phi
+        theta2 = np.angle(M[2][2]) - phi
         
         # Ideal CZ gate matrix (with phases):
         U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(PI + theta1 + theta2 + 2*phi))]])
@@ -211,7 +211,7 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False):
     M = np.matrix(M)
 
     # Calculate gate fidelity
-    N = 2
+    N = 4
     F_avg = (np.absolute(np.trace(M*U.H))**2 + np.trace(M.H*M)) / (N*(N+1))
 
     return F_avg
