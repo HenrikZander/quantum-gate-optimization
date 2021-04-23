@@ -142,6 +142,37 @@ def getSinStepHamiltonian(x,operationTime=300.0,tRise=25.0):
     return [H0, [H1, omegaTB]]
 '''
 
+def getThetaEigenstates(x, H_const, H_omegaTB):
+    H = H_const + x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0]))) * H_omegaTB
+    return H.eigenstates()
+
+    
+# Unitary for transforming from the bare basis into the eigenbasis:
+def getEBUnitary(x,H0BB,H1BB,nLevels):
+    D = nLevels**3
+
+    # Calculate eigenstates in the bare basis at Phi = Theta
+    eigStsBB = getThetaEigenstates(x, H0BB, H1BB)
+
+    # Construct U_e
+    U_e = Qobj()
+    for i in range(D):
+        U_e += Qobj(basis(D,i),dims=[[nLevels,nLevels,nLevels],[1,1,1]]) * eigStsBB[1][i].dag()
+    # NB: U_e is ordered based on eigenenergies
+    return U_e
+
+
+# Unitary for transforming into the rotating frame
+# NB: This is usable only when working in the eigenbasis
+def getRFUnitary(x,H0BB,H1BB,U_e,t):
+    # Calculate U_rf:
+    HBB_Th = H0BB + x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0]))) * H1BB
+    HEB_Th = U_e * HBB_Th * U_e.dag()
+
+    U_rf = (1j*HEB_Th*t).expm()
+    return U_rf
+
+
 def getGateFidelity(x,wantiSWAP=False,wantCZ=False,wantI=False):
     HBBComps = getHamiltonian(x,getBBHamiltonianComps=True)
 

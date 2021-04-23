@@ -8,6 +8,7 @@ import scipy
 from numba import njit
 from plotting import *
 import McKay1
+import McKay11EB_3lvl
 
 
 i = 0
@@ -412,6 +413,7 @@ def simulateEigenEnergies(hamiltonianModule, x, numOfEnergyLevels=4, pointResolu
 #######################################################################################
 # Code for testing the possibility of multiprocessing the costfunction.
 def costParallell(x):
+    """
     timeStamps = np.linspace(0,250,250*3)
     options = solver.Options()
     options.nsteps = 10000
@@ -423,6 +425,9 @@ def costParallell(x):
     allExpectedValues = result.expect
     expectValue = -allExpectedValues[0][-1]
     return expectValue
+    """
+    return -McKay11EB_3lvl.getGateFidelity(x,wantiSWAP=True)
+
 
 def optimizeGateParallell(hamiltonianModule, runBayesian=False, runSHG=False, runDA=False, runDE=False, runBH=False, runBayesianWithBH=False):
     parameterBounds = hamiltonianModule.getParameterBounds()
