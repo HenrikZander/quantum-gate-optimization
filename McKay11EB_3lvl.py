@@ -102,12 +102,22 @@ def getHamiltonian(x, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB = 
             return H0BB + x[3]*np.sqrt(np.abs(np.cos(PI*currentPhi)))*H1BB
         return hamiltonian
     else:
-        H0EB = U_e*H0BB*U_e.dag()
+        n = getnLevels()
+
+        omegaTBTh = x[3]*np.sqrt(np.abs(np.cos(PI*x[0])))
+        eigEs = (H0BB + omegaTBTh*H1BB).eigenstates()[0]
+
+        HThEB = Qobj(np.diag(eigEs),dims=[[n,n,n],[n,n,n]])
         H1EB = U_e*H1BB*U_e.dag()
+
+        def omegaTBSinStep_new(t, args):
+            return omegaTBSinStep(t, args) - omegaTBTh
+        def omegaTB_new(t,args):
+            return omegaTB(t,args) - omegaTBTh
         if sinStepHamiltonian:
-            return [H0EB, [H1EB, omegaTBSinStep]]
+            return [HThEB, [H1EB, omegaTBSinStep_new]]
         else:
-            return [H0EB, [H1EB, omegaTB]]
+            return [HThEB, [H1EB, omegaTB_new]]
 
 '''
 def getSStepHamiltonian(x,operationTime=300.0):
