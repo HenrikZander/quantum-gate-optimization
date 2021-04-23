@@ -13,6 +13,11 @@ x0418DEb = [-0.422849290, 0.0583265568, 4.40324141, 50.0444593, 131.164936]
 
 xUsed = x0418DE
 
+# HBBComps = getHamiltonian(xUsed,getBBHamiltonianComps=True)
+# eigSts = getThetaEigenstates(xUsed,HBBComps[0],HBBComps[1])
+
+# print(eigSts[0])
+
 print(getGateFidelity(xUsed,wantiSWAP=True))
 
 # c = [basis(8,0),basis(8,1)]
