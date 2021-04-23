@@ -9,7 +9,7 @@ import datetime
 from numba import njit
 
 def getnLevels():
-    return 2
+    return 3
 
 def getD():
     return getnLevels()**3
@@ -90,8 +90,8 @@ def getAllProjectionOperators():
 
 def getHamiltonian(x, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB = False, getEigenEnergies=False, sinStepHamiltonian=False):
     #The format of x is the following: x = [Theta, delta, omegaPhi, omegaTB0, operationTime]
-    H0BB = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
-    H1BB = (-1/2)*szTB
+    H0BB = omegas[0]*ad3_1*a3_1 - (alphas[0]/2.0)*(1-ad3_1*a3_1)*ad3_1*a3_1 + omegas[1]*ad3_2*a3_2 - (alphas[1]/2.0)*(1-ad3_2*a3_2)*ad3_2*a3_2 - (alphas[2]/2.0)*(1-ad3_TB*a3_TB)*ad3_TB*a3_TB  + gs[0]*(ad3_1 + a3_1)*(ad3_TB + a3_TB) + gs[1]*(ad3_2 + a3_2)*(ad3_TB + a3_TB)
+    H1BB = ad3_TB*a3_TB
 
     if getBBHamiltonianComps:
         return [H0BB,H1BB]
@@ -142,14 +142,14 @@ def getSinStepHamiltonian(x,operationTime=300.0,tRise=25.0):
     return [H0, [H1, omegaTB]]
 '''
 
-def getGateFidelity(x,wantiSWAP=False,wantCZ=False):
+def getGateFidelity(x,wantiSWAP=False,wantCZ=False,wantI=False):
     HBBComps = getHamiltonian(x,getBBHamiltonianComps=True)
 
     n = getnLevels()
     D = getD()
 
     # We are especially interested in |000>, |010>, |100> and |110>:
-    eigIndices = [0, 1, 2, 4] # Är vi även intresserade av tillstånden där TB:n är exciterad?
+    eigIndices = [0, 1, 2, 5] # Är vi även intresserade av tillstånden där TB:n är exciterad?
 
     # Define a list r of eigenstates in the eigenbasis
     r = []
@@ -206,10 +206,18 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False):
         
         # Ideal CZ gate matrix (with phases):
         U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(PI + theta1 + theta2 + phi))]])
-    
+    elif wantI:
+        # Calculate phases (I):
+        phi = np.angle(M[0][0])
+        theta1 = np.angle(M[1][1]) - phi
+        theta2 = np.angle(M[2][2]) - phi
+        
+        # Ideal CZ gate matrix (with phases):
+        U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
+
     # Change M's type to matrix to simplify calculating fidelity
     M = np.matrix(M)
-
+    
     # print(M)
 
     # Calculate gate fidelity

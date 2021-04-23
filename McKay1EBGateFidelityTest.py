@@ -13,4 +13,13 @@ x0418DEb = [-0.422849290, 0.0583265568, 4.40324141, 50.0444593, 131.164936]
 
 xUsed = x0418DE
 
-print(getGateFidelity(xUsed,wantiSWAP=True))
+# HBBComps = getHamiltonian(xUsed,getBBHamiltonianComps=True)
+# eigSts = getThetaEigenstates(xUsed,HBBComps[0],HBBComps[1])
+
+# print(eigSts[0])
+
+start=time.time()
+for _ in range(10):
+    gfid = getGateFidelity(xUsed,wantiSWAP=True)
+print(f'Time: {time.time()-start}')
+print(gfid)
