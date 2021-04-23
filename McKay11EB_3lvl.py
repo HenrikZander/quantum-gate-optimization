@@ -146,7 +146,7 @@ def getThetaEigenstates(x, H_const, H_omegaTB):
     H = H_const + x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0]))) * H_omegaTB
     return H.eigenstates()
 
-    
+
 # Unitary for transforming from the bare basis into the eigenbasis:
 def getEBUnitary(x,H0BB,H1BB,nLevels):
     D = nLevels**3
@@ -161,12 +161,17 @@ def getEBUnitary(x,H0BB,H1BB,nLevels):
     # NB: U_e is ordered based on eigenenergies
     return U_e
 
+@njit
+def coeffTheta(omegaTB0, theta):
+    coeff = omegaTB0*np.sqrt(np.abs(np.cos(np.pi*theta)))
+    return coeff
+
 
 # Unitary for transforming into the rotating frame
 # NB: This is usable only when working in the eigenbasis
 def getRFUnitary(x,H0BB,H1BB,U_e,t):
     # Calculate U_rf:
-    HBB_Th = H0BB + x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0]))) * H1BB
+    HBB_Th = H0BB + coeffTheta(x[3], x[0])*H1BB
     HEB_Th = U_e * HBB_Th * U_e.dag()
 
     U_rf = (1j*HEB_Th*t).expm()

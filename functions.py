@@ -167,7 +167,7 @@ def callbackDE(x,convergence=None):
     
     print(f'Num of iterations: {i+1}')
     print(f'The currently best minimum that the Differential Evolution algorithm has found has a convergence of {convergence} at the point {x}.')
-    print(McKay11EB_3lvl.getGateFidelity(x,wantiSWAP=True))
+    print(f'Current value: {McKay11EB_3lvl.getGateFidelity(x,wantiSWAP=True)}')
     print(f'Total time passed: {passedTime} seconds.')
     print(f'Iteration time: {iterTime} seconds.\n')
     i += 1
