@@ -2,7 +2,6 @@ from qutip import *
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import comb
-from skopt import gp_minimize
 import time
 import scipy
 from numba import njit
@@ -168,6 +167,7 @@ def callbackDE(x,convergence=None):
     
     print(f'Num of iterations: {i+1}')
     print(f'The currently best minimum that the Differential Evolution algorithm has found has a convergence of {convergence} at the point {x}.')
+    print(McKay11EB_3lvl.getGateFidelity(x,wantiSWAP=True))
     print(f'Total time passed: {passedTime} seconds.')
     print(f'Iteration time: {iterTime} seconds.\n')
     i += 1
@@ -269,6 +269,7 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
         runBH = True
         numOfIterBH = 100
     
+    """
     #Optimization using the Bayesian optimization algoritm.
     if runBayesian:
         startTime = time.time()
@@ -282,7 +283,8 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
     #Set the initial guess for the Basin-hopping algorithm to the result of the Bayesian algorithm.
     if setInitialGuess:
         x0 = resBayesian.x
-    
+    """
+
     #Optimization using the Simplicial Homology Global algorithm.
     if runSHG:
         startTime = time.time()
