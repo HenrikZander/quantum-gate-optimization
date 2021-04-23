@@ -73,8 +73,8 @@ def omegaTBSinStep(t, args):
     return tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal)
 
 @njit
-def coeffTheta(omegaTB0, theta):
-    coeff = omegaTB0*np.sqrt(np.abs(np.cos(np.pi*theta)))
+def coeffomegaTB(omegaTB0, Phi):
+    coeff = omegaTB0*np.sqrt(np.abs(np.cos(np.pi*Phi)))
     return coeff
 
 def getProjectionOperator(eigenStateIndex=1):
@@ -92,7 +92,7 @@ def getAllProjectionOperators():
     return [pOp1,pOp2,pOpTB]
 
 
-def getHamiltonian(x, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB = False, getEigenEnergies=False, sinStepHamiltonian=False):
+def getHamiltonian(x, omegaTBTh=None, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB = False, getEigenEnergies=False, sinStepHamiltonian=False):
     #The format of x is the following: x = [Theta, delta, omegaPhi, omegaTB0, operationTime]
     H0BB = omegas[0]*ad3_1*a3_1 - (alphas[0]/2.0)*(1-ad3_1*a3_1)*ad3_1*a3_1 + omegas[1]*ad3_2*a3_2 - (alphas[1]/2.0)*(1-ad3_2*a3_2)*ad3_2*a3_2 - (alphas[2]/2.0)*(1-ad3_TB*a3_TB)*ad3_TB*a3_TB  + gs[0]*(ad3_1 + a3_1)*(ad3_TB + a3_TB) + gs[1]*(ad3_2 + a3_2)*(ad3_TB + a3_TB)
     H1BB = ad3_TB*a3_TB
@@ -100,16 +100,13 @@ def getHamiltonian(x, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB = 
     if getBBHamiltonianComps:
         return [H0BB,H1BB]
     elif getEigenStatesBB:
-        return H0BB + x[3]*np.sqrt(np.abs(np.cos(PI*x[0])))*H1BB
+        return H0BB + coeffomegaTB(x[3],x[0])*H1BB
     elif getEigenEnergies:
         def hamiltonian(currentPhi):
-            return H0BB + x[3]*np.sqrt(np.abs(np.cos(PI*currentPhi)))*H1BB
+            return H0BB + coeffomegaTB(x[3],currentPhi)*H1BB
         return hamiltonian
     else:
         n = getnLevels()
-
-        omegaTBTh = coeffTheta(x[3],x[0])
-        eigEs = (H0BB + omegaTBTh * H1BB).eigenstates()[0]
 
         HThEB = Qobj(np.diag(eigEs),dims=[[n,n,n],[n,n,n]])
         H1EB = U_e*H1BB*U_e.dag()
@@ -156,17 +153,14 @@ def getSinStepHamiltonian(x,operationTime=300.0,tRise=25.0):
     return [H0, [H1, omegaTB]]
 '''
 
-def getThetaEigenstates(x, H_const, H_omegaTB):
-    H = H_const + x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0]))) * H_omegaTB
+def getThetaEigenstates(x, H_const, H_omegaTB, omegaTBTh):
+    H = H_const + omegaTBTh * H_omegaTB
     return H.eigenstates()
 
 
 # Unitary for transforming from the bare basis into the eigenbasis:
-def getEBUnitary(x,H0BB,H1BB,nLevels):
+def getEBUnitary(x,eigStsBB,nLevels):
     D = nLevels**3
-
-    # Calculate eigenstates in the bare basis at Phi = Theta
-    eigStsBB = getThetaEigenstates(x, H0BB, H1BB)
 
     # Construct U_e
     U_e = Qobj()
@@ -178,12 +172,8 @@ def getEBUnitary(x,H0BB,H1BB,nLevels):
 
 # Unitary for transforming into the rotating frame
 # NB: This is usable only when working in the eigenbasis
-def getRFUnitary(x,H0BB,H1BB,U_e,t):
-    # Calculate U_rf:
-    HBB_Th = H0BB + coeffTheta(x[3], x[0])*H1BB
-    HEB_Th = U_e * HBB_Th * U_e.dag()
-
-    U_rf = (1j*HEB_Th*t).expm()
+def getRFUnitary(HThEB,t):
+    U_rf = (1j*HThEB*t).expm()
     return U_rf
 
 
@@ -194,15 +184,21 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False,wantI=False):
     D = getD()
 
     # We are especially interested in |000>, |010>, |100> and |110>:
-    eigIndices = [0, 1, 2, 5] # Är vi även intresserade av tillstånden där TB:n är exciterad?
+    eigIndices = [0, 1, 2, 5]
 
     # Define a list r of eigenstates in the eigenbasis
     r = []
     for ei in eigIndices:
         r.append(Qobj(basis(D,ei),dims=[[n,n,n],[1,1,1]]))
 
+    # Calculate omegaTB at Phi = Theta
+    omegaTBTh = coeffomegaTB(x[3],x[0])
+
+    # Calculate eigenstates and eigenenergies in the bare basis at Phi = Theta
+    eigStsBB = getThetaEigenstates(x, HBBComps[0], HBBComps[1], omegaTBTh)
+
     # Get unitary for transformation into eigenbasis
-    U_e = getEBUnitary(x, HBBComps[0], HBBComps[1], n)
+    U_e = getEBUnitary(x, eigStsBB, n)
 
     # NB: r and U_e are ordered based on eigenenergies
 
@@ -211,7 +207,7 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False,wantI=False):
     # Calculate the eigenbasis hamiltonian
     opTime = x[4]
     ts = np.linspace(0,opTime,int(3*opTime))
-    HEB = getHamiltonian(x, U_e=U_e, sinStepHamiltonian=True) # HEB har (väl) egenenergierna på diagonalen? Isf är det snabbare att definiera den utifrån det.
+    HEB = getHamiltonian(x, omegaTBTh=omegaTBTh, eigEs=eigStsBB[0], U_e=U_e, sinStepHamiltonian=True)
 
     # Initialise a list c of the time-evolved eigenstates
     c = r
@@ -222,10 +218,10 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False,wantI=False):
     # NB: c is ordered based on eigenenergies
 
     # Calculate U_rf:
-    U_rf = getRFUnitary(x, HBBComps[0], HBBComps[1], U_e, ts[-1])
+    U_rf = getRFUnitary(HEB[0], ts[-1])
 
     # Transform c into the rotating frame
-    c_rf = U_rf * c # Kanske går att trunkera innan detta eftersom U_rf är diagonal?
+    c_rf = U_rf * c
 
     # Calculate M-matrix such that M_ij = <r_i|c_j>_rf:
     # Initialize as a 4x4 zero nested list
@@ -257,7 +253,7 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False,wantI=False):
         theta1 = np.angle(M[1][1]) - phi
         theta2 = np.angle(M[2][2]) - phi
         
-        # Ideal CZ gate matrix (with phases):
+        # Ideal I gate matrix (with phases):
         U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
 
     # Change M's type to matrix to simplify calculating fidelity
