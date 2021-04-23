@@ -148,10 +148,13 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False,wantI=False):
     n = getnLevels()
     D = getD()
 
+    # We are especially interested in |000>, |010>, |100> and |110>:
+    eigIndices = [0, 1, 2, 5] # Är vi även intresserade av tillstånden där TB:n är exciterad?
+
     # Define a list r of eigenstates in the eigenbasis
     r = []
-    for i in range(D):
-        r.append(Qobj(basis(D,i),dims=[[n,n,n],[1,1,1]]))
+    for ei in eigIndices:
+        r.append(Qobj(basis(D,ei),dims=[[n,n,n],[1,1,1]]))
 
     # Get unitary for transformation into eigenbasis
     U_e = getEBUnitary(x, HBBComps[0], HBBComps[1], n)
@@ -179,16 +182,13 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False,wantI=False):
     # Transform c into the rotating frame
     c_rf = U_rf * c # Kanske går att trunkera innan detta eftersom U_rf är diagonal?
 
-    # We are especially interested in |000>, |010>, |100> and |110>:
-    eigIndices = [0, 1, 2, 5] # Är vi även intresserade av tillstånden där TB:n är exciterad?
-
     # Calculate M-matrix such that M_ij = <r_i|c_j>_rf:
     # Initialize as a 4x4 zero nested list
     M = [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]]
     # Assign values to elements M_ij
     for i, ei in enumerate(eigIndices):
-        for j, ej in enumerate(eigIndices):
-            M[i][j] = c_rf[ej][ei].item(0)
+        for j, _ in enumerate(eigIndices):
+            M[i][j] = c_rf[j][ei].item(0)
 
     if wantiSWAP:
         # Calculate phases (iSWAP):
@@ -218,7 +218,7 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False,wantI=False):
     # Change M's type to matrix to simplify calculating fidelity
     M = np.matrix(M)
     
-    print(M)
+    # print(M)
 
     # Calculate gate fidelity
     N = 4
