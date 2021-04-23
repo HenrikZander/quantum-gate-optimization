@@ -17,7 +17,7 @@ import time
 
 def main():
     start = time.time()
-    pointOfInterest = [0.38416891,   0.18051406,   3.84487738,  30.23212348, 101.4918881] #x = [Theta, delta, omegaPhi, omegaTB0, operationTime]
+    pointOfInterest = [-4.22849290e-01,  5.83265568e-02,  4.40324141e+00,  5.00444593e+01, 1.31164936e+02] #x = [Theta, delta, omegaPhi, omegaTB0, operationTime]
     currentHamiltonianModule = McKay1
     # testMultiprocessing(currentHamiltonianModule, pointOfInterest)
     # testNumbaSpeedup(currentHamiltonianModule)
@@ -25,8 +25,8 @@ def main():
     # testGateOptimizer()
     # testGenerateCostFunction()
     # optimizeGate(currentHamiltonianModule, runDE=True, sinStepHamiltonian=True)
-    optimizeGateParallell(currentHamiltonianModule, runDE=True)
-    # simulateHamiltonian(currentHamiltonianModule, pointOfInterest, simulationTime=200, sinStepHamiltonian=True)
+    # optimizeGateParallell(currentHamiltonianModule, runDE=True)
+    simulateHamiltonian(currentHamiltonianModule, pointOfInterest, simulationTime=200, sinStepHamiltonian=True)
     # simulateEigenEnergies(currentHamiltonianModule, pointOfInterest)
     print(f'Total running time: {time.time() - start} seconds.')
 
