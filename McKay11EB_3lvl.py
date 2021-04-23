@@ -72,6 +72,10 @@ def omegaTBSinStep(t, args):
     sinBoxVal = sinBox(t,operationTime)
     return tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal)
 
+@njit
+def coeffTheta(omegaTB0, theta):
+    coeff = omegaTB0*np.sqrt(np.abs(np.cos(np.pi*theta)))
+    return coeff
 
 def getProjectionOperator(eigenStateIndex=1):
     D = getD()
@@ -104,8 +108,8 @@ def getHamiltonian(x, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB = 
     else:
         n = getnLevels()
 
-        omegaTBTh = x[3]*np.sqrt(np.abs(np.cos(PI*x[0])))
-        eigEs = (H0BB + omegaTBTh*H1BB).eigenstates()[0]
+        omegaTBTh = coeffTheta(x[3],x[0])
+        eigEs = (H0BB + omegaTBTh * H1BB).eigenstates()[0]
 
         HThEB = Qobj(np.diag(eigEs),dims=[[n,n,n],[n,n,n]])
         H1EB = U_e*H1BB*U_e.dag()
@@ -170,11 +174,6 @@ def getEBUnitary(x,H0BB,H1BB,nLevels):
         U_e += Qobj(basis(D,i),dims=[[nLevels,nLevels,nLevels],[1,1,1]]) * eigStsBB[1][i].dag()
     # NB: U_e is ordered based on eigenenergies
     return U_e
-
-@njit
-def coeffTheta(omegaTB0, theta):
-    coeff = omegaTB0*np.sqrt(np.abs(np.cos(np.pi*theta)))
-    return coeff
 
 
 # Unitary for transforming into the rotating frame
