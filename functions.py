@@ -12,7 +12,7 @@ import McKay11EB_3lvl
 
 i = 0
 global maxRuntime
-maxRuntime = 21600
+maxRuntime = 40000
 
 def smoothstep(x, x_min=0, x_max=1, N=1):
     x = np.clip((x - x_min) / (x_max - x_min), 0, 1)
@@ -167,7 +167,6 @@ def callbackDE(x,convergence=None):
     
     print(f'Num of iterations: {i+1}')
     print(f'The currently best minimum that the Differential Evolution algorithm has found has a convergence of {convergence} at the point {x}.')
-    print(f'Current value: {McKay11EB_3lvl.getGateFidelity(x,wantiSWAP=True)}')
     print(f'Total time passed: {passedTime} seconds.')
     print(f'Iteration time: {iterTime} seconds.\n')
     i += 1

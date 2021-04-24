@@ -173,13 +173,11 @@ def getThetaEigenstates(x, H_const, H_omegaTB, omegaTBTh):
 
 
 # Unitary for transforming from the bare basis into the eigenbasis:
-def getEBUnitary(x,eigStsBB,nLevels):
-    D = nLevels**3
-
+def getEBUnitary(x,eigStsBB,nLevels,Dimension):
     # Construct U_e
     U_e = Qobj()
-    for i in range(D):
-        U_e += Qobj(basis(D,i),dims=[[nLevels,nLevels,nLevels],[1,1,1]]) * eigStsBB[1][i].dag()
+    for i in range(Dimension):
+        U_e += Qobj(basis(Dimension,i),dims=[[nLevels,nLevels,nLevels],[1,1,1]]) * eigStsBB[1][i].dag()
     # NB: U_e is ordered based on eigenenergies
     return U_e
 
@@ -192,15 +190,18 @@ def getRFUnitary(HThEB,t):
 
 
 def getGateFidelity(x,wantiSWAP=False,wantCZ=False,wantI=False):
+    # Get both parts of the hamiltonian in the bare basis.
     HBBComps = getHamiltonian(x,getBBHamiltonianComps=True)
 
+    # Get the number of considered energy levels for each qubit and the resulting dimension of the comnined tensor state.
+    # From here on, unless otherwise stated, every state is considered a tensor state.
     n = getnLevels()
     D = getD()
 
-    # We are especially interested in |000>, |010>, |100> and |110>:
+    # We are especially interested in |000>, |010>, |100> and |110> since these build up the computational basis.
     eigIndices = [0, 1, 2, 5]
 
-    # Define a list r of eigenstates in the eigenbasis
+    # Define a list r of eigenstates in the eigenbasis.
     r = []
     for ei in eigIndices:
         r.append(Qobj(basis(D,ei),dims=[[n,n,n],[1,1,1]]))
@@ -212,15 +213,17 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False,wantI=False):
     eigStsBB = getThetaEigenstates(x, HBBComps[0], HBBComps[1], omegaTBTh)
 
     # Get unitary for transformation into eigenbasis
-    U_e = getEBUnitary(x, eigStsBB, n)
+    U_e = getEBUnitary(x, eigStsBB, n, D)
 
     # NB: r and U_e are ordered based on eigenenergies
 
 
     # Simulate evolution of eigenstates:
-    # Calculate the eigenbasis hamiltonian
+
+    # Determine the time stamps for which the evolution will be solved at.
     opTime = x[4]
     ts = np.linspace(0,opTime,int(3*opTime))
+    # Calculate the eigenbasis hamiltonian
     HEB = getHamiltonian(x, eigEs=eigStsBB[0], U_e=U_e, sinStepHamiltonian=True)
 
     # Initialise a list c of the time-evolved eigenstates
@@ -234,7 +237,7 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False,wantI=False):
     # Calculate U_rf:
     U_rf = getRFUnitary(HEB[0], ts[-1])
 
-    # Transform c into the rotating frame
+    # Transform all the states in c to the rotating frame
     c_rf = U_rf * c
 
     # Calculate M-matrix such that M_ij = <r_i|c_j>_rf:
