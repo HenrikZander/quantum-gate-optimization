@@ -43,6 +43,14 @@ def omegaTB(t, args):
     omegatb0 = args['omegatb0']
     return tunableBus(t, theta, delta, omegaphi, omegatb0)
 
+def omegaTB_new(t, args):
+    theta = args['theta']
+    delta = args['delta']
+    omegaphi = args['omegaphi']
+    omegatb0 = args['omegatb0']
+    omegaTBTh = args['omegaTBTh']
+    return tunableBus(t, theta, delta, omegaphi, omegatb0) - omegaTBTh
+
 
 def sinBox(t, operationTime):
     tRise = 25
@@ -72,6 +80,16 @@ def omegaTBSinStep(t, args):
     sinBoxVal = sinBox(t,operationTime)
     return tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal)
 
+def omegaTBSinStep_new(t, args):
+    theta = args['theta']
+    delta = args['delta']
+    omegaphi = args['omegaphi']
+    omegatb0 = args['omegatb0']
+    operationTime = args['operationTime']
+    omegaTBTh = args['omegaTBTh']
+    sinBoxVal = sinBox(t,operationTime)
+    return tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal) - omegaTBTh
+
 @njit
 def coeffomegaTB(omegaTB0, Phi):
     coeff = omegaTB0*np.sqrt(np.abs(np.cos(np.pi*Phi)))
@@ -92,7 +110,7 @@ def getAllProjectionOperators():
     return [pOp1,pOp2,pOpTB]
 
 
-def getHamiltonian(x, omegaTBTh=None, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB = False, getEigenEnergies=False, sinStepHamiltonian=False):
+def getHamiltonian(x, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB = False, getEigenEnergies=False, sinStepHamiltonian=False):
     #The format of x is the following: x = [Theta, delta, omegaPhi, omegaTB0, operationTime]
     H0BB = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
     H1BB = (-1/2)*szTB
@@ -111,10 +129,6 @@ def getHamiltonian(x, omegaTBTh=None, eigEs=None, U_e=None, getBBHamiltonianComp
         HThEB = Qobj(np.diag(eigEs),dims=[[n,n,n],[n,n,n]])
         H1EB = U_e*H1BB*U_e.dag()
 
-        def omegaTBSinStep_new(t, args):
-            return omegaTBSinStep(t, args) - omegaTBTh
-        def omegaTB_new(t,args):
-            return omegaTB(t,args) - omegaTBTh
         if sinStepHamiltonian:
             return [HThEB, [H1EB, omegaTBSinStep_new]]
         else:
@@ -207,15 +221,15 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False,wantI=False):
     # Calculate the eigenbasis hamiltonian
     opTime = x[4]
     ts = np.linspace(0,opTime,int(3*opTime))
-    HEB = getHamiltonian(x, omegaTBTh=omegaTBTh, eigEs=eigStsBB[0], U_e=U_e, sinStepHamiltonian=True)
+    HEB = getHamiltonian(x, eigEs=eigStsBB[0], U_e=U_e, sinStepHamiltonian=True)
 
     # Initialise a list c of the time-evolved eigenstates
     c = r
     # Calculate final states and store them in c
     for i in range(len(c)):
-        output = sesolve(HEB, c[i], ts, args={'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': x[3], 'operationTime': x[4]})
+        output = sesolve(HEB, c[i], ts, args={'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': x[3], 'operationTime': x[4], 'omegaTBTh': omegaTBTh})
         c[i] = output.states[-1]
-    # NB: c is ordered based on eigenenergies
+    # NB: The elements of each state in c is ordered based on eigenenergies
 
     # Calculate U_rf:
     U_rf = getRFUnitary(HEB[0], ts[-1])
