@@ -36,11 +36,13 @@ def sinstep(x, x_min, x_max):
 # but I kept the other two for convenience (and in case we want them calculated more quickly I guess)
 # NB: These functions give the eigenstates in the bare basis, ordered according to ascending eigenenergy
 
+# Utkommenterad för att inte sabba stuff:
+'''
 # Eigenstates when Phi = Theta:
 def getThetaEigenstates(x, H_const, H_omegaTB):
     H = H_const + x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0]))) * H_omegaTB
     return H.eigenstates()
-
+'''
 # Eigenstates when Phi = 0:
 def getZeroEigenstates(x, H_const, H_omegaTB):
     H = H_const + x[3] * H_omegaTB
