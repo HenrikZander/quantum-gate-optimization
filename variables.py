@@ -78,3 +78,19 @@ a3_TB = tensor(I3,I3,a3)
 ad3_1 = tensor(ad3,I3,I3)
 ad3_2 = tensor(I3,ad3,I3)
 ad3_TB = tensor(I3,I3,ad3)
+
+# Definition of basic operators for a four-level system
+a4 = destroy(4) # Annihilation operator for a four-level system
+ad4 = create(4) # Creation operator for a four-level system
+I4 = qeye(4) # Identity operator for a four-level system
+
+# The upgraded operators that are given by the tensor product between the different basic operators and the identity operator
+# Upgraded states are defined as qubit one, qubit two and tunable bus in that order
+
+a4_1 = tensor(a4,I4,I4)
+a4_2 = tensor(I4,a4,I4)
+a4_TB = tensor(I4,I4,a4)
+
+ad4_1 = tensor(ad4,I4,I4)
+ad4_2 = tensor(I4,ad4,I4)
+ad4_TB = tensor(I4,I4,ad4)
