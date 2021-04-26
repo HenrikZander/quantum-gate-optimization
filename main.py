@@ -7,7 +7,7 @@ import multiprocessing
 from variables import *
 from functions import *
 from plotting import *
-import McKay11EB_3lvl
+import McKay11EB_4lvl
 import time
 
 # print(tensor(gSt,eSt,gSt))
@@ -18,7 +18,7 @@ import time
 def main():
     start = time.time()
     pointOfInterest = [0.38416891,   0.18051406,   3.84487738,  30.23212348, 101.4918881] #x = [Theta, delta, omegaPhi, omegaTB0, operationTime]
-    currentHamiltonianModule = McKay11EB_3lvl
+    currentHamiltonianModule = McKay11EB_4lvl
     # testMultiprocessing(currentHamiltonianModule, pointOfInterest)
     # testNumbaSpeedup(currentHamiltonianModule)
     # testFindMinimum()

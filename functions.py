@@ -7,7 +7,7 @@ import scipy
 from numba import njit
 from plotting import *
 import McKay1
-import McKay11EB_3lvl
+import McKay11EB_4lvl
 
 
 i = 0
@@ -429,7 +429,7 @@ def costParallell(x):
     expectValue = -allExpectedValues[0][-1]
     return expectValue
     """
-    return -McKay11EB_3lvl.getGateFidelity(x,wantCZ=True)
+    return -McKay11EB_4lvl.getGateFidelity(x,wantCZ=True)
 
 
 def optimizeGateParallell(hamiltonianModule, runBayesian=False, runSHG=False, runDA=False, runDE=False, runBH=False, runBayesianWithBH=False):
