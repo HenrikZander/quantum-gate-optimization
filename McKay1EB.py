@@ -298,7 +298,7 @@ def getInitialGuess():
 
 def getParameterBounds():
     #Format of x: x = [Theta, delta, omegaPhi, omegaTB0, operationTime]
-    return [(-0.5,0.5),(0,0.25),(0,5),(27.5,60),(50,240)]
+    return [(-0.5,0.5),(0,0.25),(0,5),(27.5,47.5),(50,240)]
 
 
 def timeEvolutionH1():

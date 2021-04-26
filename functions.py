@@ -429,7 +429,7 @@ def costParallell(x):
     expectValue = -allExpectedValues[0][-1]
     return expectValue
     """
-    return -McKay11EB_3lvl.getGateFidelity(x,wantiSWAP=True)
+    return -McKay11EB_3lvl.getGateFidelity(x,wantCZ=True)
 
 
 def optimizeGateParallell(hamiltonianModule, runBayesian=False, runSHG=False, runDA=False, runDE=False, runBH=False, runBayesianWithBH=False):
