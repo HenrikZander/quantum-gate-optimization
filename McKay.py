@@ -47,7 +47,7 @@ def getParameterBounds(maxAllowedGateTime=240):
 
 
 ######################################################################################################################################################################
-# Functions that define the tunnable bus flux signal.
+# Functions that define the tunable bus flux signal.
 
 @njit
 def Phi(t, theta, delta, omegaphi):
@@ -60,9 +60,9 @@ def Phi(t, theta, delta, omegaphi):
 
 
 @njit
-def tunnableBus(t, theta, delta, omegaphi, omegatb0):
+def tunableBus(t, theta, delta, omegaphi, omegatb0):
     """
-    This function calculates the frequency for the tunnable bus, for the case
+    This function calculates the frequency for the tunable bus, for the case
     when the AC part of the flux has a constant amplitude.
     """
     oTB = omegatb0*np.sqrt(np.abs(np.cos(PI*Phi(t, theta, delta, omegaphi))))
@@ -71,20 +71,20 @@ def tunnableBus(t, theta, delta, omegaphi, omegatb0):
 
 def omegaTB(t, args):
     """
-    Wrapper function for tunnableBus that handles the variable assignments.
+    Wrapper function for tunableBus that handles the variable assignments.
     """
     theta = args['theta']
     delta = args['delta']
     omegaphi = args['omegaphi']
     omegatb0 = args['omegatb0']
     omegaTBTh = args['omegaTBTh']
-    return tunnableBus(t, theta, delta, omegaphi, omegatb0) - omegaTBTh
+    return tunableBus(t, theta, delta, omegaphi, omegatb0) - omegaTBTh
 
 
 @njit
 def sinstep(x, x_min, x_max):
     """
-    This function calculates the function value of a sinusodial step function, 
+    This function calculates the function value of a sinusoidal step function, 
     that starts at x_min and assumes the value 1 after x_max, at the point x.
     """
     x = (x - x_min)/(x_max - x_min)
@@ -98,8 +98,9 @@ def sinstep(x, x_min, x_max):
 
 def sinBox(t, operationTime):
     """
-    This function calculates the value of a sinusodial box function, with a total 
-    length of operationTime, at the time t. A rise time of 25 ns is used.
+    This function calculates the value of a box function with a sinusoidal rise
+    and fall, with a total length of operationTime, at the time t.
+    A rise time of 25 ns is used.
     """
     tRise = 25
     tWait = operationTime - 2*tRise
@@ -111,17 +112,17 @@ def sinBox(t, operationTime):
 def PhiSinStep(t, theta, delta, omegaphi, sinBoxVal):
     """
     This function calculates the magnetic flux when the AC part of the flux has 
-    a sinusodially modulated amplitude. 
+    a sinusoidal box envelope. 
     """
     phi = theta + sinBoxVal*delta*np.cos(omegaphi*t)
     return phi
 
 
 @njit
-def tunnableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal):
+def tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal):
     """
-    This function calculates the frequency for the tunnable bus, for the case
-    when the AC part of the flux has a sinusodially modulated amplitude.
+    This function calculates the frequency for the tunable bus, in the case
+    where the AC part of the flux has a sinusoidal box envelope.
     """
     oTB = omegatb0*np.sqrt(np.abs(np.cos(PI*PhiSinStep(t, theta, delta, omegaphi, sinBoxVal))))
     return oTB
@@ -129,7 +130,7 @@ def tunnableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal):
 
 def omegaTBSinStep(t, args):
     """
-    Wrapper function for tunnableBusSinStep that handles the variable assignments.
+    Wrapper function for tunableBusSinStep that handles the variable assignments.
     """
     theta = args['theta']
     delta = args['delta']
@@ -138,13 +139,13 @@ def omegaTBSinStep(t, args):
     operationTime = args['operationTime']
     omegaTBTh = args['omegaTBTh']
     sinBoxVal = sinBox(t,operationTime)
-    return tunnableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal) - omegaTBTh
+    return tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal) - omegaTBTh
 
 
 @njit
 def coeffomegaTB(omegaTB0, Phi):
     """
-    This function calculates the time dependent coefficient for a constant flux Phi.
+    This function calculates the tunable bus frequency at a given flux Phi.
     """
     return omegaTB0*np.sqrt(np.abs(np.cos(np.pi*Phi)))
 
@@ -155,19 +156,18 @@ def coeffomegaTB(omegaTB0, Phi):
 
 def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB = False, getEigenEnergies=False, sinStepHamiltonian=False):
     """
-    This function creates the hamiltonian for the specified amount 
-    of energy levels. It also has the ability to return to hamiltonian
-    in both the bare and eigenstate basis. The user can also choose 
-    whether the function should return the hamiltonian with a constantly 
-    modulated AC flux or a sinusodial step modulated AC flux for the 
-    coupler between the qubits. 
+    This function creates the hamiltonian for the specified number 
+    of energy levels. It also has the ability to return the hamiltonian
+    in both the bare basis and the eigenbasis. The user can also choose 
+    whether the function should return the hamiltonian using an AC flux
+    with constant amplitude or with a sinusoidal box envelope.
     ---------------------------------------------------------
     INPUT:
             x (array(float)): An array containing the parameters needed to time evolve the hamiltonian.
-            N (int) {Optional}: Specifies the amount of energy levels that should be used in the hamiltonian. Defaults to 2 energy levels.
+            N (int) {Optional}: Specifies the number of energy levels that should be used in the hamiltonian. Defaults to 2 energy levels.
             eigEs (array(float)) {Optional}: An array of the eigenenergies that has been calculated for the bare basis hamiltonian.
-            U_e (Qobj) {Optional}: A Qutip quantum operator that changes the basis from tha bare basis to the eigenbasis.
-            sinStepHamiltonian (boolean) {Optional}: The AC part of the flux in the time dependent coefficient should be modulated by a sinusodial step function. Defaults to False.
+            U_e (Qobj) {Optional}: A QuTiP quantum operator that changes the basis from the bare basis to the eigenbasis.
+            sinStepHamiltonian (boolean) {Optional}: Chooses whether the AC part of the flux affecting the tunable coupler frequency should use a sinusoidal box envelope. Defaults to False.
 
         Set only ONE of these to True!:
             getBBHamiltonianComps (boolean) {Optional}: Get the hamiltonian in the bare basis without the time dependent coefficient. Defaults to False.
@@ -181,7 +181,7 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
     ---------------------------------------------------------
     """
 
-    # Choose the amount of energy levels that should be used in the creation of the hamiltonian components.
+    # Choose the number of energy levels that should be used in the creation of the hamiltonian components.
     if N==4:
         # Get the 4 energy level hamltonian components.
         H0BB = omegas[0]*ad4_1*a4_1 - (alphas[0]/2.0)*(1-ad4_1*a4_1)*ad4_1*a4_1 + omegas[1]*ad4_2*a4_2 - (alphas[1]/2.0)*(1-ad4_2*a4_2)*ad4_2*a4_2 - (alphas[2]/2.0)*(1-ad4_TB*a4_TB)*ad4_TB*a4_TB  + gs[0]*(ad4_1 + a4_1)*(ad4_TB + a4_TB) + gs[1]*(ad4_2 + a4_2)*(ad4_TB + a4_TB)
@@ -195,7 +195,7 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
         H0BB = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
         H1BB = (-1/2)*szTB
     
-    # Choose which hamiltonian configuration that is to be returned.
+    # Choose which hamiltonian configuration is to be returned.
     if getBBHamiltonianComps:
 
         # Just return the bare basis hamiltonian components without the time dependent coefficient.
@@ -218,7 +218,7 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
         H1EB = U_e*H1BB*U_e.dag()
 
         if sinStepHamiltonian:
-            # The time dependent coefficient will be specified with an AC part of the flux that will be sinusodially modulated.
+            # The time dependent coefficient will be specified with an AC part of the flux that will be sinusoidally modulated.
             return [HThEB, [H1EB, omegaTBSinStep]]
         else:
             # The time dependent coefficient will be specified with an AC part of the flux that will be constant.
@@ -232,8 +232,8 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
 def getThetaEigenstates(x, H_const, H_omegaTB, omegaTBTh):
     """
     This function calculates the eigenstates and eigenenergies 
-    for a hamiltonian in the bare basis, with the time dependent 
-    coefficient evaluated for a constant flux.
+    for a hamiltonian in the bare basis, using the tunable
+    bus frequency at a constant flux.
     """
     H = H_const + omegaTBTh * H_omegaTB
     return H.eigenstates()
@@ -242,7 +242,7 @@ def getThetaEigenstates(x, H_const, H_omegaTB, omegaTBTh):
 def getEBUnitary(x,eigStsBB,nLevels,Dimension):
     """
     This function returns the unitary that is used for transforming
-    from the bare basis to the eigenbasis.
+    from the bare basis into the eigenbasis.
     """
     # Construct U_e
     U_e = Qobj()
@@ -269,7 +269,7 @@ def getRFUnitary(HThEB,t):
 def getGateFidelity(x,N=2,wantiSWAP=False,wantCZ=False,wantI=False):
     """
     This function calculates the average gate fidelity for the 
-    iSWAP and CZ quantum gates given an parameter set x.
+    iSWAP and CZ quantum gates given a parameter set x.
     ---------------------------------------------------------
     INPUT:
             x (array(float)): An array containing the parameters needed to time evolve the hamiltonian.
@@ -288,11 +288,11 @@ def getGateFidelity(x,N=2,wantiSWAP=False,wantCZ=False,wantI=False):
     # Get both parts of the hamiltonian in the bare basis.
     HBBComps = getHamiltonian(x,N=N,getBBHamiltonianComps=True)
 
-    # Given the amount of considered energy levels for each qubit and the resulting dimension of the comnined tensor state is calculated.
+    # Given the number of considered energy levels for each qubit, the dimension of the combined tensor state is calculated.
     D = N**3
     # From here on, unless otherwise stated, every state is considered a tensor state.
 
-    # We are especially interested in |000>, |010>, |100> and |110> since these build up the computational basis.
+    # We are especially interested in |000>, |010>, |100> and |110> since these make up the computational basis.
     if N==4:
         eigIndices = [0, 1, 2, 5]
     elif N==3:
