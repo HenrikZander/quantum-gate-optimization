@@ -1,3 +1,26 @@
+######################################################################################################################################################################
+
+#      .oooooo.   oooo                  oooo                                                
+#     d8P'  `Y8b  `888                  `888                                                
+#    888           888 .oo.    .oooo.    888  ooo. .oo.  .oo.    .ooooo.  oooo d8b  .oooo.o 
+#    888           888P"Y88b  `P  )88b   888  `888P"Y88bP"Y88b  d88' `88b `888""8P d88(  "8 
+#    888           888   888   .oP"888   888   888   888   888  888ooo888  888     `"Y88b.  
+#    `88b    ooo   888   888  d8(  888   888   888   888   888  888    .o  888     o.  )88b 
+#     `Y8bood8P'  o888o o888o `Y888""8o o888o o888o o888o o888o `Y8bod8P' d888b    8""888P' 
+
+
+# File name: main.py
+
+# Author(s): Henrik Zander
+
+# Date created: 27 February 2021
+
+# Last modified: 29 April 2021
+
+# Copyright 2021, Henrik Zander, All rights reserved.
+
+######################################################################################################################################################################
+
 from qutip import *
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,28 +30,35 @@ import multiprocessing
 from variables import *
 from functions import *
 from plotting import *
-import McKay11EB_4lvl
 import time
 
-# print(tensor(gSt,eSt,gSt))
-# print(tensor(eSt,gSt,gSt))
-# print(tensor(gSt,gSt,eSt))
+######################################################################################################################################################################
+# Interesting solutions in the format x = [Theta, delta, omegaPhi, omegaTB0, operationTime].
+
+x_0425_1_iSWAP = [0.241082420, 0.108883457, 2.50702612, 39.0692027, 218.127752]
+x_0425_2_iSWAP = [-4.31076591e-01,  2.75072184e-02,  3.52975522e+00,  3.67717108e+01, 8.39876656e+01]
+x_0426_CZ = [4.44287328e-01, 2.05934595e-02, 2.04012274e+00, 3.07227234e+01, 1.78093842e+02]
+
+######################################################################################################################################################################
+# The main function that auto-runs on compilation.
 
 
 def main():
     start = time.time()
-    pointOfInterest = [0.38416891,   0.18051406,   3.84487738,  30.23212348, 101.4918881] #x = [Theta, delta, omegaPhi, omegaTB0, operationTime]
-    currentHamiltonianModule = McKay11EB_4lvl
     # testMultiprocessing(currentHamiltonianModule, pointOfInterest)
     # testNumbaSpeedup(currentHamiltonianModule)
     # testFindMinimum()
     # testGateOptimizer()
     # testGenerateCostFunction()
-    # optimizeGate(currentHamiltonianModule, runDE=True, sinStepHamiltonian=True)
-    optimizeGateParallell(currentHamiltonianModule, runDE=True)
-    # simulateHamiltonian(currentHamiltonianModule, pointOfInterest, simulationTime=200, sinStepHamiltonian=True)
+    # optimizeGate(iSWAP=True, energyLevels=2, runDE=True)
+    # optimizeGateParallell(currentHamiltonianModule, runDE=True)
+    simulateHamiltonian(x_0425_2_iSWAP, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1)
     # simulateEigenEnergies(currentHamiltonianModule, pointOfInterest)
     print(f'Total running time: {time.time() - start} seconds.')
+
+
+######################################################################################################################################################################
+# Functions used in testing.
 
 
 def testEvaluateResult():
@@ -66,7 +96,8 @@ def testStateAnimations():
     result = sesolve(H, state, times, [])
     animateStates(result, "temp")
 
-#######################################################################################
+
+######################################################################################################################################################################
 # Code for testing Numba and how it can be used to speed up the code.
 # x = [Theta, delta, omegaPhi, omegaTB0, operationTime]
 
@@ -89,7 +120,7 @@ def testNumbaSpeedup(hamiltonianModule):
     print("Temp=", temp)
 
 
-#######################################################################################
+######################################################################################################################################################################
 # Code for testing the possibility of multiprocessing the costfunction.
 
 
@@ -113,8 +144,13 @@ def testMultiprocessing(hamiltonianModule, x):
         costParallell(x)
     print(f'Total running time for cost evaluation in a series: {time.time() - start} seconds.')
 
-#######################################################################################
+
+######################################################################################################################################################################
+# Auto-run the main()-function if main.py is compiled.
 
 
 if __name__ == "__main__":
     main()
+
+
+######################################################################################################################################################################

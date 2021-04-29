@@ -1,83 +1,55 @@
+######################################################################################################################################################################
+
+#      .oooooo.   oooo                  oooo                                                
+#     d8P'  `Y8b  `888                  `888                                                
+#    888           888 .oo.    .oooo.    888  ooo. .oo.  .oo.    .ooooo.  oooo d8b  .oooo.o 
+#    888           888P"Y88b  `P  )88b   888  `888P"Y88bP"Y88b  d88' `88b `888""8P d88(  "8 
+#    888           888   888   .oP"888   888   888   888   888  888ooo888  888     `"Y88b.  
+#    `88b    ooo   888   888  d8(  888   888   888   888   888  888    .o  888     o.  )88b 
+#     `Y8bood8P'  o888o o888o `Y888""8o o888o o888o o888o o888o `Y8bod8P' d888b    8""888P' 
+
+
+# File name: functions.py
+
+# Author(s): Henrik Zander, Emil Ingelsten
+
+# Date created: 27 February 2021
+
+# Last modified: 29 April 2021
+
+# Copyright 2021, Henrik Zander and Emil Ingelsten, All rights reserved.
+
+######################################################################################################################################################################
+
 from qutip import *
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.special import comb
 import time
 import scipy
 from numba import njit
 from plotting import *
-import McKay1
-import McKay11EB_4lvl
+from McKay import *
+
+######################################################################################################################################################################
+# Global variables
 
 
 i = 0
 global maxRuntime
 maxRuntime = 40000
 
-def smoothstep(x, x_min=0, x_max=1, N=1):
-    x = np.clip((x - x_min) / (x_max - x_min), 0, 1)
-    result = 0
-    for n in range(N + 1):
-         result += comb(N + n, n) * comb(2 * N + 1, N - n) * (-x) ** n
-    result *= x ** (N + 1)
-    return result
 
-@njit
-def sinstep(x, x_min, x_max):
-    x = (x - x_min)/(x_max - x_min)
-    if x < 0:
-        x = 0
-    elif x > 1:
-        x = 1
-    result = 0.5 - 0.5*np.cos(np.pi*x)
-    return result
+######################################################################################################################################################################
+# Helper function for the callback functions
 
-# One could definitely make an argument for only keeping getEigenstates() out of these three,
-# but I kept the other two for convenience (and in case we want them calculated more quickly I guess)
-# NB: These functions give the eigenstates in the bare basis, ordered according to ascending eigenenergy
-
-# Utkommenterad för att inte sabba stuff:
-'''
-# Eigenstates when Phi = Theta:
-def getThetaEigenstates(x, H_const, H_omegaTB):
-    H = H_const + x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0]))) * H_omegaTB
-    return H.eigenstates()
-'''
-# Eigenstates when Phi = 0:
-def getZeroEigenstates(x, H_const, H_omegaTB):
-    H = H_const + x[3] * H_omegaTB
-    return H.eigenstates()
-
-# Eigenstates for arbitrary Phi:
-def getEigenstates(x, Phi, H_const, H_omegaTB):
-    H = H_const + x[3]*np.sqrt(np.abs(np.cos(np.pi*Phi))) * H_omegaTB
-    return H.eigenstates()
-
-# Unitary for transforming from the bare basis into the eigenbasis:
-def getEBUnitary(x,H0BB,H1BB,nLevels):
-    D = nLevels**3
-
-    # Calculate eigenstates in the bare basis at Phi = Theta
-    eigStsBB = getThetaEigenstates(x, H0BB, H1BB)
-
-    # Construct U_e
-    U_e = Qobj()
-    for i in range(D):
-        U_e += Qobj(basis(D,i),dims=[[nLevels,nLevels,nLevels],[1,1,1]]) * eigStsBB[1][i].dag()
-    # NB: U_e is ordered based on eigenenergies
-    return U_e
-
-# Unitary for transforming into the rotating frame
-# NB: This is usable only when working in the eigenbasis
-def getRFUnitary(x,H0BB,H1BB,U_e,t):
-    # Calculate U_rf:
-    HBB_Th = H0BB + x[3]*np.sqrt(np.abs(np.cos(np.pi*x[0]))) * H1BB
-    HEB_Th = U_e * HBB_Th * U_e.dag()
-
-    U_rf = (1j*HEB_Th*t).expm()
-    return U_rf
 
 def evaluateResult(x, fun, resultList, N=5):
+    """
+    This function is used to save the N best minima from an optimizer. The 
+    function evaluates if the new minima fun is smaller than any of the 
+    ones in resultList. If the length of resultList is shorter than N, the
+    new minima will just be appended to resultList. 
+    """
     if len(resultList[1]) < N:
         resultList[0].append(x)
         resultList[1].append(fun)
@@ -89,72 +61,14 @@ def evaluateResult(x, fun, resultList, N=5):
     return resultList
 
 
-def bayesianCallback(result):
-    global i
-    global lastTime
-    global bestResults
-    if i == 0:
-        lastTime = startTime
-        bestResults = [[],[]]
-    
-    currentTime = time.time()
-    passedTime = currentTime - startTime
-    iterTime = currentTime - lastTime
-    lastTime = currentTime
-    
-    fun = result.fun
-    x = result.x
-    
-    bestResults = evaluateResult(x, fun, bestResults)
-    print(f'Num of found minima: {i+1}')
-    print(f'The Bayesian Optimization algorithm gave a minimum of {fun} at the point {x}.')
-    print(f'Total time passed: {passedTime} seconds.')
-    print(f'Iteration time: {iterTime} seconds.\n')
-    i += 1
-    if passedTime > maxRuntime:
-        result = []
-        for i in range(len(bestResults[1])):
-            result.append((bestResults[0][i],bestResults[1][i]))
-        saveResToFile(result, "Bayesian Optimization", i, passedTime)
-        i = 0
-        print("Optimization timeout triggered!")
-        return True
-    else: 
-        return False
-
-    
-def callbackBH(x, fun, accept):
-    global i
-    global lastTime
-    global bestResults
-    if i == 0:
-        lastTime = startTime
-        bestResults = [[],[]]
-    
-    currentTime = time.time()
-    passedTime = currentTime - startTime
-    iterTime = currentTime - lastTime
-    lastTime = currentTime
-    
-    bestResults = evaluateResult(x, fun, bestResults)
-    print(f'Num of minima found: {i+1}')
-    print(f'The Basin-Hopping algorithm gave a minimum of {fun} at the point {x}.')
-    print(f'Total time passed: {passedTime} seconds.')
-    print(f'Iteration time: {iterTime} seconds.\n')
-    i += 1
-    if passedTime > maxRuntime:
-        result = []
-        for i in range(len(bestResults[1])):
-            result.append((bestResults[0][i],bestResults[1][i]))
-        saveResToFile(result, "Basin-Hopping", i, passedTime)
-        i = 0
-        print("Optimization timeout triggered!")
-        return True
-    else: 
-        return False
+######################################################################################################################################################################
+# Callback functions
 
 
 def callbackDE(x,convergence=None):
+    """
+    Callback function for the Differential Evolution optimizer.
+    """
     global i
     global lastTime
     global bestResults
@@ -183,6 +97,9 @@ def callbackDE(x,convergence=None):
 
 
 def callbackDA(x, fun, context):
+    """
+    Callback function for the Dual Anneling optimizer.
+    """
     global i
     global lastTime
     global bestResults
@@ -214,6 +131,9 @@ def callbackDA(x, fun, context):
 
 
 def callbackSHG(x):
+    """
+    Callback function for the Simplical Homology Global optimizer.
+    """
     global i
     global lastTime
     global bestResults
@@ -239,52 +159,36 @@ def callbackSHG(x):
         return False
 
 
-def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, runDA=True, runDE=True, runBH=True, runBayesianWithBH=False, numOfMinimaToFindBH = 500):
+######################################################################################################################################################################
+
+
+def findMinimum(costFunction, bounds, runSHG=True, runDA=True, runDE=True):
     """
-    This function finds the minimum of the specified cost function, either within 
-    the given bounds or close to the inital guess 'x0' depending on the algorithm 
-    in use. A number of different algorithms can be used simultaneously.
+    This function aims to find the global minimum of the specified cost 
+    function, within the parameter bounds that has been specified. A 
+    number of different algorithms are implemented and they can be used 
+    consecutively during one function call.
+    ---------------------------------------------------------
+    INPUT:
+            costFunction (function pointer): The cost function that is to be minimized. The input parameters to the cost function should be specified as an array x.
+            bounds (array(tuple(int))): The parameter bounds that the optimizer will do it's best to not leave. The length of this array determines the expected dimension of the cost function input x.
+            runSHG (boolean) {Optional}: If True the function will use the Simplicial Homology Global algorithm to minimize the cost function.
+            runDA (boolean) {Optional}: If True the function will use the Dual Anneling algorithm to minimize the cost function.
+            runDE (boolean) {Optional}: If True the function will use the Differential Evolution algorithm to minimize the cost function.
+    ---------------------------------------------------------
+    OUTPUT:
+            result (array(scipy.optimize.OptimizeResult)): An array of Scipy result structures. See Scipy documentation for more information.
+    ---------------------------------------------------------
     """
     
     global startTime 
     
-    #Initial formatting tasks.
+    #Initial formatting tasks for the result that will be printed in the terminal.
     print("")
     message = "##################################################\n"
-    setInitialGuess = False
-    coordinatesOrigin = [0]*len(bounds)
     result = []
     algorithmsUsed = []
     runtime = []
-    
-    #If the initial guess for the Basin-hopping algorithm hasen't been specified set the guess to the origin.
-    if x0 is None:
-        x0 = [0]*len(bounds)
-    
-    #If we want to use the result from the Bayesian algorithm as our starting point for the Basin-hopping algorithm, 
-    #run the Bayesian algorithm, set the result to the initial guess and then run the Basin-hopping algoritm.
-    #Also reduce the amount of iterations to be performed by the Basin-hopping algorithm.
-    if runBayesianWithBH:
-        setInitialGuess = True
-        runBayesian = True
-        runBH = True
-        numOfIterBH = 100
-    
-    """
-    #Optimization using the Bayesian optimization algoritm.
-    if runBayesian:
-        startTime = time.time()
-        resBayesian = gp_minimize(costFunction, bounds, callback=bayesianCallback, n_jobs=-1, n_calls=4000, n_initial_points=100)
-        timeBayesian = time.time() - startTime
-        message += f'The optimizaton using \"gp_minimize()\" took {round(timeBayesian,2)}s to execute and ended on a minimum of {resBayesian.fun} at the point {resBayesian.x}.\n'
-        result.append(resBayesian)
-        algorithmsUsed.append("Bayesian Optimization")
-        runtime.append(timeBayesian)
-    
-    #Set the initial guess for the Basin-hopping algorithm to the result of the Bayesian algorithm.
-    if setInitialGuess:
-        x0 = resBayesian.x
-    """
 
     #Optimization using the Simplicial Homology Global algorithm.
     if runSHG:
@@ -311,7 +215,7 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
     #Optimization using the Differential Evolution algorithm.
     if runDE:
         startTime = time.time()
-        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1)
+        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred')
         timeDE = time.time() - startTime
         message += f'The optimizaton using the \"Differential Evolution\"-algorithm took {round(timeDE,2)}s to execute and ended on a minimum of {resDE.fun} at the point {resDE.x}.\n'
         message += f'Function evaluations performed: {resDE.nfev}\n'
@@ -319,70 +223,189 @@ def findMinimum(costFunction, bounds, x0=None, runBayesian=False, runSHG=True, r
         algorithmsUsed.append("Differential Evolution")
         runtime.append(timeDE)
     
-    #Optimization using the Basin-hopping algorithm.
-    if runBH:
-        startTime = time.time()
-        resBH = scipy.optimize.basinhopping(costFunction, x0, niter=numOfMinimaToFindBH, callback=callbackBH)
-        timeBH = time.time() - startTime
-        message += f'The optimizaton using the \"Basin-Hopping\"-algorithm took {round(timeBH,2)}s to execute and ended on a minimum of {resBH.fun} at the point {resBH.x}.\n'
-        message += f'Function evaluations performed: {resBH.nfev}\n'
-        result.append(resBH)
-        algorithmsUsed.append("Basin-Hopping")
-        runtime.append(timeBH)
-        
-    if runBayesianWithBH:
-        message += "##################################################\n"
-        message += f'The optimizaton using the \"Basin-hopping\"-algorithm together with an initial guess from the \"gp_minimize()\" algorithm took {round(timeBH + timeBayesian,2)}s in total to execute and ended on a minimum of {resBH.fun} at the point {resBH.x}.\n'
-    
     print("")        
     print(message + "##################################################")
     saveAllFinalResults(result, algorithmsUsed, runtime)
     return result
 
 
-def generateCostFunction(hamiltonian, getEigenStates, timeStamps=None, maximumGateTime=250, sinStepHamiltonian=False):
-    if timeStamps is None:
-        timeStamps = np.linspace(0,maximumGateTime,maximumGateTime*3)
-    options = solver.Options()
-    options.nsteps = 10000
-    
-    def costFunction(x):
-        #print("Sin-Step hamiltonian: ", sinStepHamiltonian)
-        H = hamiltonian(x, sinStepHamiltonian=sinStepHamiltonian)
-        initialState, targetState = getEigenStates(x, hamiltonian)
-        projectionOperators = [targetState * targetState.dag()]
-        result = sesolve(H, initialState, timeStamps, projectionOperators, options=options, args={'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': x[3], 'operationTime': x[4]})
-        allExpectedValues = result.expect
-        expectValue = -allExpectedValues[0][-1]
-        return expectValue
-    return costFunction
+######################################################################################################################################################################
+# Simulation functions
 
 
-def optimizeGate(hamiltonianModule, maximumGateTime=250, sinStepHamiltonian=False, runBayesian=False, runSHG=False, runDA=False, runDE=False, runBH=False, runBayesianWithBH=False):
-    print("Use sinus-step hamiltonian?: ", sinStepHamiltonian)
-    hamiltonian = hamiltonianModule.getHamiltonian
-    parameterBounds = hamiltonianModule.getParameterBounds()
-    initialGuess = hamiltonianModule.getInitialGuess()
-    eigenStates = hamiltonianModule.getEigenStates
-    
-    costFunction = generateCostFunction(hamiltonian, eigenStates, maximumGateTime=maximumGateTime, sinStepHamiltonian=sinStepHamiltonian)
-    findMinimum(costFunction, parameterBounds, initialGuess, runBayesian=runBayesian, runSHG=runSHG, runDA=runDA, runDE=runDE, runBH=runBH, runBayesianWithBH=runBayesianWithBH)
+def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, highestProjectionIndex=5):
+    """
+    This function simulates the population transfers between 
+    different eigenstates of the 4-level hamiltonian from 
+    McKay eq. 11. It also calculates the gate fidelity for both
+    the iSWAP and CZ gate using the 4-level system.
+    ---------------------------------------------------------
+    INPUT:
+            x0 (array(float)): The parameter set that the simulation is be performed for.
+            sinStepHamiltonian (boolean) {Optional}: If True the amplitude of AC part of the flux signal that is applied to the tunnable bus will be sinusodially modulated.
+            rotatingFrame (boolean) {Optional}: If True the states will be transformed into the rotating frame after the time evolution has been completed.
+            initialStateIndex (int) {Optional}: This parameter decides which eigenstate that will be the initial state in the time evolution. If initialStateIndex=0 the eigenstate with the lowest associated energy will be the inital state.
+            highestProjectionIndex (int) {Optional}: The eigenstates between, and including, the one with the lowest energy up to the (highestProjectionIndex)-lowest eigenstate will be projected onto.
+    ---------------------------------------------------------
+    OUTPUT:
+            gateFidelity_iSWAP, gateFidelity_CZ (float, float): The gate fidelity for both the iSWAP and CZ gate.
+    ---------------------------------------------------------
+    """
 
+    # Calculate the dimension of the tensor states and set the simulation time.
+    N = 4
+    D = N**3
+    simulationTime = int(x0[-1]) + 25
+
+    # Calculate the eigenstates and eigenenergies of the bare basis hamiltonian.
+    hamiltonianBareBasis = getHamiltonian(x0,N=N,getBBHamiltonianComps=True)
+
+    # Calculate the tunnable bus frequency when only the DC part of the flux is active.
+    omegaTBDC = coeffomegaTB(x0[3],x0[0])
+
+    # Calculate eigenstates and eigenenergies of the hamiltonian in the bare basis when the flux only has it's DC part.
+    eigenStatesAndEnergies = getThetaEigenstates(x0, hamiltonianBareBasis[0], hamiltonianBareBasis[1], omegaTBDC)
+
+    # Calculate the unitary for transforming the hamiltonian to the eigen basis.
+    eigenBasisUnitary = getEBUnitary(x0, eigenStatesAndEnergies, N, D)
+
+    # Get the hamiltonian that has a sinusodially modulated AC flux and also is in the eigen basis.
+    hamiltonian = getHamiltonian(x0, N=N, eigEs=eigenStatesAndEnergies[0], U_e=eigenBasisUnitary, sinStepHamiltonian=sinStepHamiltonian)
     
-def simulateHamiltonian(hamiltonianModule, x0, simulationTime=500, sinStepHamiltonian=False):
-    hamiltonian = hamiltonianModule.getHamiltonian(x0, sinStepHamiltonian=sinStepHamiltonian)
-    
+    # Change the simulation settings and create the timestamps for where the evolution is to be evaluated. 
     options = solver.Options()
     options.nsteps = 10000
     timeStamps = np.linspace(0,simulationTime,simulationTime*5)
     
-    initialState, targetState = hamiltonianModule.getEigenStates(x0, hamiltonianModule.getHamiltonian)
-    projectionOperators = [targetState * targetState.dag()]
+    # Create the initial state.
+    initialState = Qobj(basis(D,initialStateIndex),dims=[[N,N,N],[1,1,1]])
+
+    # Time evolve the initial state.
+    result = sesolve(hamiltonian, initialState, timeStamps, [], options=options, args={'theta': x0[0], 'delta': x0[1], 'omegaphi': x0[2], 'omegatb0': x0[3], 'operationTime': x0[4], 'omegaTBTh': omegaTBDC})
+    states = result.states
+
+    # Transform into the rotating frame.
+    if rotatingFrame:
+        for i, t in enumerate(timeStamps):
+            unitaryRotatingFrame = getRFUnitary(hamiltonian[0], t)
+            states[i] = unitaryRotatingFrame*states[i]
+    
+    # Calculate the expectation values a projection operator.
+    projectionOperators = []
+
+    for index in range(highestProjectionIndex+1):
+        operator = Qobj(basis(D,index),dims=[[N,N,N],[1,1,1]]) * Qobj(basis(D,index),dims=[[N,N,N],[1,1,1]]).dag()
+        projectionOperators.append(operator)
+    
+    expectationValues = expect(projectionOperators, states)
+
+    #Calculate gate fidelity for both iSWAP and CZ.
+    gateFidelity_iSWAP = getGateFidelity(x0,N=4,wantiSWAP=True)
+    gateFidelity_CZ = getGateFidelity(x0,N=4,wantCZ=True)
+
+    # Print fidelity
+    print(f'################################################\nGate fidelity for iSWAP: {gateFidelity_iSWAP}.\n\nGate fidelity for CZ: {gateFidelity_CZ}.\n################################################')
+
+    # Plot the expectation values.
+    plotExpect(timeStamps, expectationValues)
+
+    return gateFidelity_iSWAP, gateFidelity_CZ
+
+
+######################################################################################################################################################################
+# Cost function definitions
+
+
+def costiSWAP2(x):
+    return -getGateFidelity(x,N=2,wantiSWAP=True)
+
+
+def costiSWAP3(x):
+    return -getGateFidelity(x,N=3,wantiSWAP=True)
+
+
+def costiSWAP4(x):
+    return -getGateFidelity(x,N=4,wantiSWAP=True)
+
+
+def costCZ2(x):
+    return -getGateFidelity(x,N=2,wantCZ=True)
+
+
+def costCZ3(x):
+    return -getGateFidelity(x,N=3,wantCZ=True)
+
+
+def costCZ4(x):
+    return -getGateFidelity(x,N=4,wantCZ=True)
+
+
+######################################################################################################################################################################
+# Optimize gate function
+
+
+def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=40000, maxAllowedGateTime=240, runSHG=False, runDA=False, runDE=False):
+    """
+    The function tries to optimize the choosen gate for the
+    choosen parameters, using the optimization algorithms 
+    that the user decide would best fit.
+    ---------------------------------------------------------
+    INPUT:
+            energyLevels (int) {Optional}: How many energy levels that should be accounted for in the simulations.
+            timeoutAlgorithm (int) {Optional}: How many seconds each optimization algorithm can run, before a forced termination is initiated.
+            maxAllowedGateTime (int) {Optional}: The longest gate time we will allow a solution to have.
+            runSHG (boolean) {Optional}: If True the function will use the Simplicial Homology Global algorithm to optimize the gate.
+            runDA (boolean) {Optional}: If True the function will use the Dual Anneling algorithm to optimize the gate.
+            runDE (boolean) {Optional}: If True the function will use the Differential Evolution algorithm to optimize the gate.
+
+        Set only ONE of these to True!:
+            iSWAP (boolean) {Optional}: Optimize the iSWAP quantum gate.
+            CZ (boolean) {Optional}: Optimize the CZ quantum gate.
+    ---------------------------------------------------------
+    OUTPUT:
+            No output.
+    ---------------------------------------------------------
+    """
+
+    #Set the longest allowed optimizing time for each algorithm.
+    global maxRuntime
+    maxRuntime = timeoutAlgorithm
+
+    # Get the parameter bounds.
+    parameterBounds = getParameterBounds(maxAllowedGateTime=maxAllowedGateTime)
+    
+    # Check the gate specifiers.
+    if not (iSWAP or CZ):
+        print("Specify which gate you would like to optimize the fidelity for!")
+    elif (iSWAP and CZ):
+        print("You can only optimize the fidelity for one gate at a time!")
+    else:
+        # Decide which cost function to use.
+        if iSWAP:
+            if energyLevels==2:
+                cost = costiSWAP2
+            elif energyLevels==3:
+                cost = costiSWAP3
+            else:
+                cost = costiSWAP4
+        else:
+            if energyLevels==2:
+                cost = costCZ2
+            elif energyLevels==3:
+                cost = costCZ3
+            else:
+                cost = costCZ4
         
-    result = sesolve(hamiltonian, initialState, timeStamps, projectionOperators, options=options, args={'theta': x0[0], 'delta': x0[1], 'omegaphi': x0[2], 'omegatb0': x0[3], 'operationTime': x0[4]})
-    plotExpect(result)
+        # Optimize the fidelity for the choosen gate. 
+        findMinimum(cost, parameterBounds, runSHG=runSHG, runDA=runDA, runDE=runDE)
 
 
+######################################################################################################################################################################
+# Scrap functions
+
+
+# Not sure if this one should be kept.
+"""
 def simulateEigenEnergies(hamiltonianModule, x, numOfEnergyLevels=4, pointResolution=500):
     hamiltonian = hamiltonianModule.getHamiltonian(x, getEigenEnergies=True)
     
@@ -411,30 +434,4 @@ def simulateEigenEnergies(hamiltonianModule, x, numOfEnergyLevels=4, pointResolu
     ax.set_ylabel('Energy')
     ax.legend(labels)
     plt.show()
-
-
-#######################################################################################
-# Code for testing the possibility of multiprocessing the costfunction.
-def costParallell(x):
-    """
-    timeStamps = np.linspace(0,250,250*3)
-    options = solver.Options()
-    options.nsteps = 10000
-    
-    H = McKay1.getHamiltonian(x, sinStepHamiltonian=True)
-    initialState, targetState = McKay1.getEigenStates(x, McKay1.getHamiltonian)
-    projectionOperators = [targetState * targetState.dag()]
-    result = sesolve(H, initialState, timeStamps, projectionOperators, options=options, args={'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': x[3], 'operationTime': x[4]})
-    allExpectedValues = result.expect
-    expectValue = -allExpectedValues[0][-1]
-    return expectValue
-    """
-    return -McKay11EB_4lvl.getGateFidelity(x,wantCZ=True)
-
-
-def optimizeGateParallell(hamiltonianModule, runBayesian=False, runSHG=False, runDA=False, runDE=False, runBH=False, runBayesianWithBH=False):
-    parameterBounds = hamiltonianModule.getParameterBounds()
-    initialGuess = hamiltonianModule.getInitialGuess()
-    
-    findMinimum(costParallell, parameterBounds, initialGuess, runBayesian=runBayesian, runSHG=runSHG, runDA=runDA, runDE=runDE, runBH=runBH, runBayesianWithBH=runBayesianWithBH)
-#######################################################################################
+"""

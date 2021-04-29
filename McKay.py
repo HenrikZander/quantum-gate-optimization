@@ -1,10 +1,35 @@
+######################################################################################################################################################################
+
+#      .oooooo.   oooo                  oooo                                                
+#     d8P'  `Y8b  `888                  `888                                                
+#    888           888 .oo.    .oooo.    888  ooo. .oo.  .oo.    .ooooo.  oooo d8b  .oooo.o 
+#    888           888P"Y88b  `P  )88b   888  `888P"Y88bP"Y88b  d88' `88b `888""8P d88(  "8 
+#    888           888   888   .oP"888   888   888   888   888  888ooo888  888     `"Y88b.  
+#    `88b    ooo   888   888  d8(  888   888   888   888   888  888    .o  888     o.  )88b 
+#     `Y8bood8P'  o888o o888o `Y888""8o o888o o888o o888o o888o `Y8bod8P' d888b    8""888P' 
+
+
+# File name: McKay.py
+
+# Author(s): Henrik Zander, Emil Ingelsten
+
+# Date created: 29 April 2021
+
+# Last modified: 29 April 2021
+
+# Copyright 2021, Henrik Zander and Emil Ingelsten, All rights reserved.
+
+######################################################################################################################################################################
+
 from qutip import *
 import numpy as np
 from variables import *
 from numba import njit
 
+######################################################################################################################################################################
+# Parameter function.
 
-def getParameterBounds():
+def getParameterBounds(maxAllowedGateTime=240):
     """
     This function gets the bounds for the different 
     parameters that the optimizer can change in the 
@@ -12,14 +37,17 @@ def getParameterBounds():
     to have the shape: x = [Theta, delta, omegaPhi, omegaTB0, operationTime].
     ---------------------------------------------------------
     INPUT:
-            No parameters
+            maxAllowedGateTime (int) {Optional}: The maximum gate time that will be allowed as a solution from the optimizer.
     ---------------------------------------------------------
     OUTPUT:
             parameterBounds (array(tuples(int))): Array of tuples that each contain the associated upper and lower bounds for that parameter. 
     ---------------------------------------------------------
     """
-    return [(-0.5,0.5),(0,0.25),(0,5),(27.5,47.5),(50,240)]
+    return [(-0.5,0.5),(0,0.25),(0,5),(27.5,47.5),(50,maxAllowedGateTime)]
 
+
+######################################################################################################################################################################
+# Functions that define the tunnable bus flux signal.
 
 @njit
 def Phi(t, theta, delta, omegaphi):
@@ -32,9 +60,9 @@ def Phi(t, theta, delta, omegaphi):
 
 
 @njit
-def tunableBus(t, theta, delta, omegaphi, omegatb0):
+def tunnableBus(t, theta, delta, omegaphi, omegatb0):
     """
-    This function calculates the frequency for the tunable bus, for the case
+    This function calculates the frequency for the tunnable bus, for the case
     when the AC part of the flux has a constant amplitude.
     """
     oTB = omegatb0*np.sqrt(np.abs(np.cos(PI*Phi(t, theta, delta, omegaphi))))
@@ -43,14 +71,14 @@ def tunableBus(t, theta, delta, omegaphi, omegatb0):
 
 def omegaTB(t, args):
     """
-    Wrapper function for tunableBus that handles the variable assignments.
+    Wrapper function for tunnableBus that handles the variable assignments.
     """
     theta = args['theta']
     delta = args['delta']
     omegaphi = args['omegaphi']
     omegatb0 = args['omegatb0']
     omegaTBTh = args['omegaTBTh']
-    return tunableBus(t, theta, delta, omegaphi, omegatb0) - omegaTBTh
+    return tunnableBus(t, theta, delta, omegaphi, omegatb0) - omegaTBTh
 
 
 @njit
@@ -90,9 +118,9 @@ def PhiSinStep(t, theta, delta, omegaphi, sinBoxVal):
 
 
 @njit
-def tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal):
+def tunnableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal):
     """
-    This function calculates the frequency for the tunable bus, for the case
+    This function calculates the frequency for the tunnable bus, for the case
     when the AC part of the flux has a sinusodially modulated amplitude.
     """
     oTB = omegatb0*np.sqrt(np.abs(np.cos(PI*PhiSinStep(t, theta, delta, omegaphi, sinBoxVal))))
@@ -101,7 +129,7 @@ def tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal):
 
 def omegaTBSinStep(t, args):
     """
-    Wrapper function for tunableBusSinStep that handles the variable assignments.
+    Wrapper function for tunnableBusSinStep that handles the variable assignments.
     """
     theta = args['theta']
     delta = args['delta']
@@ -110,7 +138,7 @@ def omegaTBSinStep(t, args):
     operationTime = args['operationTime']
     omegaTBTh = args['omegaTBTh']
     sinBoxVal = sinBox(t,operationTime)
-    return tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal) - omegaTBTh
+    return tunnableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal) - omegaTBTh
 
 
 @njit
@@ -119,6 +147,10 @@ def coeffomegaTB(omegaTB0, Phi):
     This function calculates the time dependent coefficient for a constant flux Phi.
     """
     return omegaTB0*np.sqrt(np.abs(np.cos(np.pi*Phi)))
+
+
+######################################################################################################################################################################
+# Hamiltomnian function.
 
 
 def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB = False, getEigenEnergies=False, sinStepHamiltonian=False):
@@ -137,7 +169,7 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
             U_e (Qobj) {Optional}: A Qutip quantum operator that changes the basis from tha bare basis to the eigenbasis.
             sinStepHamiltonian (boolean) {Optional}: The AC part of the flux in the time dependent coefficient should be modulated by a sinusodial step function. Defaults to False.
 
-        Only change ONE of these to True!:
+        Set only ONE of these to True!:
             getBBHamiltonianComps (boolean) {Optional}: Get the hamiltonian in the bare basis without the time dependent coefficient. Defaults to False.
             getEigenStatesBB (boolean) {Optional}: Get the hamiltonian in the bare basis with the coefficent evaluated for the DC part of the flux. Defaults to False.
             getEigenEnergies (boolean) {Optional}: Get the hamiltonian in the bare basis as a function that in turn returns the hamiltonian for a specific DC flux. Defaults to False.
@@ -150,11 +182,11 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
     """
 
     # Choose the amount of energy levels that should be used in the creation of the hamiltonian components.
-    if N is 4:
+    if N==4:
         # Get the 4 energy level hamltonian components.
         H0BB = omegas[0]*ad4_1*a4_1 - (alphas[0]/2.0)*(1-ad4_1*a4_1)*ad4_1*a4_1 + omegas[1]*ad4_2*a4_2 - (alphas[1]/2.0)*(1-ad4_2*a4_2)*ad4_2*a4_2 - (alphas[2]/2.0)*(1-ad4_TB*a4_TB)*ad4_TB*a4_TB  + gs[0]*(ad4_1 + a4_1)*(ad4_TB + a4_TB) + gs[1]*(ad4_2 + a4_2)*(ad4_TB + a4_TB)
         H1BB = ad4_TB*a4_TB
-    elif N is 3:
+    elif N==3:
         # Get the 3 energy level hamltonian components.
         H0BB = omegas[0]*ad3_1*a3_1 - (alphas[0]/2.0)*(1-ad3_1*a3_1)*ad3_1*a3_1 + omegas[1]*ad3_2*a3_2 - (alphas[1]/2.0)*(1-ad3_2*a3_2)*ad3_2*a3_2 - (alphas[2]/2.0)*(1-ad3_TB*a3_TB)*ad3_TB*a3_TB  + gs[0]*(ad3_1 + a3_1)*(ad3_TB + a3_TB) + gs[1]*(ad3_2 + a3_2)*(ad3_TB + a3_TB)
         H1BB = ad3_TB*a3_TB
@@ -193,6 +225,10 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
             return [HThEB, [H1EB, omegaTB]]
 
 
+######################################################################################################################################################################
+# Helper functions for calculating the gate fidelity.
+
+
 def getThetaEigenstates(x, H_const, H_omegaTB, omegaTBTh):
     """
     This function calculates the eigenstates and eigenenergies 
@@ -227,6 +263,9 @@ def getRFUnitary(HThEB,t):
     return U_rf
 
 
+######################################################################################################################################################################
+# Gate fidelity function.
+
 def getGateFidelity(x,N=2,wantiSWAP=False,wantCZ=False,wantI=False):
     """
     This function calculates the average gate fidelity for the 
@@ -254,9 +293,9 @@ def getGateFidelity(x,N=2,wantiSWAP=False,wantCZ=False,wantI=False):
     # From here on, unless otherwise stated, every state is considered a tensor state.
 
     # We are especially interested in |000>, |010>, |100> and |110> since these build up the computational basis.
-    if N is 4:
+    if N==4:
         eigIndices = [0, 1, 2, 5]
-    elif N is 3:
+    elif N==3:
         eigIndices = [0, 1, 2, 5]
     else:
         eigIndices = [0, 1, 2, 4]
@@ -344,3 +383,6 @@ def getGateFidelity(x,N=2,wantiSWAP=False,wantCZ=False,wantI=False):
     F_avg = (np.absolute(np.trace(M*U.H))**2 + np.trace(M.H*M)) / (dimComputationalSubspace*(dimComputationalSubspace+1))
 
     return F_avg
+
+
+######################################################################################################################################################################
