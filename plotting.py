@@ -1,9 +1,34 @@
+######################################################################################################################################################################
+
+#      .oooooo.   oooo                  oooo                                                
+#     d8P'  `Y8b  `888                  `888                                                
+#    888           888 .oo.    .oooo.    888  ooo. .oo.  .oo.    .ooooo.  oooo d8b  .oooo.o 
+#    888           888P"Y88b  `P  )88b   888  `888P"Y88bP"Y88b  d88' `88b `888""8P d88(  "8 
+#    888           888   888   .oP"888   888   888   888   888  888ooo888  888     `"Y88b.  
+#    `88b    ooo   888   888  d8(  888   888   888   888   888  888    .o  888     o.  )88b 
+#     `Y8bood8P'  o888o o888o `Y888""8o o888o o888o o888o o888o `Y8bod8P' d888b    8""888P' 
+
+
+# File name: plotting.py
+
+# Author(s): Henrik Zander, Emil Ingelsten
+
+# Date created: 27 February 2021
+
+# Last modified: 29 April 2021
+
+# Copyright 2021, Henrik Zander and Emil Ingelsten, All rights reserved.
+
+######################################################################################################################################################################
+
 from qutip import *
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 
+######################################################################################################################################################################
+# Functions for saving optimization results to a .txt file.
 
 def saveAllFinalResults(results, algorithm, runtime, fileName="result.txt"):
     resultFile = open(fileName, "a")
@@ -47,6 +72,10 @@ def saveResToFile(result, algorithmName, iterations, runtime, algorithmDE=False,
     resultFile.close()
 
 
+######################################################################################################################################################################
+# Functions that handle plotting of states, expectation value and similar.
+
+
 def plotStates(result):
     """Plots all the states in the "result"-structure on the same Bloch-sphere."""
     states = result.states
@@ -55,16 +84,13 @@ def plotStates(result):
     fig.show()
 
 
-def plotExpect(result):
+def plotExpect(timeStamps, expectationValues):
     """Plots the expectation values for an arbitrary number of projection operators."""
-    lists = result.expect
     fig, ax = plt.subplots()
-    labels = ["Qubit 1", "Qubit 2", "Coupler"] #[]
-    #i = 1
-    for e in lists:
-        ax.plot(result.times, e)
-        #labels.append("Z Projection " + str(i))
-        #i = i + 1
+    labels = []
+    for i, e in enumerate(expectationValues):
+        ax.plot(timeStamps, e)
+        labels.append("Operator " + str(i))
     ax.set_xlabel('Time')
     ax.set_ylabel('Expectation values')
     ax.legend(labels)
@@ -149,3 +175,6 @@ def plotVectors(x,y):
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     plt.show()
+
+
+######################################################################################################################################################################
