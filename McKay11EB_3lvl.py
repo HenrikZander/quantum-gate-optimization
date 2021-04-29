@@ -103,11 +103,17 @@ def getProjectionOperator(eigenStateIndex=1):
     return pOp
 
 
-def getAllProjectionOperators():
+def getiSWAPProjectionOperators():
     pOp1 = getProjectionOperator(2) # 100
     pOp2 = getProjectionOperator(1) # 010
     pOpTB = getProjectionOperator(3) # 001
     return [pOp1,pOp2,pOpTB]
+
+def getCZProjectionOperators():
+    pOp1 = getProjectionOperator(5) # 110
+    pOp2 = getProjectionOperator(4) # 020
+    pOp3 = getProjectionOperator(6) # 200
+    return [pOp1,pOp2,pOp3]
 
 
 def getHamiltonian(x, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB = False, getEigenEnergies=False, sinStepHamiltonian=False):

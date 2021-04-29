@@ -103,11 +103,17 @@ def getProjectionOperator(eigenStateIndex=1):
     return pOp
 
 
-def getAllProjectionOperators():
+def getiSWAPProjectionOperators():
     pOp1 = getProjectionOperator(2) # 100
     pOp2 = getProjectionOperator(1) # 010
     pOpTB = getProjectionOperator(3) # 001
     return [pOp1,pOp2,pOpTB]
+
+def getCZProjectionOperators():
+    pOp1 = getProjectionOperator(5) # 110
+    pOp2 = getProjectionOperator(4) # 020
+    pOp3 = getProjectionOperator(6) # 200
+    return [pOp1,pOp2,pOp3]
 
 
 def getHamiltonian(x, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB = False, getEigenEnergies=False, sinStepHamiltonian=False):
@@ -273,6 +279,7 @@ def getGateFidelity(x,wantiSWAP=False,wantCZ=False,wantI=False):
         # Ideal I gate matrix (with phases):
         U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
 
+    # print(np.angle(M[3][3])-phi-theta1-theta2)
     # Change M's type to matrix to simplify calculating fidelity
     M = np.matrix(M)
     
