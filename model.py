@@ -9,7 +9,7 @@
 #     `Y8bood8P'  o888o o888o `Y888""8o o888o o888o o888o o888o `Y8bod8P' d888b    8""888P' 
 
 
-# File name: McKay.py
+# File name: model.py
 
 # Author(s): Henrik Zander, Emil Ingelsten
 
