@@ -50,8 +50,8 @@ x_0501_CZ_3lvl = [4.74835237e-01, 3.32890870e-02, 1.92795763e+00, 3.11288724e+01
 def main():
     start = time.time()
 
-    # optimizeGate(CZ=True, energyLevels=3, runDE=True)
-    simulateHamiltonian(x_0501_CZ_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=3)
+    optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=180, runDE=True)
+    # simulateHamiltonian(x_0501_CZ_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=3)
 
     print(f'Total running time: {time.time() - start} seconds.')
 
