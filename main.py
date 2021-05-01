@@ -15,7 +15,7 @@
 
 # Date created: 27 February 2021
 
-# Last modified: 29 April 2021
+# Last modified: 1 May 2021
 
 # Copyright 2021, Henrik Zander, All rights reserved.
 
@@ -49,15 +49,10 @@ x_0501_CZ_3lvl = [4.74835237e-01, 3.32890870e-02, 1.92795763e+00, 3.11288724e+01
 
 def main():
     start = time.time()
-    # testMultiprocessing(currentHamiltonianModule, pointOfInterest)
-    # testNumbaSpeedup(currentHamiltonianModule)
-    # testFindMinimum()
-    # testGateOptimizer()
-    # testGenerateCostFunction()
+
     # optimizeGate(CZ=True, energyLevels=3, runDE=True)
-    # optimizeGateParallel(currentHamiltonianModule, runDE=True)
     simulateHamiltonian(x_0501_CZ_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=3)
-    # simulateEigenEnergies(currentHamiltonianModule, pointOfInterest)
+
     print(f'Total running time: {time.time() - start} seconds.')
 
 

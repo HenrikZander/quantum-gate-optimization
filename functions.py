@@ -15,7 +15,7 @@
 
 # Date created: 27 February 2021
 
-# Last modified: 29 April 2021
+# Last modified: 1 May 2021
 
 # Copyright 2021, Henrik Zander and Emil Ingelsten, All rights reserved.
 
@@ -246,6 +246,7 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
             rotatingFrame (boolean) {Optional}: If True the states will be transformed into the rotating frame after the time evolution has been completed.
             initialStateIndex (int) {Optional}: This parameter decides which eigenstate that will be the initial state in the time evolution. If initialStateIndex=0 the eigenstate with the lowest associated energy will be the inital state.
             highestProjectionIndex (int) {Optional}: The eigenstates between, and including, the one with the lowest energy up to the (highestProjectionIndex)-lowest eigenstate will be projected onto.
+            N (int) {Optional}: How many energy levels that should be accounted for in the simulations.
     ---------------------------------------------------------
     OUTPUT:
             gateFidelity_iSWAP, gateFidelity_CZ (float, float): The gate fidelity for both the iSWAP and CZ gate.
