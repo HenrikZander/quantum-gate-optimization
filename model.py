@@ -184,32 +184,35 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
     # Choose the number of energy levels that should be used in the creation of the hamiltonian components.
     if N==4:
         # Get the 4 energy level hamltonian components.
-        H0BB = omegas[0]*ad4_1*a4_1 - (alphas[0]/2.0)*(1-ad4_1*a4_1)*ad4_1*a4_1 + omegas[1]*ad4_2*a4_2 - (alphas[1]/2.0)*(1-ad4_2*a4_2)*ad4_2*a4_2 - (alphas[2]/2.0)*(1-ad4_TB*a4_TB)*ad4_TB*a4_TB  + gs[0]*(ad4_1 + a4_1)*(ad4_TB + a4_TB) + gs[1]*(ad4_2 + a4_2)*(ad4_TB + a4_TB)
+        H0BB = omegas[0]*ad4_1*a4_1 - (alphas[0]/2.0)*(1-ad4_1*a4_1)*ad4_1*a4_1 + omegas[1]*ad4_2*a4_2 - (alphas[1]/2.0)*(1-ad4_2*a4_2)*ad4_2*a4_2 - (alphas[2]/2.0)*(1-ad4_TB*a4_TB)*ad4_TB*a4_TB
+        HiBB = gs[0]*(ad4_1 + a4_1)*(ad4_TB + a4_TB) + gs[1]*(ad4_2 + a4_2)*(ad4_TB + a4_TB)
         H1BB = ad4_TB*a4_TB
     elif N==3:
         # Get the 3 energy level hamltonian components.
-        H0BB = omegas[0]*ad3_1*a3_1 - (alphas[0]/2.0)*(1-ad3_1*a3_1)*ad3_1*a3_1 + omegas[1]*ad3_2*a3_2 - (alphas[1]/2.0)*(1-ad3_2*a3_2)*ad3_2*a3_2 - (alphas[2]/2.0)*(1-ad3_TB*a3_TB)*ad3_TB*a3_TB  + gs[0]*(ad3_1 + a3_1)*(ad3_TB + a3_TB) + gs[1]*(ad3_2 + a3_2)*(ad3_TB + a3_TB)
+        H0BB = omegas[0]*ad3_1*a3_1 - (alphas[0]/2.0)*(1-ad3_1*a3_1)*ad3_1*a3_1 + omegas[1]*ad3_2*a3_2 - (alphas[1]/2.0)*(1-ad3_2*a3_2)*ad3_2*a3_2 - (alphas[2]/2.0)*(1-ad3_TB*a3_TB)*ad3_TB*a3_TB
+        HiBB = gs[0]*(ad3_1 + a3_1)*(ad3_TB + a3_TB) + gs[1]*(ad3_2 + a3_2)*(ad3_TB + a3_TB)
         H1BB = ad3_TB*a3_TB
     else:
         # Get the 2 energy level hamltonian components.
-        H0BB = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2 + gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
+        H0BB = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2
+        HiBB = gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
         H1BB = (-1/2)*szTB
     
     # Choose which hamiltonian configuration is to be returned.
     if getBBHamiltonianComps:
 
         # Just return the bare basis hamiltonian components without the time dependent coefficient.
-        return [H0BB,H1BB]
+        return [H0BB,HiBB,H1BB]
     elif getEigenStatesBB:
 
         # Get the hamiltonian in the bare basis, where the time dependent coefficient is constant with a flux phi that is equal to the current theta parameter in x.
         # This hamiltonian is used to calculate the relevant eigenstates. 
-        return H0BB + coeffomegaTB(x[3],x[0])*H1BB
+        return H0BB + HiBB + coeffomegaTB(x[3],x[0])*H1BB
     elif getEigenEnergies:
 
         # Get the hamiltonian in the bare basis, that will be specified as a function so that the hamiltonian can be calculated for a dynamic constant flux phi.
         def hamiltonian(currentPhi):
-            return H0BB + coeffomegaTB(x[3],currentPhi)*H1BB
+            return H0BB + HiBB + coeffomegaTB(x[3],currentPhi)*H1BB
         return hamiltonian
     else:
 
@@ -252,14 +255,12 @@ def getEBUnitary(x,eigStsBB,nLevels,Dimension):
     return U_e
 
 
-def getRFUnitary(HThEB,t):
+def getRFUnitary(Hrot,t):
     """
     This function returns the unitary that is used to transform
     a system into the rotating frame.
-
-    NB: This is usable only when working in the eigenbasis.
     """
-    U_rf = (1j*HThEB*t).expm()
+    U_rf = (1j*Hrot*t).expm()
     return U_rf
 
 
@@ -285,7 +286,7 @@ def getGateFidelity(x,N=2,wantiSWAP=False,wantCZ=False,wantI=False):
     ---------------------------------------------------------
     """
 
-    # Get both parts of the hamiltonian in the bare basis.
+    # Get all parts of the hamiltonian in the bare basis.
     HBBComps = getHamiltonian(x,N=N,getBBHamiltonianComps=True)
 
     # Given the number of considered energy levels for each qubit, the dimension of the combined tensor state is calculated.
@@ -309,7 +310,7 @@ def getGateFidelity(x,N=2,wantiSWAP=False,wantCZ=False,wantI=False):
     omegaTBTh = coeffomegaTB(x[3],x[0])
 
     # Calculate eigenstates and eigenenergies in the bare basis at Phi = Theta
-    eigStsBB = getThetaEigenstates(x, HBBComps[0], HBBComps[1], omegaTBTh)
+    eigStsBB = getThetaEigenstates(x, HBBComps[0]+HBBComps[1], HBBComps[2], omegaTBTh)
 
     # Get unitary for transformation into eigenbasis
     U_e = getEBUnitary(x, eigStsBB, N, D)
@@ -334,7 +335,7 @@ def getGateFidelity(x,N=2,wantiSWAP=False,wantCZ=False,wantI=False):
     # NB: The elements of each state in c is ordered based on eigenenergies
 
     # Calculate U_rf:
-    U_rf = getRFUnitary(HEB[0], ts[-1])
+    U_rf = getRFUnitary(HEB[0] - U_e*HBBComps[1]*U_e.dag(), ts[-1])
 
     # Transform all the states in c to the rotating frame
     c_rf = U_rf * c
