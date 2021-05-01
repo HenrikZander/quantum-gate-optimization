@@ -233,7 +233,7 @@ def findMinimum(costFunction, bounds, runSHG=True, runDA=True, runDE=True):
 # Simulation functions
 
 
-def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, highestProjectionIndex=5):
+def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, highestProjectionIndex=5, N=4):
     """
     This function simulates the population transfers between 
     different eigenstates of the 4-level hamiltonian from 
@@ -242,7 +242,7 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     ---------------------------------------------------------
     INPUT:
             x0 (array(float)): The parameter set that the simulation is be performed for.
-            sinStepHamiltonian (boolean) {Optional}: If True the amplitude of AC part of the flux signal that is applied to the tunnable bus will be sinusodially modulated.
+            sinStepHamiltonian (boolean) {Optional}: If True the amplitude of AC part of the flux signal that is applied to the tunable bus will be sinusodially modulated.
             rotatingFrame (boolean) {Optional}: If True the states will be transformed into the rotating frame after the time evolution has been completed.
             initialStateIndex (int) {Optional}: This parameter decides which eigenstate that will be the initial state in the time evolution. If initialStateIndex=0 the eigenstate with the lowest associated energy will be the inital state.
             highestProjectionIndex (int) {Optional}: The eigenstates between, and including, the one with the lowest energy up to the (highestProjectionIndex)-lowest eigenstate will be projected onto.
@@ -253,18 +253,17 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     """
 
     # Calculate the dimension of the tensor states and set the simulation time.
-    N = 4
     D = N**3
     simulationTime = int(x0[-1]) + 25
 
     # Calculate the eigenstates and eigenenergies of the bare basis hamiltonian.
     hamiltonianBareBasis = getHamiltonian(x0,N=N,getBBHamiltonianComps=True)
 
-    # Calculate the tunnable bus frequency when only the DC part of the flux is active.
+    # Calculate the tunable bus frequency when only the DC part of the flux is active.
     omegaTBDC = coeffomegaTB(x0[3],x0[0])
 
     # Calculate eigenstates and eigenenergies of the hamiltonian in the bare basis when the flux only has it's DC part.
-    eigenStatesAndEnergies = getThetaEigenstates(x0, hamiltonianBareBasis[0], hamiltonianBareBasis[1], omegaTBDC)
+    eigenStatesAndEnergies = getThetaEigenstates(x0, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
 
     # Calculate the unitary for transforming the hamiltonian to the eigen basis.
     eigenBasisUnitary = getEBUnitary(x0, eigenStatesAndEnergies, N, D)
@@ -285,9 +284,10 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     states = result.states
 
     # Transform into the rotating frame.
+    hamiltonianRotating = hamiltonian[0] - eigenBasisUnitary*hamiltonianBareBasis[1]*eigenBasisUnitary.dag()
     if rotatingFrame:
         for i, t in enumerate(timeStamps):
-            unitaryRotatingFrame = getRFUnitary(hamiltonian[0], t)
+            unitaryRotatingFrame = getRFUnitary(hamiltonianRotating, t)
             states[i] = unitaryRotatingFrame*states[i]
     
     # Calculate the expectation values a projection operator.
@@ -300,8 +300,8 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     expectationValues = expect(projectionOperators, states)
 
     #Calculate gate fidelity for both iSWAP and CZ.
-    gateFidelity_iSWAP = getGateFidelity(x0,N=4,wantiSWAP=True)
-    gateFidelity_CZ = getGateFidelity(x0,N=4,wantCZ=True)
+    gateFidelity_iSWAP = getGateFidelity(x0,N=N,wantiSWAP=True)
+    gateFidelity_CZ = getGateFidelity(x0,N=N,wantCZ=True)
 
     # Print fidelity
     print(f'################################################\nGate fidelity for iSWAP: {gateFidelity_iSWAP}.\n\nGate fidelity for CZ: {gateFidelity_CZ}.\n################################################')

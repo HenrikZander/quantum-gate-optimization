@@ -35,9 +35,13 @@ import time
 ######################################################################################################################################################################
 # Interesting solutions in the format x = [Theta, delta, omegaPhi, omegaTB0, operationTime].
 
+# Using H_rot = H_Th, including the interacting part of the hamiltonian:
 x_0425_1_iSWAP = [0.241082420, 0.108883457, 2.50702612, 39.0692027, 218.127752]
 x_0425_2_iSWAP = [-4.31076591e-01,  2.75072184e-02,  3.52975522e+00,  3.67717108e+01, 8.39876656e+01]
 x_0426_CZ = [4.44287328e-01, 2.05934595e-02, 2.04012274e+00, 3.07227234e+01, 1.78093842e+02]
+
+# Using H_rot = H_0^Th, excluding the interacting part of the hamiltonian:
+x_0501_CZ_3lvl = [4.74835237e-01, 3.32890870e-02, 1.92795763e+00, 3.11288724e+01, 1.52910662e+02]
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -50,9 +54,9 @@ def main():
     # testFindMinimum()
     # testGateOptimizer()
     # testGenerateCostFunction()
-    # optimizeGate(iSWAP=True, energyLevels=2, runDE=True)
-    # optimizeGateParallell(currentHamiltonianModule, runDE=True)
-    simulateHamiltonian(x_0425_2_iSWAP, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1)
+    # optimizeGate(CZ=True, energyLevels=3, runDE=True)
+    # optimizeGateParallel(currentHamiltonianModule, runDE=True)
+    simulateHamiltonian(x_0501_CZ_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=3)
     # simulateEigenEnergies(currentHamiltonianModule, pointOfInterest)
     print(f'Total running time: {time.time() - start} seconds.')
 
@@ -131,17 +135,17 @@ def testMultiprocessing(hamiltonianModule, x):
     processes = []
     
     for _ in range(numOfTimes):
-        p = multiprocessing.Process(target=costParallell, args=[x])
+        p = multiprocessing.Process(target=costParallel, args=[x])
         p.start()
         processes.append(p)
     
     for process in processes:
         process.join()
-    print(f'Total running time for cost evaluation in parallell: {time.time() - start} seconds.')
+    print(f'Total running time for cost evaluation in parallel: {time.time() - start} seconds.')
     
     start = time.time()
     for _ in range(numOfTimes):
-        costParallell(x)
+        costParallel(x)
     print(f'Total running time for cost evaluation in a series: {time.time() - start} seconds.')
 
 
