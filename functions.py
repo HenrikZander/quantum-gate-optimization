@@ -15,7 +15,7 @@
 
 # Date created: 27 February 2021
 
-# Last modified: 2 May 2021
+# Last modified: 3 May 2021
 
 # Copyright 2021, Henrik Zander and Emil Ingelsten, All rights reserved.
 
@@ -305,7 +305,7 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     gateFidelity_CZ = getGateFidelity(x0,N=N,wantCZ=True)
 
     # Print fidelity
-    print(f'################################################\nGate fidelity for iSWAP: {gateFidelity_iSWAP}.\n\nGate fidelity for CZ: {gateFidelity_CZ}.\n################################################')
+    print(f'################################################\n\nGate fidelity for iSWAP: {gateFidelity_iSWAP}.\n\nGate fidelity for CZ: {gateFidelity_CZ}.\n\n################################################')
 
     # Plot the expectation values.
     plotExpect(timeStamps, expectationValues)
