@@ -56,7 +56,7 @@ def main():
     # testGenerateCostFunction()
     # optimizeGate(CZ=True, energyLevels=3, runDE=True)
     # optimizeGateParallel(currentHamiltonianModule, runDE=True)
-    simulateHamiltonian(x_0501_CZ_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=3)
+    simulateHamiltonian(x_0501_CZ_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=4)
     # simulateEigenEnergies(currentHamiltonianModule, pointOfInterest)
     print(f'Total running time: {time.time() - start} seconds.')
 
