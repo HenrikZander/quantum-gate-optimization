@@ -15,7 +15,7 @@
 
 # Date created: 27 February 2021
 
-# Last modified: 29 April 2021
+# Last modified: 2 May 2021
 
 # Copyright 2021, Henrik Zander and Emil Ingelsten, All rights reserved.
 
@@ -215,7 +215,7 @@ def findMinimum(costFunction, bounds, runSHG=True, runDA=True, runDE=True):
     #Optimization using the Differential Evolution algorithm.
     if runDE:
         startTime = time.time()
-        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred')
+        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred', maxiter=3000)
         timeDE = time.time() - startTime
         message += f'The optimizaton using the \"Differential Evolution\"-algorithm took {round(timeDE,2)}s to execute and ended on a minimum of {resDE.fun} at the point {resDE.x}.\n'
         message += f'Function evaluations performed: {resDE.nfev}\n'
@@ -246,6 +246,7 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
             rotatingFrame (boolean) {Optional}: If True the states will be transformed into the rotating frame after the time evolution has been completed.
             initialStateIndex (int) {Optional}: This parameter decides which eigenstate that will be the initial state in the time evolution. If initialStateIndex=0 the eigenstate with the lowest associated energy will be the inital state.
             highestProjectionIndex (int) {Optional}: The eigenstates between, and including, the one with the lowest energy up to the (highestProjectionIndex)-lowest eigenstate will be projected onto.
+            N (int) {Optional}: How many energy levels that should be accounted for in the simulations.
     ---------------------------------------------------------
     OUTPUT:
             gateFidelity_iSWAP, gateFidelity_CZ (float, float): The gate fidelity for both the iSWAP and CZ gate.
@@ -344,7 +345,7 @@ def costCZ4(x):
 # Optimize gate function
 
 
-def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=40000, maxAllowedGateTime=240, runSHG=False, runDA=False, runDE=False):
+def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, maxAllowedGateTime=240, runSHG=False, runDA=False, runDE=False):
     """
     The function tries to optimize the choosen gate for the
     choosen parameters, using the optimization algorithms 

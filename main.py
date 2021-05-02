@@ -15,7 +15,7 @@
 
 # Date created: 27 February 2021
 
-# Last modified: 29 April 2021
+# Last modified: 2 May 2021
 
 # Copyright 2021, Henrik Zander, All rights reserved.
 
@@ -42,6 +42,8 @@ x_0426_CZ = [4.44287328e-01, 2.05934595e-02, 2.04012274e+00, 3.07227234e+01, 1.7
 
 # Using H_rot = H_0^Th, excluding the interacting part of the hamiltonian:
 x_0501_CZ_3lvl = [4.74835237e-01, 3.32890870e-02, 1.92795763e+00, 3.11288724e+01, 1.52910662e+02]
+x_0501_iSWAP_3lvl = [2.87022047e-01, 1.07442615e-01, 2.50566092e+00, 4.51975847e+01, 1.72672744e+02]
+x_0501_iSWAP_3lvl = [-3.28050858e-01,  7.83176577e-02,  2.02152681e+00,  3.06207420e+01, 1.03221706e+02]
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -49,15 +51,10 @@ x_0501_CZ_3lvl = [4.74835237e-01, 3.32890870e-02, 1.92795763e+00, 3.11288724e+01
 
 def main():
     start = time.time()
-    # testMultiprocessing(currentHamiltonianModule, pointOfInterest)
-    # testNumbaSpeedup(currentHamiltonianModule)
-    # testFindMinimum()
-    # testGateOptimizer()
-    # testGenerateCostFunction()
-    # optimizeGate(CZ=True, energyLevels=3, runDE=True)
-    # optimizeGateParallel(currentHamiltonianModule, runDE=True)
-    simulateHamiltonian(x_0501_CZ_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=4)
-    # simulateEigenEnergies(currentHamiltonianModule, pointOfInterest)
+
+    optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
+    # simulateHamiltonian(x_0501_CZ_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=3)
+
     print(f'Total running time: {time.time() - start} seconds.')
 
 
