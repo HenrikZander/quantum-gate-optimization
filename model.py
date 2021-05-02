@@ -15,7 +15,7 @@
 
 # Date created: 29 April 2021
 
-# Last modified: 1 May 2021
+# Last modified: 2 May 2021
 
 # Copyright 2021, Henrik Zander and Emil Ingelsten, All rights reserved.
 
@@ -321,8 +321,8 @@ def getGateFidelity(x,N=2,wantiSWAP=False,wantCZ=False,wantI=False):
     # Simulate evolution of eigenstates:
 
     # Determine the time stamps for which the evolution will be solved at.
-    opTime = x[4]
-    ts = np.linspace(0,opTime,int(3*opTime))
+    simTime = int(x[-1]) + 10
+    ts = np.linspace(0,simTime,3*simTime)
     # Calculate the eigenbasis hamiltonian
     HEB = getHamiltonian(x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinStepHamiltonian=True)
 

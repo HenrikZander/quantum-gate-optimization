@@ -43,7 +43,8 @@ x_0426_CZ = [4.44287328e-01, 2.05934595e-02, 2.04012274e+00, 3.07227234e+01, 1.7
 # Using H_rot = H_0^Th, excluding the interacting part of the hamiltonian:
 x_0501_CZ_3lvl = [4.74835237e-01, 3.32890870e-02, 1.92795763e+00, 3.11288724e+01, 1.52910662e+02]
 x_0501_iSWAP_3lvl = [2.87022047e-01, 1.07442615e-01, 2.50566092e+00, 4.51975847e+01, 1.72672744e+02]
-x_0501_iSWAP_3lvl = [-3.28050858e-01,  7.83176577e-02,  2.02152681e+00,  3.06207420e+01, 1.03221706e+02]
+x_0502_iSWAP_1_3lvl = [-3.28050858e-01,  7.83176577e-02,  2.02152681e+00,  3.06207420e+01, 1.03221706e+02]
+x_0502_iSWAP_2_3lvl = [-3.23785448e-01,  3.74318501e-02,  2.45144003e+00,  4.02247024e+01, 9.51244239e+01]
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -52,8 +53,8 @@ x_0501_iSWAP_3lvl = [-3.28050858e-01,  7.83176577e-02,  2.02152681e+00,  3.06207
 def main():
     start = time.time()
 
-    optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
-    # simulateHamiltonian(x_0501_CZ_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=3)
+    # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
+    simulateHamiltonian(x_0502_iSWAP_2_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4)
 
     print(f'Total running time: {time.time() - start} seconds.')
 
