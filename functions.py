@@ -28,7 +28,7 @@ import time
 import scipy
 from numba import njit
 from plotting import *
-from model import *
+from model_modified import *
 
 ######################################################################################################################################################################
 # Global variables
