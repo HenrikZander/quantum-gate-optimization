@@ -56,7 +56,7 @@ def main():
     start = time.time()
 
     # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
-    simulateHamiltonian(x_0502_iSWAP_3_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4)
+    simulateHamiltonian(x_0503_iSWAP_1_3lvl, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, N=4)
 
     print(f'Total running time: {time.time() - start} seconds.')
 
