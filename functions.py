@@ -255,7 +255,7 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
 
     # Calculate the dimension of the tensor states and set the simulation time.
     D = N**3
-    simulationTime = int(x0[-1]) + 50
+    simulationTime = int(x0[-1]) + 10
 
     # Calculate the eigenstates and eigenenergies of the bare basis hamiltonian.
     hamiltonianBareBasis = getHamiltonian(x0,N=N,getBBHamiltonianComps=True)
