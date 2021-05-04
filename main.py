@@ -61,13 +61,34 @@ def main():
 
     # testSpeedOfModifiedGateFidelity()
     # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
-    simulateHamiltonian(x_0504_iSWAP_1_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4)
+    # simulateHamiltonian(x_0504_iSWAP_1_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4)
+    deltaPulsePlot()
 
     print(f'Total running time: {time.time() - start} seconds.')
 
 
 ######################################################################################################################################################################
-# Functions used in testing.
+# Functions used in testing and generating plots.
+
+
+def deltaPulsePlot():
+    operationTime = 75
+    x = np.linspace(0,operationTime, 500)
+    y = []
+
+    for index, time in enumerate(x):
+        y.append(model.sinBox(time,operationTime))
+
+    fig, ax = plt.subplots()
+    ax.plot(x, y)
+    ax.set_xlabel('Tid [ns]', fontsize=14)
+    ax.set_ylabel('Del av full amplitud, $\delta(t) / \delta_0$', fontsize=14)
+    plt.title("Formen på amlituden för det oscillerande flödet.", fontsize=16)
+    plt.xlim([0, operationTime])
+    plt.ylim([0, 1.1])
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.show()
 
 
 def testSpeedOfModifiedGateFidelity():
