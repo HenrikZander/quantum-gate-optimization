@@ -48,7 +48,9 @@ x_0501_iSWAP_3lvl = [2.87022047e-01, 1.07442615e-01, 2.50566092e+00, 4.51975847e
 x_0502_iSWAP_1_3lvl = [-3.28050858e-01,  7.83176577e-02,  2.02152681e+00,  3.06207420e+01, 1.03221706e+02]
 x_0502_iSWAP_2_3lvl = [-3.23785448e-01,  3.74318501e-02,  2.45144003e+00,  4.02247024e+01, 9.51244239e+01]
 x_0502_iSWAP_3_3lvl = [3.96689737e-01, 6.81485794e-02, 4.23032165e+00, 2.82614635e+01, 1.27222763e+02]
+
 x_0503_iSWAP_1_4lvl = [-3.98464392e-01,  4.89012371e-02,  3.55650561e+00,  3.64347107e+01, 9.98881018e+01]
+x_0504_iSWAP_1_3lvl = [4.56199639e-01, 3.21813167e-02, 3.68027336e+00, 4.63027865e+01, 5.16555865e+01]
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -59,7 +61,11 @@ def main():
 
     # testSpeedOfModifiedGateFidelity()
     # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
+<<<<<<< HEAD
     simulateHamiltonian(x_0503_iSWAP_1_4lvl, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, N=4)
+=======
+    simulateHamiltonian(x_0504_iSWAP_1_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4)
+>>>>>>> fd92ab29a4c5cc939ee6573cf32b2ec41a24739e
 
     print(f'Total running time: {time.time() - start} seconds.')
 
