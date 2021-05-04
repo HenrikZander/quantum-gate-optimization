@@ -61,11 +61,7 @@ def main():
 
     # testSpeedOfModifiedGateFidelity()
     # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
-<<<<<<< HEAD
-    simulateHamiltonian(x_0503_iSWAP_1_4lvl, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, N=4)
-=======
     simulateHamiltonian(x_0504_iSWAP_1_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4)
->>>>>>> fd92ab29a4c5cc939ee6573cf32b2ec41a24739e
 
     print(f'Total running time: {time.time() - start} seconds.')
 
