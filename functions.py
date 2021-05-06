@@ -28,7 +28,7 @@ import time
 import scipy
 from numba import njit
 from plotting import *
-from model_modified import *
+from model import *
 
 ######################################################################################################################################################################
 # Global variables
@@ -253,6 +253,9 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     ---------------------------------------------------------
     """
 
+    # Get eigenindices.
+    eigIndices = model.getIndices(N)
+    
     # Calculate the dimension of the tensor states and set the simulation time.
     D = N**3
     simulationTime = int(x0[-1]) + 10
@@ -285,10 +288,13 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     states = result.states
 
     # Transform into the rotating frame.
-    hamiltonianRotating = hamiltonian[0] - eigenBasisUnitary*hamiltonianBareBasis[1]*eigenBasisUnitary.dag()
+    Hrot = np.array(hamiltonian[0])
+    Hrot[eigIndices[-1],eigIndices[-1]] = Hrot[eigIndices[-2],eigIndices[-2]] + Hrot[eigIndices[-3],eigIndices[-3]] - Hrot[eigIndices[0],eigIndices[0]]
+    Hrot = Qobj(Hrot,dims=[[N,N,N],[N,N,N]])
+
     if rotatingFrame:
         for i, t in enumerate(timeStamps):
-            unitaryRotatingFrame = getRFUnitary(hamiltonianRotating, t)
+            unitaryRotatingFrame = getRFUnitary(Hrot, t)
             states[i] = unitaryRotatingFrame*states[i]
     
     # Calculate the expectation values a projection operator.
@@ -299,11 +305,11 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
         projectionOperators.append(operator)
     
     expectationValues = expect(projectionOperators, states)
-
+    
     #Calculate gate fidelity for both iSWAP and CZ.
     gateFidelity_iSWAP = getGateFidelity(x0,N=N,wantiSWAP=True)
     gateFidelity_CZ = getGateFidelity(x0,N=N,wantCZ=True)
-
+    
     # Print fidelity
     print(f'################################################\n\nGate fidelity for iSWAP: {gateFidelity_iSWAP}.\n\nGate fidelity for CZ: {gateFidelity_CZ}.\n\n################################################')
 

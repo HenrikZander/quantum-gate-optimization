@@ -31,7 +31,6 @@ from variables import *
 from functions import *
 from plotting import *
 import model
-import model_modified
 import time
 
 ######################################################################################################################################################################
@@ -51,7 +50,7 @@ x_0502_iSWAP_3_3lvl = [3.96689737e-01, 6.81485794e-02, 4.23032165e+00, 2.8261463
 
 x_0503_iSWAP_1_4lvl = [-3.98464392e-01,  4.89012371e-02,  3.55650561e+00,  3.64347107e+01, 9.98881018e+01]
 x_0504_iSWAP_1_3lvl = [4.56199639e-01, 3.21813167e-02, 3.68027336e+00, 4.63027865e+01, 5.16555865e+01]
-
+x_test = [0.5, 0, 0, 7*2*np.pi, 1000]
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
 
@@ -61,8 +60,9 @@ def main():
 
     # testSpeedOfModifiedGateFidelity()
     # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
-    # simulateHamiltonian(x_0504_iSWAP_1_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4)
-    deltaPulsePlot()
+    # simulateHamiltonian(x_test, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, N=4)
+    plotFidelity()
+    # deltaPulsePlot()
 
     print(f'Total running time: {time.time() - start} seconds.')
 
@@ -70,6 +70,16 @@ def main():
 ######################################################################################################################################################################
 # Functions used in testing and generating plots.
 
+
+def plotFidelity():
+    x = x_0502_iSWAP_1_3lvl
+    F = []
+
+    for tIndex in np.linspace(-31,-1,15):
+        F.append(model.getGateFidelity(x,N=3,wantiSWAP=True, tIndex=int(tIndex)))
+    plt.plot(F)
+    plt.ylim([0, 1.1])
+    plt.show()
 
 def deltaPulsePlot():
     operationTime = 75

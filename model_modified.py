@@ -337,7 +337,7 @@ def getGateFidelity(x,N=2,wantiSWAP=False,wantCZ=False,wantI=False):
 
     # Calculate the gate fidelity at the time stamps in timeIndexes.
     timeIndexes = np.linspace(-30,-2,6)
-    F_avg = 0
+    F_avg = []
 
     for i in timeIndexes:
         timeIndex = int(i)
