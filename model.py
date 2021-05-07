@@ -351,7 +351,7 @@ def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndex=-
     Hrot = np.array(HEB[0])
     Hrot[eigIndices[-1], eigIndices[-1]] = Hrot[eigIndices[-2], eigIndices[-2]] + Hrot[eigIndices[-3], eigIndices[-3]] - Hrot[eigIndices[0], eigIndices[0]]
     Hrot = Qobj(Hrot, dims=[[N, N, N], [N, N, N]])
-
+    print(HEB[0])
     # Calculate U_rf:
     U_rf = getRFUnitary(Hrot, ts[tIndex])
 

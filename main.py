@@ -61,8 +61,8 @@ def main():
     # testSpeedOfModifiedGateFidelity()
     # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
     # simulateHamiltonian(x_test, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, N=4)
-    plotFidelity()
-    # deltaPulsePlot()
+    # plotFidelity()
+    deltaPulsePlot()
 
     print(f'Total running time: {time.time() - start} seconds.')
 
@@ -75,7 +75,7 @@ def plotFidelity():
     x = x_0502_iSWAP_1_3lvl
     F = []
 
-    for tIndex in np.linspace(-31,-1,15):
+    for tIndex in np.linspace(-31,-1,1):
         F.append(model.getGateFidelity(x,N=3,wantiSWAP=True, tIndex=int(tIndex)))
     plt.plot(F)
     plt.ylim([0, 1.1])
@@ -86,7 +86,7 @@ def deltaPulsePlot():
     x = np.linspace(0,operationTime, 500)
     y = []
 
-    for index, time in enumerate(x):
+    for time in x:
         y.append(model.sinBox(time,operationTime))
 
     fig, ax = plt.subplots()
