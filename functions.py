@@ -323,28 +323,33 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
 # Cost function definitions
 
 
+def averageFidelity(F, gateTimeWeight=2):
+    F[0] = gateTimeWeight*F[0]
+    return np.sum(F)/(len(F)+gateTimeWeight-1)
+
+
 def costiSWAP2(x):
-    return -getGateFidelity(x,N=2,wantiSWAP=True)
+    return -averageFidelity(getGateFidelity(x,N=2,wantiSWAP=True))
 
 
 def costiSWAP3(x):
-    return -getGateFidelity(x,N=3,wantiSWAP=True)
+    return -averageFidelity(getGateFidelity(x,N=3,wantiSWAP=True))
 
 
 def costiSWAP4(x):
-    return -getGateFidelity(x,N=4,wantiSWAP=True)
+    return -averageFidelity(getGateFidelity(x,N=4,wantiSWAP=True))
 
 
 def costCZ2(x):
-    return -getGateFidelity(x,N=2,wantCZ=True)
+    return -averageFidelity(getGateFidelity(x,N=2,wantCZ=True))
 
 
 def costCZ3(x):
-    return -getGateFidelity(x,N=3,wantCZ=True)
+    return -averageFidelity(getGateFidelity(x,N=3,wantCZ=True))
 
 
 def costCZ4(x):
-    return -getGateFidelity(x,N=4,wantCZ=True)
+    return -averageFidelity(getGateFidelity(x,N=4,wantCZ=True))
 
 
 ######################################################################################################################################################################

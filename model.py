@@ -275,10 +275,68 @@ def getIndices(N):
     return eigIndices
 
 
+def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wantI):
+    F = []
+
+    for timeIndex in tIndices:
+        currentStates = []
+        for i in range(len(c)):
+            currentStates.append(c[i][timeIndex])
+        
+        U_rf = getRFUnitary(Hrot, ts[timeIndex])
+
+        # Transform all the states in c to the rotating frame
+        c_rf = U_rf * currentStates
+
+        # Calculate M-matrix such that M_ij = <r_i|c_j>_rf:
+        # Initialize as a 4x4 zero nested list
+        M = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+
+        # Assign values to elements M_ij
+        for i, ei in enumerate(eigIndices):
+            for j, _ in enumerate(eigIndices):
+                M[i][j] = c_rf[j][ei].item(0)
+
+        if wantiSWAP:
+            # Calculate phases (iSWAP):
+            phi = np.angle(M[0][0])
+            theta1 = np.angle(M[1][2]) + PI/2 - phi
+            theta2 = np.angle(M[2][1]) + PI/2 - phi
+
+            # Ideal iSWAP gate matrix (with phases):
+            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, 0, np.exp(1j*(-PI/2 + theta1 + phi)), 0], [0, np.exp(1j*(-PI/2 + theta2 + phi)), 0, 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
+        elif wantCZ:
+            # Calculate phases (CZ):
+            phi = np.angle(M[0][0])
+            theta1 = np.angle(M[1][1]) - phi
+            theta2 = np.angle(M[2][2]) - phi
+
+            # Ideal CZ gate matrix (with phases):
+            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(PI + theta1 + theta2 + phi))]])
+        elif wantI:
+            # Calculate phases (I):
+            phi = np.angle(M[0][0])
+            theta1 = np.angle(M[1][1]) - phi
+            theta2 = np.angle(M[2][2]) - phi
+
+            # Ideal I gate matrix (with phases):
+            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
+
+        # Change M's type to matrix to simplify calculating fidelity
+        M = np.matrix(M)
+
+        #print(M)
+
+        # Calculate gate fidelity
+        dimComputationalSubspace = 4
+        F.append((np.absolute(np.trace(M*U.H))**2 + np.trace(M.H*M))/(dimComputationalSubspace*(dimComputationalSubspace+1)))
+    # print(F)
+    return F
+
 ######################################################################################################################################################################
 # Gate fidelity function.
 
-def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndex=-1):
+def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices=[-76, -51, -26, -1]):
     """
     This function calculates the average gate fidelity for the
     iSWAP and CZ quantum gates given a parameter set x.
@@ -331,8 +389,10 @@ def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndex=-
     # Simulate evolution of eigenstates:
 
     # Determine the time stamps for which the evolution will be solved at.
-    simTime = int(x[-1]) + 10
-    ts = np.linspace(0, simTime, 3*simTime)
+    opTime = x[-1]
+    ts1, stepSize = np.linspace(0, opTime, 3*int(opTime), retstep=True)
+    ts2 = np.linspace(opTime+stepSize, opTime+75*stepSize, 75)
+    ts = np.append(ts1,ts2)
     # Calculate the eigenbasis hamiltonian
     HEB = getHamiltonian(x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinStepHamiltonian=True)
 
@@ -342,66 +402,15 @@ def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndex=-
     args = {'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': x[3], 'operationTime': x[4], 'omegaTBTh': omegaTBTh}
     for i in range(len(c)):
         output = sesolve(HEB, c[i], ts, args=args)
-        c[i] = output.states[tIndex]
+        c[i] = output.states
     # NB: The elements of each state in c is ordered based on eigenenergies
-    
-    #print(omegaTBSinStep(ts[tIndex], args=args))
 
     # Pick out the rotating hamiltonian
     Hrot = np.array(HEB[0])
     Hrot[eigIndices[-1], eigIndices[-1]] = Hrot[eigIndices[-2], eigIndices[-2]] + Hrot[eigIndices[-3], eigIndices[-3]] - Hrot[eigIndices[0], eigIndices[0]]
     Hrot = Qobj(Hrot, dims=[[N, N, N], [N, N, N]])
-    print(HEB[0])
-    # Calculate U_rf:
-    U_rf = getRFUnitary(Hrot, ts[tIndex])
 
-    # Transform all the states in c to the rotating frame
-    c_rf = U_rf * c
-
-    # Calculate M-matrix such that M_ij = <r_i|c_j>_rf:
-    # Initialize as a 4x4 zero nested list
-    M = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
-
-    # Assign values to elements M_ij
-    for i, ei in enumerate(eigIndices):
-        for j, _ in enumerate(eigIndices):
-            M[i][j] = c_rf[j][ei].item(0)
-
-    if wantiSWAP:
-        # Calculate phases (iSWAP):
-        phi = np.angle(M[0][0])
-        theta1 = np.angle(M[1][2]) + PI/2 - phi
-        theta2 = np.angle(M[2][1]) + PI/2 - phi
-
-        # Ideal iSWAP gate matrix (with phases):
-        U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, 0, np.exp(1j*(-PI/2 + theta1 + phi)), 0], [0, np.exp(1j*(-PI/2 + theta2 + phi)), 0, 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
-    elif wantCZ:
-        # Calculate phases (CZ):
-        phi = np.angle(M[0][0])
-        theta1 = np.angle(M[1][1]) - phi
-        theta2 = np.angle(M[2][2]) - phi
-
-        # Ideal CZ gate matrix (with phases):
-        U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(PI + theta1 + theta2 + phi))]])
-    elif wantI:
-        # Calculate phases (I):
-        phi = np.angle(M[0][0])
-        theta1 = np.angle(M[1][1]) - phi
-        theta2 = np.angle(M[2][2]) - phi
-
-        # Ideal I gate matrix (with phases):
-        U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
-
-    # Change M's type to matrix to simplify calculating fidelity
-    M = np.matrix(M)
-
-    #print(M)
-
-    # Calculate gate fidelity
-    dimComputationalSubspace = 4
-    F_avg = (np.absolute(np.trace(M*U.H))**2 + np.trace(M.H*M))/(dimComputationalSubspace*(dimComputationalSubspace+1))
-
-    return F_avg
+    return fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wantI)
 
 
 ######################################################################################################################################################################
