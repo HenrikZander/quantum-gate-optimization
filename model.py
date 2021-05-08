@@ -277,6 +277,7 @@ def getIndices(N):
 
 def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wantI):
     F = []
+    fidelityTimes = []
 
     for timeIndex in tIndices:
         currentStates = []
@@ -330,8 +331,8 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
         # Calculate gate fidelity
         dimComputationalSubspace = 4
         F.append((np.absolute(np.trace(M*U.H))**2 + np.trace(M.H*M))/(dimComputationalSubspace*(dimComputationalSubspace+1)))
-    # print(F)
-    return F
+        fidelityTimes.append(ts[timeIndex])
+    return F, fidelityTimes
 
 ######################################################################################################################################################################
 # Gate fidelity function.

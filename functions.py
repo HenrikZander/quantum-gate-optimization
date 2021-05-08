@@ -254,7 +254,7 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     """
 
     # Get eigenindices.
-    eigIndices = model.getIndices(N)
+    eigIndices = getIndices(N)
     
     # Calculate the dimension of the tensor states and set the simulation time.
     D = N**3
@@ -329,27 +329,33 @@ def averageFidelity(F, gateTimeWeight=2):
 
 
 def costiSWAP2(x):
-    return -averageFidelity(getGateFidelity(x,N=2,wantiSWAP=True))
+    F, _ = getGateFidelity(x,N=2,wantiSWAP=True)
+    return -averageFidelity(F)
 
 
 def costiSWAP3(x):
-    return -averageFidelity(getGateFidelity(x,N=3,wantiSWAP=True))
+    F, _ = getGateFidelity(x,N=3,wantiSWAP=True)
+    return -averageFidelity(F)
 
 
 def costiSWAP4(x):
-    return -averageFidelity(getGateFidelity(x,N=4,wantiSWAP=True))
+    F, _ = getGateFidelity(x,N=4,wantiSWAP=True)
+    return -averageFidelity(F)
 
 
 def costCZ2(x):
-    return -averageFidelity(getGateFidelity(x,N=2,wantCZ=True))
+    F, _ = getGateFidelity(x,N=2,wantCZ=True)
+    return -averageFidelity(F)
 
 
 def costCZ3(x):
-    return -averageFidelity(getGateFidelity(x,N=3,wantCZ=True))
+    F, _ = getGateFidelity(x,N=3,wantCZ=True)
+    return -averageFidelity(F)
 
 
 def costCZ4(x):
-    return -averageFidelity(getGateFidelity(x,N=4,wantCZ=True))
+    F, _ = getGateFidelity(x,N=4,wantCZ=True)
+    return -averageFidelity(F)
 
 
 ######################################################################################################################################################################

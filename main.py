@@ -50,7 +50,10 @@ x_0502_iSWAP_3_3lvl = [3.96689737e-01, 6.81485794e-02, 4.23032165e+00, 2.8261463
 
 x_0503_iSWAP_1_4lvl = [-3.98464392e-01,  4.89012371e-02,  3.55650561e+00,  3.64347107e+01, 9.98881018e+01]
 x_0504_iSWAP_1_3lvl = [4.56199639e-01, 3.21813167e-02, 3.68027336e+00, 4.63027865e+01, 5.16555865e+01]
-x_test = [0.5, 0, 0, 7*2*np.pi, 1000]
+
+x_0508_iSWAP_1_3lvl = [-3.77602967e-01,  7.79255423e-02,  3.55268857e+00,  2.83153193e+01, 9.99260963e+01]
+x_0508_CZ_1_4lvl = [-3.81665839e-01,  5.24394496e-02,  3.96158842e+00,  2.93721722e+01, 1.57298060e+02]
+
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
 
@@ -59,10 +62,11 @@ def main():
     start = time.time()
 
     # testSpeedOfModifiedGateFidelity()
-    optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
-    # simulateHamiltonian(x_test, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, N=4)
-    # plotFidelity()
-    # deltaPulsePlot()
+    # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
+    # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=180, runDE=True)
+    # simulateHamiltonian(x_0508_iSWAP_1_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4)
+    # plotFidelity(x_0508_CZ_1_4lvl, wantiSWAP=False, wantCZ=True)
+    deltaPulsePlot()
 
     print(f'Total running time: {time.time() - start} seconds.')
 
@@ -71,11 +75,19 @@ def main():
 # Functions used in testing and generating plots.
 
 
-def plotFidelity():
-    x = x_0504_iSWAP_1_3lvl
-    F = model.getGateFidelity(x, N=3, wantiSWAP=True, wantCZ=False, wantI=False, tIndices=[-76, -66, -56, -46, -36, -26, -16, -6])
-    plt.plot(F)
-    plt.ylim([0, 1.1])
+def plotFidelity(x, wantiSWAP=False, wantCZ=False):
+    indices = np.linspace(-116, -1, 116).astype(int)
+    F, times = model.getGateFidelity(x, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=indices)
+    plt.figure(figsize=(8,7))
+    plt.plot(times, F)
+    plt.plot([x[-1], x[-1]], [0, 1.1], 'r--')
+    plt.grid()
+    plt.ylim([0.99, 1.005])
+    plt.xlim([times[0], times[-1]])
+    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=13)
+    plt.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
+    plt.xlabel("Tid efter grindstart [ns]", fontsize=15)
+    plt.ylabel("Fidelitet", fontsize=15)
     plt.show()
 
 def deltaPulsePlot():
@@ -86,15 +98,18 @@ def deltaPulsePlot():
     for time in x:
         y.append(model.sinBox(time,operationTime))
 
-    fig, ax = plt.subplots()
-    ax.plot(x, y)
-    ax.set_xlabel('Tid [ns]', fontsize=14)
-    ax.set_ylabel('Del av full amplitud, $\delta(t) / \delta_0$', fontsize=14)
-    plt.title("Formen på amlituden för det oscillerande flödet.", fontsize=16)
+    plt.plot(x, y)
+    plt.plot([25, 25], [0, 1.1], 'r--', [operationTime-25, operationTime-25], [0, 1.1], 'r--')
+    plt.xlabel('Tid [ns]', fontsize=14)
+    plt.ylabel('Del av full amplitud, $\delta(t) / \delta_0$', fontsize=14)
     plt.xlim([0, operationTime])
     plt.ylim([0, 1.1])
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
+    plt.annotate('', xy=(0,0.5), xytext=(25,0.5), arrowprops=dict(arrowstyle='<->'))
+    plt.annotate("$t_{Stig}$", xy=(6,0.53), fontsize=16)
+    plt.annotate('', xy=(operationTime-25,0.5), xytext=(operationTime,0.5), arrowprops=dict(arrowstyle='<->'))
+    plt.annotate("$t_{Fall}$", xy=(operationTime-10,0.53), fontsize=16)
     plt.show()
 
 
