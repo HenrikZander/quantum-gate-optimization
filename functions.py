@@ -307,8 +307,8 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     expectationValues = expect(projectionOperators, states)
     
     #Calculate gate fidelity for both iSWAP and CZ.
-    gateFidelity_iSWAP = getGateFidelity(x0,N=N,wantiSWAP=True)
-    gateFidelity_CZ = getGateFidelity(x0,N=N,wantCZ=True)
+    gateFidelity_iSWAP, _ = getGateFidelity(x0,N=N,wantiSWAP=True)
+    gateFidelity_CZ, _ = getGateFidelity(x0,N=N,wantCZ=True)
     
     # Print fidelity
     print(f'################################################\n\nGate fidelity for iSWAP: {gateFidelity_iSWAP}.\n\nGate fidelity for CZ: {gateFidelity_CZ}.\n\n################################################')

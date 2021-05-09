@@ -54,6 +54,12 @@ x_0504_iSWAP_1_3lvl = [4.56199639e-01, 3.21813167e-02, 3.68027336e+00, 4.6302786
 x_0508_iSWAP_1_3lvl = [-3.77602967e-01,  7.79255423e-02,  3.55268857e+00,  2.83153193e+01, 9.99260963e+01]
 x_0508_CZ_1_4lvl = [-3.81665839e-01,  5.24394496e-02,  3.96158842e+00,  2.93721722e+01, 1.57298060e+02]
 
+x_0509_iSWAP_1_3lvl = [4.67882816e-01, 4.10434975e-02, 3.57317326e+00, 4.45333793e+01, 6.83961701e+01]
+x_0509_iSWAP_2_3lvl = [-3.19991864e-01,  9.38707220e-02,  2.52146782e+00,  3.87216564e+01, 9.45620521e+01]
+x_0509_CZ_1_4lvl = [4.20660096e-01, 6.85315342e-02, 4.86571561e-02, 3.30879395e+01, 9.29363646e+01]
+
+xUsed = x_0509_iSWAP_1_3lvl
+
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
 
@@ -61,12 +67,10 @@ x_0508_CZ_1_4lvl = [-3.81665839e-01,  5.24394496e-02,  3.96158842e+00,  2.937217
 def main():
     start = time.time()
 
-    # testSpeedOfModifiedGateFidelity()
     # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
-    # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=180, runDE=True)
-    # simulateHamiltonian(x_0508_iSWAP_1_3lvl, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4)
-    # plotFidelity(x_0508_CZ_1_4lvl, wantiSWAP=False, wantCZ=True)
-    deltaPulsePlot()
+    simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4)
+    plotFidelity(xUsed, wantiSWAP=True, wantCZ=False)
+    # deltaPulsePlot()
 
     print(f'Total running time: {time.time() - start} seconds.')
 
