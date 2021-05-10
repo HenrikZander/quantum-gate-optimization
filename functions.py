@@ -314,7 +314,22 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     print(f'################################################\n\nGate fidelity for iSWAP: {gateFidelity_iSWAP}.\n\nGate fidelity for CZ: {gateFidelity_CZ}.\n\n################################################')
 
     # Plot the expectation values.
-    plotExpect(timeStamps, expectationValues)
+    plt.figure(figsize=(8,7))
+    labels = []
+
+    for index, values in enumerate(expectationValues):
+        plt.plot(timeStamps, values)
+        labels.append(f'Egentillstånd {index}')
+    
+    plt.grid()
+    plt.ylim([0, 1.1])
+    plt.xlim([0, timeStamps[-1]])
+    plt.legend(labels, fontsize=15, loc='right')
+    plt.xlabel("Tid efter grindstart [ns]", fontsize=17)
+    plt.ylabel("Väntevärde", fontsize=17)
+    plt.xticks(fontsize=13)
+    plt.yticks(fontsize=13)
+    plt.show()
 
     return gateFidelity_iSWAP, gateFidelity_CZ
 

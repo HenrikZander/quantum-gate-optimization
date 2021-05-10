@@ -36,29 +36,32 @@ import time
 ######################################################################################################################################################################
 # Interesting solutions in the format x = [Theta, delta, omegaPhi, omegaTB0, operationTime].
 
-# Using H_rot = H_Th, including the interacting part of the hamiltonian:
-x_0425_1_iSWAP = [0.241082420, 0.108883457, 2.50702612, 39.0692027, 218.127752]
-x_0425_2_iSWAP = [-4.31076591e-01,  2.75072184e-02,  3.52975522e+00,  3.67717108e+01, 8.39876656e+01]
-x_0426_CZ = [4.44287328e-01, 2.05934595e-02, 2.04012274e+00, 3.07227234e+01, 1.78093842e+02]
+# Poor solutions:
 
-# Using H_rot = H_0^Th, excluding the interacting part of the hamiltonian:
-x_0501_CZ_3lvl = [4.74835237e-01, 3.32890870e-02, 1.92795763e+00, 3.11288724e+01, 1.52910662e+02]
-x_0501_iSWAP_3lvl = [2.87022047e-01, 1.07442615e-01, 2.50566092e+00, 4.51975847e+01, 1.72672744e+02]
-x_0502_iSWAP_1_3lvl = [-3.28050858e-01,  7.83176577e-02,  2.02152681e+00,  3.06207420e+01, 1.03221706e+02]
-x_0502_iSWAP_2_3lvl = [-3.23785448e-01,  3.74318501e-02,  2.45144003e+00,  4.02247024e+01, 9.51244239e+01]
-x_0502_iSWAP_3_3lvl = [3.96689737e-01, 6.81485794e-02, 4.23032165e+00, 2.82614635e+01, 1.27222763e+02]
+# x_0425_2_iSWAP = [-4.31076591e-01,  2.75072184e-02,  3.52975522e+00,  3.67717108e+01, 8.39876656e+01]
+# x_0502_iSWAP_1_3lvl = [-3.28050858e-01,  7.83176577e-02,  2.02152681e+00,  3.06207420e+01, 1.03221706e+02]
+# x_0502_iSWAP_3_3lvl = [3.96689737e-01, 6.81485794e-02, 4.23032165e+00, 2.82614635e+01, 1.27222763e+02]
+# x_0503_iSWAP_1_4lvl = [-3.98464392e-01,  4.89012371e-02,  3.55650561e+00,  3.64347107e+01, 9.98881018e+01] # Fideliteten stiger snabbt efter grinden stängts av. Men dålig fidelitet.
+# x_0509_iSWAP_2_3lvl = [-3.19991864e-01,  9.38707220e-02,  2.52146782e+00,  3.87216564e+01, 9.45620521e+01] # Inte tillräckligt hög fidelitet.
 
-x_0503_iSWAP_1_4lvl = [-3.98464392e-01,  4.89012371e-02,  3.55650561e+00,  3.64347107e+01, 9.98881018e+01]
-x_0504_iSWAP_1_3lvl = [4.56199639e-01, 3.21813167e-02, 3.68027336e+00, 4.63027865e+01, 5.16555865e+01]
+# x_0426_CZ = [4.44287328e-01, 2.05934595e-02, 2.04012274e+00, 3.07227234e+01, 1.78093842e+02] # Oscillerande fidelitet
+# x_0501_CZ_3lvl = [4.74835237e-01, 3.32890870e-02, 1.92795763e+00, 3.11288724e+01, 1.52910662e+02]
 
-x_0508_iSWAP_1_3lvl = [-3.77602967e-01,  7.79255423e-02,  3.55268857e+00,  2.83153193e+01, 9.99260963e+01]
-x_0508_CZ_1_4lvl = [-3.81665839e-01,  5.24394496e-02,  3.96158842e+00,  2.93721722e+01, 1.57298060e+02]
+# Good solutions:
 
-x_0509_iSWAP_1_3lvl = [4.67882816e-01, 4.10434975e-02, 3.57317326e+00, 4.45333793e+01, 6.83961701e+01]
-x_0509_iSWAP_2_3lvl = [-3.19991864e-01,  9.38707220e-02,  2.52146782e+00,  3.87216564e+01, 9.45620521e+01]
-x_0509_CZ_1_4lvl = [4.20660096e-01, 6.85315342e-02, 4.86571561e-02, 3.30879395e+01, 9.29363646e+01]
+x_0425_1_iSWAP = [0.241082420, 0.108883457, 2.50702612, 39.0692027, 218.127752]                                                                                # F = [(0.9987825701889115+0j), (0.9987615809690565+0j), (0.9987404349878605+0j), (0.9987187305959936+0j)]
+x_0501_iSWAP_3lvl = [2.87022047e-01, 1.07442615e-01, 2.50566092e+00, 4.51975847e+01, 1.72672744e+02]                                                           # F = [(0.9970235907731843+0j), (0.9969987243890179+0j), (0.996973740723554+0j), (0.9969486009884246+0j)]
+x_0504_iSWAP_1_3lvl = [4.56199639e-01, 3.21813167e-02, 3.68027336e+00, 4.63027865e+01, 5.16555865e+01] # Väldigt hög fidelitet och väldigt snabb.              # F = [(0.9996386695754572+0j), (0.998520052448225+0j), (0.9958511334297339+0j), (0.9916456385963169+0j)]
+x_0502_iSWAP_2_3lvl = [-3.23785448e-01,  3.74318501e-02,  2.45144003e+00,  4.02247024e+01, 9.51244239e+01] # Fidelitet stiger efter att griden stängts av.     # F = [(0.9945143458523513+0j), (0.9946846702621196+0j), (0.9948477877462383+0j), (0.9950036555493578+0j)]
+x_0508_iSWAP_1_3lvl = [-3.77602967e-01,  7.79255423e-02,  3.55268857e+00,  2.83153193e+01, 9.99260963e+01] # Hög fidelitet okej operationstid.                 # F = [(0.9996315297932361+0j), (0.9995749397182396+0j), (0.9977996490730219+0j), (0.9943159415431349+0j)]
+x_0509_iSWAP_1_3lvl = [4.67882816e-01, 4.10434975e-02, 3.57317326e+00, 4.45333793e+01, 6.83961701e+01]                                                         # F = [(0.9963800344710967+0j), (0.9948909833881396+0j), (0.9930313677770233+0j), (0.9908035658030836+0j)]
 
-xUsed = x_0509_iSWAP_1_3lvl
+x_0508_CZ_1_4lvl = [-3.81665839e-01,  5.24394496e-02,  3.96158842e+00,  2.93721722e+01, 1.57298060e+02] # Väldigt hög fidelitet                                # F = [(0.9980325063437839+0j), (0.9998233507400702+0j), (0.9995032108558896+0j), (0.9970728189390012+0j)]
+x_0509_CZ_1_4lvl = [4.20660096e-01, 6.85315342e-02, 4.86571561e-02, 3.30879395e+01, 9.29363646e+01] # Ännu högre fidelitet och mer stabil efteråt.             # F = [(0.9997256108907016+0j), (0.9999223226253042+0j), (0.9990775163025432+0j), (0.9971938931736171+0j)]
+
+# Solution to use in simulations: 
+
+xUsed = x_0509_CZ_1_4lvl
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -68,8 +71,8 @@ def main():
     start = time.time()
 
     # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
-    simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4)
-    plotFidelity(xUsed, wantiSWAP=True, wantCZ=False)
+    # simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4)
+    plotFidelity(xUsed, wantiSWAP=False, wantCZ=True)
     # deltaPulsePlot()
 
     print(f'Total running time: {time.time() - start} seconds.')
@@ -88,10 +91,12 @@ def plotFidelity(x, wantiSWAP=False, wantCZ=False):
     plt.grid()
     plt.ylim([0.99, 1.005])
     plt.xlim([times[0], times[-1]])
-    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=13)
-    plt.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
-    plt.xlabel("Tid efter grindstart [ns]", fontsize=15)
-    plt.ylabel("Fidelitet", fontsize=15)
+    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=15)
+    #plt.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
+    plt.xlabel("Tid efter grindstart [ns]", fontsize=17)
+    plt.ylabel("Fidelitet", fontsize=17)
+    plt.xticks(fontsize=13)
+    plt.yticks(fontsize=13)
     plt.show()
 
 def deltaPulsePlot():
