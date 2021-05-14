@@ -71,55 +71,16 @@ def main():
     start = time.time()
 
     # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
-    # simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4)
+    simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=4, highestProjectionIndex=8)
     plotFidelity(xUsed, wantiSWAP=False, wantCZ=True)
     # deltaPulsePlot()
+    # testPlotStates()
 
     print(f'Total running time: {time.time() - start} seconds.')
 
 
 ######################################################################################################################################################################
-# Functions used in testing and generating plots.
-
-
-def plotFidelity(x, wantiSWAP=False, wantCZ=False):
-    indices = np.linspace(-116, -1, 116).astype(int)
-    F, times = model.getGateFidelity(x, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=indices)
-    plt.figure(figsize=(8,7))
-    plt.plot(times, F)
-    plt.plot([x[-1], x[-1]], [0, 1.1], 'r--')
-    plt.grid()
-    plt.ylim([0.99, 1.005])
-    plt.xlim([times[0], times[-1]])
-    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=15)
-    #plt.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
-    plt.xlabel("Tid efter grindstart [ns]", fontsize=17)
-    plt.ylabel("Fidelitet", fontsize=17)
-    plt.xticks(fontsize=13)
-    plt.yticks(fontsize=13)
-    plt.show()
-
-def deltaPulsePlot():
-    operationTime = 75
-    x = np.linspace(0,operationTime, 500)
-    y = []
-
-    for time in x:
-        y.append(model.sinBox(time,operationTime))
-
-    plt.plot(x, y)
-    plt.plot([25, 25], [0, 1.1], 'r--', [operationTime-25, operationTime-25], [0, 1.1], 'r--')
-    plt.xlabel('Tid [ns]', fontsize=14)
-    plt.ylabel('Del av full amplitud, $\delta(t) / \delta_0$', fontsize=14)
-    plt.xlim([0, operationTime])
-    plt.ylim([0, 1.1])
-    plt.xticks(fontsize=12)
-    plt.yticks(fontsize=12)
-    plt.annotate('', xy=(0,0.5), xytext=(25,0.5), arrowprops=dict(arrowstyle='<->'))
-    plt.annotate("$t_{Stig}$", xy=(6,0.53), fontsize=16)
-    plt.annotate('', xy=(operationTime-25,0.5), xytext=(operationTime,0.5), arrowprops=dict(arrowstyle='<->'))
-    plt.annotate("$t_{Fall}$", xy=(operationTime-10,0.53), fontsize=16)
-    plt.show()
+# Functions used in testing.
 
 
 def testSpeedOfModifiedGateFidelity():
@@ -170,13 +131,23 @@ def testFindMinimum():
 
 
 def testStateAnimations():
-    """Used to test the animatesStates-function in plotting.py.py"""
-    H = testHamiltonian()
+    """Used to test the animatesStates-function in plotting.py"""
+    H = sx
     state = basis(2, 0)
-    times = np.linspace(0, 5, num=120)
+    times = np.linspace(0, 5, 120)
 
     result = sesolve(H, state, times, [])
     animateStates(result, "temp")
+
+
+def testPlotStates():
+    """Used to test the plotStates-function in plotting.py"""
+    H = sx
+    state = basis(2, 0)
+    times = np.linspace(0, np.pi/2, 20)
+
+    result = sesolve(H, state, times, [])
+    plotStates(result)
 
 
 ######################################################################################################################################################################

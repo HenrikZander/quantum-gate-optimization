@@ -81,7 +81,8 @@ def plotStates(result):
     states = result.states
     fig = Bloch()
     fig.add_states(states)
-    fig.show()
+    fig.make_sphere()
+    plt.show()
 
 
 def plotExpect(timeStamps, expectationValues):

@@ -233,7 +233,7 @@ def findMinimum(costFunction, bounds, runSHG=True, runDA=True, runDE=True):
 # Simulation functions
 
 
-def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, highestProjectionIndex=5, N=4):
+def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, highestProjectionIndex=8, N=4):
     """
     This function simulates the population transfers between 
     different eigenstates of the 4-level hamiltonian from 
@@ -299,6 +299,7 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     
     # Calculate the expectation values a projection operator.
     projectionOperators = []
+    #pIndexes = [0,1,2,5,highestProjectionIndex]
 
     for index in range(highestProjectionIndex+1):
         operator = Qobj(basis(D,index),dims=[[N,N,N],[1,1,1]]) * Qobj(basis(D,index),dims=[[N,N,N],[1,1,1]]).dag()
@@ -307,31 +308,86 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     expectationValues = expect(projectionOperators, states)
     
     #Calculate gate fidelity for both iSWAP and CZ.
-    gateFidelity_iSWAP, _ = getGateFidelity(x0,N=N,wantiSWAP=True)
-    gateFidelity_CZ, _ = getGateFidelity(x0,N=N,wantCZ=True)
+    gateFidelity_iSWAP, timesiSWAP = getGateFidelity(x0,N=N,wantiSWAP=True)
+    gateFidelity_CZ, timesCZ = getGateFidelity(x0,N=N,wantCZ=True)
     
     # Print fidelity
     print(f'################################################\n\nGate fidelity for iSWAP: {gateFidelity_iSWAP}.\n\nGate fidelity for CZ: {gateFidelity_CZ}.\n\n################################################')
-
+    
     # Plot the expectation values.
     plt.figure(figsize=(8,7))
-    labels = []
+    labels = ["|000>", "|010>", "|100>", "|001>", "|020>", "|110>", "|011>", "|200>", "|101>"]
+    #labels = []
+    #labels = ["|000>", "|010>", "|100>", "|110>", "|101>"]
 
     for index, values in enumerate(expectationValues):
         plt.plot(timeStamps, values)
-        labels.append(f'Egentillstånd {index}')
+        #labels.append(f'State {index}')
     
     plt.grid()
     plt.ylim([0, 1.1])
     plt.xlim([0, timeStamps[-1]])
-    plt.legend(labels, fontsize=15, loc='right')
-    plt.xlabel("Tid efter grindstart [ns]", fontsize=17)
-    plt.ylabel("Väntevärde", fontsize=17)
-    plt.xticks(fontsize=13)
-    plt.yticks(fontsize=13)
+    plt.legend(labels, fontsize=22, loc='center left')
+    plt.xlabel("Tid efter grindstart [ns]", fontsize=28)
+    plt.ylabel("Population", fontsize=28)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
     plt.show()
 
+    ##################################################################
+    # Test for finding eigenstates
+    # indexEigenState = 0
+
+    # eigState = eigenStatesAndEnergies[1][indexEigenState]
+    # for 
+    # idealState = Qobj(basis(D,indexEigenState),dims=[[N,N,N],[1,1,1]])
+
+    # print(eigState-)
+
+    ##################################################################
+
     return gateFidelity_iSWAP, gateFidelity_CZ
+
+
+def plotFidelity(x, wantiSWAP=False, wantCZ=False):
+    indices = np.linspace(-116, -1, 116).astype(int)
+    F, times = getGateFidelity(x, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=indices)
+    plt.figure(figsize=(8,7))
+    plt.plot(times, F)
+    plt.plot([x[-1], x[-1]], [0, 1.001], 'r--')
+    plt.grid()
+    plt.ylim([0.992, 1.001])
+    plt.xlim([times[0], times[-1]])
+    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=22, loc="lower right")
+    #plt.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
+    plt.xlabel("Tid efter grindstart [ns]", fontsize=28)
+    plt.ylabel("Fidelitet", fontsize=28)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.show()
+
+
+def deltaPulsePlot():
+    operationTime = 75
+    x = np.linspace(0,operationTime, 500)
+    y = []
+
+    for time in x:
+        y.append(sinBox(time,operationTime))
+
+    plt.plot(x, y)
+    plt.plot([25, 25], [0, 1.1], 'r--', [operationTime-25, operationTime-25], [0, 1.1], 'r--')
+    plt.xlabel('Tid [ns]', fontsize=16)
+    plt.ylabel('Del av full amplitud, $\delta(t) / \delta_0$', fontsize=16)
+    plt.xlim([0, operationTime])
+    plt.ylim([0, 1.1])
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.annotate('', xy=(0,0.5), xytext=(25,0.5), arrowprops=dict(arrowstyle='<->'))
+    plt.annotate("$t_{Stig}$", xy=(6,0.53), fontsize=18)
+    plt.annotate('', xy=(operationTime-25,0.5), xytext=(operationTime,0.5), arrowprops=dict(arrowstyle='<->'))
+    plt.annotate("$t_{Fall}$", xy=(operationTime-10,0.53), fontsize=18)
+    plt.show()
 
 
 ######################################################################################################################################################################
