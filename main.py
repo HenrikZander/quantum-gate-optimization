@@ -61,7 +61,7 @@ x_0509_CZ_1_4lvl = [4.20660096e-01, 6.85315342e-02, 4.86571561e-02, 3.30879395e+
 
 # Solution to use in simulations: 
 
-xUsed = x_0509_CZ_1_4lvl
+xUsed = x_0501_iSWAP_3lvl
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -73,8 +73,8 @@ def main():
     # for index in range(64):
     #     findEigenIndex(xUsed, eigenStateIndex=index, N=4, printResult=True)
     # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
-    simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=4, highestProjectionIndex=8)
-    plotFidelity(xUsed, wantiSWAP=False, wantCZ=True)
+    simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4, highestProjectionIndex=5)
+    # plotFidelity(xUsed, wantiSWAP=True, wantCZ=False)
     # deltaPulsePlot()
     # testPlotStates()
 

@@ -328,13 +328,13 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     plt.grid()
     plt.ylim([0, 1.1])
     plt.xlim([0, timeStamps[-1]])
-    plt.legend(labels, fontsize=19, loc='center left')
-    plt.xlabel("Tid efter grindstart [ns]", fontsize=25)
-    plt.ylabel("Population", fontsize=25)
-    plt.xticks(fontsize=13)
-    plt.yticks(fontsize=13)
+    plt.legend(labels, fontsize=19, loc='right')
+    plt.xlabel("Tid efter grindstart [ns]", fontsize=26)
+    plt.ylabel("Population", fontsize=26)
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
     plt.show()
-
+    #plt.tight_layout()
     return gateFidelity_iSWAP, gateFidelity_CZ
 
 
@@ -347,12 +347,13 @@ def plotFidelity(x, wantiSWAP=False, wantCZ=False):
     plt.grid()
     plt.ylim([0.994, 1.001])
     plt.xlim([times[0], times[-1]])
-    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=19, loc="lower right")
+    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=19, loc="upper right")
     #plt.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
-    plt.xlabel("Tid efter grindstart [ns]", fontsize=25)
-    plt.ylabel("Fidelitet", fontsize=25)
-    plt.xticks(fontsize=13)
-    plt.yticks(fontsize=13)
+    plt.xlabel("Tid efter grindstart [ns]", fontsize=26)
+    plt.ylabel("Fidelitet", fontsize=26)
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
+    plt.tight_layout()
     plt.show()
 
 
