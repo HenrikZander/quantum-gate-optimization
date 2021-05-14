@@ -29,6 +29,7 @@ import scipy
 from numba import njit
 from plotting import *
 from model import *
+from variables import *
 
 ######################################################################################################################################################################
 # Global variables
@@ -316,35 +317,23 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     
     # Plot the expectation values.
     plt.figure(figsize=(8,7))
-    labels = ["|000>", "|010>", "|100>", "|001>", "|020>", "|110>", "|011>", "|200>", "|101>"]
-    #labels = []
-    #labels = ["|000>", "|010>", "|100>", "|110>", "|101>"]
-
+    #labels = ["|000>", "|010>", "|100>", "|001>", "|020>", "|110>", "|011>", "|200>", "|101>"]
+    labels = []
+    
     for index, values in enumerate(expectationValues):
         plt.plot(timeStamps, values)
-        #labels.append(f'State {index}')
+        eigenOrder = (findEigenIndex(x0, eigenStateIndex=index))[1]
+        labels.append(f'|{eigenOrder[0]}{eigenOrder[1]}{eigenOrder[2]}>')
     
     plt.grid()
     plt.ylim([0, 1.1])
     plt.xlim([0, timeStamps[-1]])
-    plt.legend(labels, fontsize=22, loc='center left')
-    plt.xlabel("Tid efter grindstart [ns]", fontsize=28)
-    plt.ylabel("Population", fontsize=28)
-    plt.xticks(fontsize=12)
-    plt.yticks(fontsize=12)
+    plt.legend(labels, fontsize=19, loc='center left')
+    plt.xlabel("Tid efter grindstart [ns]", fontsize=25)
+    plt.ylabel("Population", fontsize=25)
+    plt.xticks(fontsize=13)
+    plt.yticks(fontsize=13)
     plt.show()
-
-    ##################################################################
-    # Test for finding eigenstates
-    # indexEigenState = 0
-
-    # eigState = eigenStatesAndEnergies[1][indexEigenState]
-    # for 
-    # idealState = Qobj(basis(D,indexEigenState),dims=[[N,N,N],[1,1,1]])
-
-    # print(eigState-)
-
-    ##################################################################
 
     return gateFidelity_iSWAP, gateFidelity_CZ
 
@@ -356,14 +345,14 @@ def plotFidelity(x, wantiSWAP=False, wantCZ=False):
     plt.plot(times, F)
     plt.plot([x[-1], x[-1]], [0, 1.001], 'r--')
     plt.grid()
-    plt.ylim([0.992, 1.001])
+    plt.ylim([0.994, 1.001])
     plt.xlim([times[0], times[-1]])
-    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=22, loc="lower right")
+    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=19, loc="lower right")
     #plt.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
-    plt.xlabel("Tid efter grindstart [ns]", fontsize=28)
-    plt.ylabel("Fidelitet", fontsize=28)
-    plt.xticks(fontsize=12)
-    plt.yticks(fontsize=12)
+    plt.xlabel("Tid efter grindstart [ns]", fontsize=25)
+    plt.ylabel("Fidelitet", fontsize=25)
+    plt.xticks(fontsize=13)
+    plt.yticks(fontsize=13)
     plt.show()
 
 
@@ -388,6 +377,41 @@ def deltaPulsePlot():
     plt.annotate('', xy=(operationTime-25,0.5), xytext=(operationTime,0.5), arrowprops=dict(arrowstyle='<->'))
     plt.annotate("$t_{Fall}$", xy=(operationTime-10,0.53), fontsize=18)
     plt.show()
+
+
+def findEigenIndex(x0, eigenStateIndex=0, N=4, printResult=False):
+
+    # Get eigenindices and dimension.
+    eigIndices = getIndices(N)
+    D = N**3
+
+    # Get the bare basis hamiltonian.
+    hamiltonianBareBasis = getHamiltonian(x0,N=N,getBBHamiltonianComps=True)
+
+    # Calculate the tunable bus frequency when Phi=0.
+    omegaTBDC = coeffomegaTB(x0[3],0)
+
+    # Calculate eigenstates and eigenenergies of the hamiltonian in the bare basis when the flux is zero.
+    eigenStatesAndEnergies = getThetaEigenstates(x0, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
+    eigenState = eigenStatesAndEnergies[1][eigenStateIndex]
+
+    cleanEigenState = [[0] for _ in range(D)]
+    for i, val in enumerate(cleanEigenState):
+        cleanEigenState[i][0] = np.abs(eigenState[i].item(0))
+
+    eigenState = Qobj(cleanEigenState,dims=[[N,N,N],[1,1,1]], shape=(D,1))
+    result = [100,[-1,-1,-1]]
+    for q1 in range(N):
+        for q2 in range(N):
+            for qTB in range(N):
+                diff = ( Qobj(tensor(basis(N,q1),basis(N,q2),basis(N,qTB)),dims=[[N,N,N],[1,1,1]]) - eigenState ).norm()
+                if diff < result[0]:
+                    result[0] = diff
+                    result[1] = [q1,q2,qTB]
+    if printResult:
+        print(f'The eigenstate with eigen index {eigenStateIndex} is the |{result[1][0]}{result[1][1]}{result[1][2]}> state. The norm difference is {result[0]}.')
+
+    return result
 
 
 ######################################################################################################################################################################

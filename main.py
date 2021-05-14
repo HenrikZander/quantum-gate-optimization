@@ -70,6 +70,8 @@ xUsed = x_0509_CZ_1_4lvl
 def main():
     start = time.time()
 
+    # for index in range(64):
+    #     findEigenIndex(xUsed, eigenStateIndex=index, N=4, printResult=True)
     # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
     simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=4, highestProjectionIndex=8)
     plotFidelity(xUsed, wantiSWAP=False, wantCZ=True)
