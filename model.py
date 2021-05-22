@@ -44,7 +44,7 @@ def getParameterBounds(maxAllowedGateTime=240):
             parameterBounds (array(tuples(int))): Array of tuples that each contain the associated upper and lower bounds for that parameter.
     ---------------------------------------------------------
     """
-    return [(-0.35, 0.35), (0, 0.25), (0, 5), (50, maxAllowedGateTime)]
+    return [(0.42, 0.5), (0, 0.25), (0, 5), (50, maxAllowedGateTime)]
 
 
 ######################################################################################################################################################################
@@ -269,7 +269,7 @@ def getIndices(N):
     if N == 4:
         eigIndices = [0, 1, 2, 5]
     elif N == 3:
-        eigIndices = [0, 1, 2, 5]
+        eigIndices = [0, 2, 3, 7]
     else:
         eigIndices = [0, 1, 2, 4]
     return eigIndices
@@ -364,12 +364,7 @@ def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices
     # From here on, unless otherwise stated, every state is considered a tensor state.
 
     # We are especially interested in |000>, |010>, |100> and |110> since these make up the computational basis.
-    if N == 4:
-        eigIndices = [0, 1, 2, 5]
-    elif N == 3:
-        eigIndices = [0, 1, 2, 5]
-    else:
-        eigIndices = [0, 1, 2, 4]
+    eigIndices = getIndices(N)
 
     # Define a list r of eigenstates in the eigenbasis.
     r = []

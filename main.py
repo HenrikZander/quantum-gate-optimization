@@ -59,9 +59,13 @@ x_0509_iSWAP_1_3lvl = [4.67882816e-01, 4.10434975e-02, 3.57317326e+00, 4.4533379
 x_0508_CZ_1_4lvl = [-3.81665839e-01,  5.24394496e-02,  3.96158842e+00,  2.93721722e+01, 1.57298060e+02] # Väldigt hög fidelitet                                # F = [(0.9980325063437839+0j), (0.9998233507400702+0j), (0.9995032108558896+0j), (0.9970728189390012+0j)]
 x_0509_CZ_1_4lvl = [4.20660096e-01, 6.85315342e-02, 4.86571561e-02, 3.30879395e+01, 9.29363646e+01] # Ännu högre fidelitet och mer stabil efteråt.             # F = [(0.9997256108907016+0j), (0.9999223226253042+0j), (0.9990775163025432+0j), (0.9971938931736171+0j)]
 
-# Solution to use in simulations: 
+# New solution with a correct identification of the eigenstates:
+x_0522_iSWAP_1_3lvl = [-0.21598281,  0.18286676,  2.49402702, 98.72330723]
 
-xUsed = x_0501_iSWAP_3lvl
+x_0522_CZ_1_4lvl = [-3.42740346e-01,  5.14288612e-02,  2.97036730e+00,  1.13806249e+02]
+
+# Solution to use in simulations: 
+xUsed = x_0522_CZ_1_4lvl
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -72,10 +76,10 @@ def main():
 
     # for index in range(64):
     #     findEigenIndex(xUsed, eigenStateIndex=index, N=4, printResult=True)
-    optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=100, runDE=True)
-    optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
-    # simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4, highestProjectionIndex=5)
-    # plotFidelity(xUsed, wantiSWAP=True, wantCZ=False)
+    # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=100, runDE=True)
+    # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
+    simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=4, highestProjectionIndex=12)
+    plotFidelity(xUsed, wantiSWAP=False, wantCZ=True)
     # deltaPulsePlot()
     # testPlotStates()
 

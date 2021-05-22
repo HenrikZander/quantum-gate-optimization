@@ -265,7 +265,7 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     hamiltonianBareBasis = getHamiltonian(x0,N=N,getBBHamiltonianComps=True)
 
     # Calculate the tunable bus frequency when only the DC part of the flux is active.
-    omegaTBDC = coeffomegaTB(x0[3],x0[0])
+    omegaTBDC = coeffomegaTB(omegas[2],x0[0])
 
     # Calculate eigenstates and eigenenergies of the hamiltonian in the bare basis when the flux only has it's DC part.
     eigenStatesAndEnergies = getThetaEigenstates(x0, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
@@ -285,7 +285,7 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     initialState = Qobj(basis(D,initialStateIndex),dims=[[N,N,N],[1,1,1]])
 
     # Time evolve the initial state.
-    result = sesolve(hamiltonian, initialState, timeStamps, [], options=options, args={'theta': x0[0], 'delta': x0[1], 'omegaphi': x0[2], 'omegatb0': x0[3], 'operationTime': x0[4], 'omegaTBTh': omegaTBDC})
+    result = sesolve(hamiltonian, initialState, timeStamps, [], options=options, args={'theta': x0[0], 'delta': x0[1], 'omegaphi': x0[2], 'omegatb0': omegas[2], 'operationTime': x0[3], 'omegaTBTh': omegaTBDC})
     states = result.states
 
     # Transform into the rotating frame.
@@ -393,7 +393,7 @@ def findEigenIndex(x0, eigenStateIndex=0, N=4, printResult=False):
     hamiltonianBareBasis = getHamiltonian(x0,N=N,getBBHamiltonianComps=True)
 
     # Calculate the tunable bus frequency when Phi=0.
-    omegaTBDC = coeffomegaTB(x0[3],0)
+    omegaTBDC = coeffomegaTB(omegas[2],0)
 
     # Calculate eigenstates and eigenenergies of the hamiltonian in the bare basis when the flux is zero.
     eigenStatesAndEnergies = getThetaEigenstates(x0, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
