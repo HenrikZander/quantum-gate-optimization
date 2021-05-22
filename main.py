@@ -73,6 +73,7 @@ def main():
     # for index in range(64):
     #     findEigenIndex(xUsed, eigenStateIndex=index, N=4, printResult=True)
     optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=100, runDE=True)
+    optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4, highestProjectionIndex=5)
     # plotFidelity(xUsed, wantiSWAP=True, wantCZ=False)
     # deltaPulsePlot()
