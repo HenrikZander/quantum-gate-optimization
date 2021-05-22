@@ -15,7 +15,7 @@
 
 # Date created: 29 April 2021
 
-# Last modified: 2 May 2021
+# Last modified: 22 May 2021
 
 # Copyright 2021, Henrik Zander and Emil Ingelsten, All rights reserved.
 
@@ -35,7 +35,7 @@ def getParameterBounds(maxAllowedGateTime=240):
     This function gets the bounds for the different
     parameters that the optimizer can change in the
     simulation. The function assumes the associated parameters
-    to have the shape: x = [Theta, delta, omegaPhi, omegaTB0, operationTime].
+    to have the shape: x = [Theta, delta, omegaPhi, operationTime].
     ---------------------------------------------------------
     INPUT:
             maxAllowedGateTime (int) {Optional}: The maximum gate time that will be allowed as a solution from the optimizer.
@@ -44,7 +44,7 @@ def getParameterBounds(maxAllowedGateTime=240):
             parameterBounds (array(tuples(int))): Array of tuples that each contain the associated upper and lower bounds for that parameter.
     ---------------------------------------------------------
     """
-    return [(-0.5, 0.5), (0, 0.25), (0, 5), (27.5, 47.5), (50, maxAllowedGateTime)]
+    return [(-0.35, 0.35), (0, 0.25), (0, 5), (50, maxAllowedGateTime)]
 
 
 ######################################################################################################################################################################
@@ -208,12 +208,12 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
 
         # Get the hamiltonian in the bare basis, where the time dependent coefficient is constant with a flux phi that is equal to the current theta parameter in x.
         # This hamiltonian is used to calculate the relevant eigenstates.
-        return H0BB + HiBB + coeffomegaTB(x[3], x[0])*H1BB
+        return H0BB + HiBB + coeffomegaTB(omegas[2], x[0])*H1BB
     elif getEigenEnergies:
 
         # Get the hamiltonian in the bare basis, that will be specified as a function so that the hamiltonian can be calculated for a dynamic constant flux phi.
         def hamiltonian(currentPhi):
-            return H0BB + HiBB + coeffomegaTB(x[3], currentPhi)*H1BB
+            return H0BB + HiBB + coeffomegaTB(omegas[2], currentPhi)*H1BB
         return hamiltonian
     else:
 
@@ -377,7 +377,7 @@ def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices
         r.append(Qobj(basis(D, ei), dims=[[N, N, N], [1, 1, 1]]))
 
     # Calculate omegaTB at Phi = Theta
-    omegaTBTh = coeffomegaTB(x[3], x[0])
+    omegaTBTh = coeffomegaTB(omegas[2], x[0])
 
     # Calculate eigenstates and eigenenergies in the bare basis at Phi = Theta
     eigStsBB = getThetaEigenstates(x, HBBComps[0]+HBBComps[1], HBBComps[2], omegaTBTh)
@@ -400,7 +400,7 @@ def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices
     # Initialise a list c of the time-evolved eigenstates
     c = [stateToBeEvolved for stateToBeEvolved in r]
     # Calculate final states and store them in c
-    args = {'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': x[3], 'operationTime': x[4], 'omegaTBTh': omegaTBTh}
+    args = {'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBTh}
     for i in range(len(c)):
         output = sesolve(HEB, c[i], ts, args=args)
         c[i] = output.states

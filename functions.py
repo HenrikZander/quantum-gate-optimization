@@ -15,7 +15,7 @@
 
 # Date created: 27 February 2021
 
-# Last modified: 3 May 2021
+# Last modified: 22 May 2021
 
 # Copyright 2021, Henrik Zander and Emil Ingelsten, All rights reserved.
 
@@ -465,7 +465,7 @@ def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, ma
     """
     The function tries to optimize the choosen gate for the
     choosen parameters, using the optimization algorithms 
-    that the user decide would best fit.
+    that the user decide would best fit the problem.
     ---------------------------------------------------------
     INPUT:
             energyLevels (int) {Optional}: How many energy levels that should be accounted for in the simulations.
@@ -520,10 +520,8 @@ def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, ma
 ######################################################################################################################################################################
 # Scrap functions
 
-
-# Not sure if this one should be kept.
 """
-def simulateEigenEnergies(hamiltonianModule, x, numOfEnergyLevels=4, pointResolution=500):
+def simulateEigenEnergies(x, numOfEnergyLevels=2, pointResolution=500):
     hamiltonian = hamiltonianModule.getHamiltonian(x, getEigenEnergies=True)
     
     eigenEnergies = [[] for _ in range(numOfEnergyLevels)] #[[]]*numOfEnergyLevels
@@ -552,3 +550,5 @@ def simulateEigenEnergies(hamiltonianModule, x, numOfEnergyLevels=4, pointResolu
     ax.legend(labels)
     plt.show()
 """
+
+######################################################################################################################################################################

@@ -15,7 +15,7 @@
 
 # Date created: 27 February 2021
 
-# Last modified: 3 May 2021
+# Last modified: 22 May 2021
 
 # Copyright 2021, Henrik Zander, All rights reserved.
 
@@ -72,8 +72,8 @@ def main():
 
     # for index in range(64):
     #     findEigenIndex(xUsed, eigenStateIndex=index, N=4, printResult=True)
-    # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=150, runDE=True)
-    simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4, highestProjectionIndex=5)
+    optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=100, runDE=True)
+    # simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4, highestProjectionIndex=5)
     # plotFidelity(xUsed, wantiSWAP=True, wantCZ=False)
     # deltaPulsePlot()
     # testPlotStates()
@@ -154,7 +154,7 @@ def testPlotStates():
 
 ######################################################################################################################################################################
 # Code for testing Numba and how it can be used to speed up the code.
-# x = [Theta, delta, omegaPhi, omegaTB0, operationTime]
+# x = [Theta, delta, omegaPhi, operationTime]
 
 
 def testNumbaSpeedup(hamiltonianModule):

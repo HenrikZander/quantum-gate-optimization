@@ -15,7 +15,7 @@
 
 # Date created: 27 February 2021
 
-# Last modified: 29 April 2021
+# Last modified: 22 May 2021
 
 # Copyright 2021, Henrik Zander and Emil Ingelsten, All rights reserved.
 
@@ -35,7 +35,7 @@ PI = np.pi
 # PHI0 = HBAR * PI / Q_e
 
 # These are in Gigarad/s:
-omegas = 2*PI * np.array([4.2 ,3.8, 7.5])
+omegas = 2*PI * np.array([4.2 ,3.8, 7.0])
 gs = 2*PI * np.array([0.05, 0.05])
 alphas = -2*PI * np.array([0.150, 0.150, 0.150])
 omegaPhi = np.abs(omegas[0] - omegas[1])
