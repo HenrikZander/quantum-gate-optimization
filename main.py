@@ -34,7 +34,7 @@ import model
 import time
 
 ######################################################################################################################################################################
-# Interesting solutions in the format x = [Theta, delta, omegaPhi, omegaTB0, operationTime].
+# Interesting solutions in the format x = [Theta, delta, omegaPhi, operationTime].
 
 # Poor solutions:
 
@@ -61,11 +61,15 @@ x_0509_CZ_1_4lvl = [4.20660096e-01, 6.85315342e-02, 4.86571561e-02, 3.30879395e+
 
 # New solution with a correct identification of the eigenstates:
 x_0522_iSWAP_1_3lvl = [-0.21598281,  0.18286676,  2.49402702, 98.72330723]
+x_0523_iSWAP_1_3lvl_crashed = [-4.26842714e-01, 2.92423430e-02, 2.48443602e+00, 9.99094553e+01]
 
 x_0522_CZ_1_4lvl = [-3.42740346e-01,  5.14288612e-02,  2.97036730e+00,  1.13806249e+02]
+x_0523_CZ_1_4lvl = [4.59175954e-01, 5.89394560e-03, 3.51909227e-01, 6.33353067e+01]
+x_0525_CZ_1_4lvl = [-2.53065028e-01,  1.49440908e-01,  2.12682870e+00,  1.75050178e+02]
+x_0525_CZ_2_4lvl = [-3.42944957e-01,  4.54371850e-02,  3.03927755e+00,  1.75860451e+02]
 
 # Solution to use in simulations: 
-xUsed = x_0522_CZ_1_4lvl
+xUsed = x_0525_CZ_2_4lvl
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -76,8 +80,10 @@ def main():
 
     # for index in range(64):
     #     findEigenIndex(xUsed, eigenStateIndex=index, N=4, printResult=True)
-    # optimizeGate(iSWAP=True, energyLevels=3, maxAllowedGateTime=100, runDE=True)
+    # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=240, runDE=True)
+    # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=200, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
+    # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
     simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=4, highestProjectionIndex=12)
     plotFidelity(xUsed, wantiSWAP=False, wantCZ=True)
     # deltaPulsePlot()

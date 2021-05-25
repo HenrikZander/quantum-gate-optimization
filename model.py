@@ -44,7 +44,7 @@ def getParameterBounds(maxAllowedGateTime=240):
             parameterBounds (array(tuples(int))): Array of tuples that each contain the associated upper and lower bounds for that parameter.
     ---------------------------------------------------------
     """
-    return [(0.42, 0.5), (0, 0.25), (0, 5), (50, maxAllowedGateTime)]
+    return [(-0.35, 0.35), (0, 0.25), (0, 8), (50, maxAllowedGateTime)]
 
 
 ######################################################################################################################################################################
@@ -269,7 +269,7 @@ def getIndices(N):
     if N == 4:
         eigIndices = [0, 1, 2, 5]
     elif N == 3:
-        eigIndices = [0, 2, 3, 7]
+        eigIndices = [0, 1, 2, 5]
     else:
         eigIndices = [0, 1, 2, 4]
     return eigIndices
