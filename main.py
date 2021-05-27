@@ -52,7 +52,7 @@ import time
 x_0425_1_iSWAP = [0.241082420, 0.108883457, 2.50702612, 39.0692027, 218.127752]                                                                                # F = [(0.9987825701889115+0j), (0.9987615809690565+0j), (0.9987404349878605+0j), (0.9987187305959936+0j)]
 x_0501_iSWAP_3lvl = [2.87022047e-01, 1.07442615e-01, 2.50566092e+00, 4.51975847e+01, 1.72672744e+02]                                                           # F = [(0.9970235907731843+0j), (0.9969987243890179+0j), (0.996973740723554+0j), (0.9969486009884246+0j)]
 x_0504_iSWAP_1_3lvl = [4.56199639e-01, 3.21813167e-02, 3.68027336e+00, 4.63027865e+01, 5.16555865e+01] # Väldigt hög fidelitet och väldigt snabb.              # F = [(0.9996386695754572+0j), (0.998520052448225+0j), (0.9958511334297339+0j), (0.9916456385963169+0j)]
-x_0502_iSWAP_2_3lvl = [-3.23785448e-01,  3.74318501e-02,  2.45144003e+00,  4.02247024e+01, 9.51244239e+01] # Fidelitet stiger efter att griden stängts av.     # F = [(0.9945143458523513+0j), (0.9946846702621196+0j), (0.9948477877462383+0j), (0.9950036555493578+0j)]
+x_0502_iSWAP_2_3lvl = [-3.23785448e-01,  3.74318501e-02,  2.45144003e+00, 9.51244239e+01] # ometaTB0 = 4.02247024e+01 # Fidelitet stiger efter att griden stängts av.     # F = [(0.9945143458523513+0j), (0.9946846702621196+0j), (0.9948477877462383+0j), (0.9950036555493578+0j)]
 x_0508_iSWAP_1_3lvl = [-3.77602967e-01,  7.79255423e-02,  3.55268857e+00,  2.83153193e+01, 9.99260963e+01] # Hög fidelitet okej operationstid.                 # F = [(0.9996315297932361+0j), (0.9995749397182396+0j), (0.9977996490730219+0j), (0.9943159415431349+0j)]
 x_0509_iSWAP_1_3lvl = [4.67882816e-01, 4.10434975e-02, 3.57317326e+00, 4.45333793e+01, 6.83961701e+01]                                                         # F = [(0.9963800344710967+0j), (0.9948909833881396+0j), (0.9930313677770233+0j), (0.9908035658030836+0j)]
 
@@ -67,9 +67,11 @@ x_0522_CZ_1_4lvl = [-3.42740346e-01,  5.14288612e-02,  2.97036730e+00,  1.138062
 x_0523_CZ_1_4lvl = [4.59175954e-01, 5.89394560e-03, 3.51909227e-01, 6.33353067e+01]
 x_0525_CZ_1_4lvl = [-2.53065028e-01,  1.49440908e-01,  2.12682870e+00,  1.75050178e+02]
 x_0525_CZ_2_4lvl = [-3.42944957e-01,  4.54371850e-02,  3.03927755e+00,  1.75860451e+02]
+x_0525_CZ_3_4lvl = [-3.33260202e-01,  9.12536869e-02,  3.03332840e+00,  1.53983390e+02]
+x_0525_CZ_4_4lvl = [3.31034106e-01, 7.56628827e-02, 2.03924480e+00, 1.16525277e+02]
 
 # Solution to use in simulations: 
-xUsed = x_0525_CZ_2_4lvl
+xUsed = x_0502_iSWAP_2_3lvl
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -84,8 +86,8 @@ def main():
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=200, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
-    simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=4, highestProjectionIndex=12)
-    plotFidelity(xUsed, wantiSWAP=False, wantCZ=True)
+    # simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4, highestProjectionIndex=5)
+    plotFidelity(xUsed, wantiSWAP=True, wantCZ=False)
     # deltaPulsePlot()
     # testPlotStates()
 
