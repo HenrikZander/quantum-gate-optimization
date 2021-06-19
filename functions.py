@@ -383,6 +383,33 @@ def deltaPulsePlot():
     plt.show()
 
 
+def indexToString(indexTuple):
+    return f'|{indexTuple[0]}{indexTuple[1]}{indexTuple[2]}>'
+
+
+def plotEigenenergies(x, N=3, simPoints=200):
+    energyOfEigenstate = {}
+
+    HBBComps = getHamiltonian(x, N=N, getBBHamiltonianComps=True)
+    thetas = np.linspace(0, 0.5, simPoints)
+    for i, theta in enumerate(thetas): 
+        omegaTBTh = coeffomegaTB(omegas[2], theta)
+        eigStsBB = getThetaEigenstates(x, HBBComps[0]+HBBComps[1], HBBComps[2], omegaTBTh)
+        order = eigenstateOrder(eigStsBB[0], eigStsBB[1], N)
+        for entry in order:
+            eigenstateID = indexToString(entry[1])
+            energies, magneticFlux = energyOfEigenstate.get(eigenstateID,[[],[]])
+            energies.append(eigStsBB[0][entry[2]])
+            magneticFlux.append(theta)
+            energyOfEigenstate[eigenstateID] = [energies, magneticFlux]
+
+        statusBar((i+1)*100/simPoints)
+    ############################
+    #Plot something here!
+    ############################
+
+
+"""
 def findEigenIndex(x0, eigenStateIndex=0, N=4, printResult=False):
 
     # Get eigenindices and dimension.
@@ -416,7 +443,7 @@ def findEigenIndex(x0, eigenStateIndex=0, N=4, printResult=False):
         print(f'The eigenstate with eigen index {eigenStateIndex} is the |{result[1][0]}{result[1][1]}{result[1][2]}> state. The norm difference is {result[0]}.')
 
     return result
-
+"""
 
 ######################################################################################################################################################################
 # Cost function definitions

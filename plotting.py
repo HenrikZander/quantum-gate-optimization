@@ -30,6 +30,7 @@ from datetime import datetime
 ######################################################################################################################################################################
 # Functions for saving optimization results to a .txt file.
 
+
 def saveAllFinalResults(results, algorithm, runtime, fileName="result.txt"):
     resultFile = open(fileName, "a")
     todaysDate = datetime.now()
@@ -176,6 +177,32 @@ def plotVectors(x,y):
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     plt.show()
+
+
+######################################################################################################################################################################
+#Functions for updating the progress of a calculation.
+
+
+def statusBar(amountDoneProcent):
+    bar = [
+        "|          |",
+        "|\u2588         |",
+        "|\u2588\u2588        |",
+        "|\u2588\u2588\u2588       |",
+        "|\u2588\u2588\u2588\u2588      |",
+        "|\u2588\u2588\u2588\u2588\u2588     |",
+        "|\u2588\u2588\u2588\u2588\u2588\u2588    |",
+        "|\u2588\u2588\u2588\u2588\u2588\u2588\u2588   |",
+        "|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588  |",
+        "|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 |",
+        "|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588|"
+    ]
+
+    print("Progress:", end=" ")
+    print(bar[int(amountDoneProcent/10)], end=" ")
+    print(f'{amountDoneProcent}%', end="\r")
+    if amountDoneProcent == 100:
+        print("\nDone!")
 
 
 ######################################################################################################################################################################

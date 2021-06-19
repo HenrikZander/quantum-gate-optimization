@@ -275,6 +275,25 @@ def getIndices(N):
     return eigIndices
 
 
+def eigenstateOrder(eigenvalues, eigenstates, N):
+    dimension = N**3
+    result = []
+    assignedEigenstates = set()
+    for q1 in range(N):
+        for q2 in range(N):
+            for qTB in range(N):
+                maxOverlap = (0, 0, 0)
+                for eigenstateIndex in range(len(eigenstates)):
+                    currentOverlap = Qobj(tensor(basis(N,q1),basis(N,q2),basis(N,qTB)),dims=[[N,N,N],[1,1,1]]).overlap(eigenstates[eigenstateIndex])
+                    if currentOverlap.real > maxOverlap[0].real:
+                        maxOverlap = (currentOverlap, (q1, q2, qTB), eigenstateIndex)
+
+                if (not {maxOverlap[2]}.issubset(assignedEigenstates)) and (maxOverlap[0].real > 0.95):
+                    assignedEigenstates.add(maxOverlap[2])
+                    result.append(maxOverlap)
+    return result
+
+
 def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wantI):
     F = []
     fidelityTimes = []

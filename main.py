@@ -71,7 +71,7 @@ x_0525_CZ_3_4lvl = [-3.33260202e-01,  9.12536869e-02,  3.03332840e+00,  1.539833
 x_0525_CZ_4_4lvl = [3.31034106e-01, 7.56628827e-02, 2.03924480e+00, 1.16525277e+02]
 
 # Solution to use in simulations: 
-xUsed = x_0502_iSWAP_2_3lvl
+xUsed = [0,  3.74318501e-02,  2.45144003e+00, 9.51244239e+01]
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -87,15 +87,23 @@ def main():
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
     # simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4, highestProjectionIndex=5)
-    plotFidelity(xUsed, wantiSWAP=True, wantCZ=False)
+    # plotFidelity(xUsed, wantiSWAP=True, wantCZ=False)
     # deltaPulsePlot()
     # testPlotStates()
+    testEigenstateOrder()
 
     print(f'Total running time: {time.time() - start} seconds.')
 
 
 ######################################################################################################################################################################
 # Functions used in testing.
+
+def testEigenstateOrder(N=3):
+    plotEigenenergies(xUsed, N=3)
+    # HBBComps = model.getHamiltonian(xUsed, N=N, getBBHamiltonianComps=True)
+    # omegaTBTh = model.coeffomegaTB(omegas[2], xUsed[0])
+    # eigStsBB = model.getThetaEigenstates(xUsed, HBBComps[0]+HBBComps[1], HBBComps[2], omegaTBTh)
+    # print(model.eigenstateOrder(eigStsBB[0], eigStsBB[1], N))
 
 
 def testSpeedOfModifiedGateFidelity():
@@ -109,7 +117,6 @@ def testSpeedOfModifiedGateFidelity():
         temp = model.getGateFidelity(x, N=4, wantiSWAP=True)
     print(f'Total running time for UNMODIFIED gate fidelity: {time.time() - start} seconds.')
     print(f'F_avg = {temp}.\n')
-    
     
     # Modified gate fidelity
     start = time.time()
