@@ -395,7 +395,7 @@ def saveEnergyAndFlux(itemList, state, flux, energy):
             break
 
 
-def plotEigenenergies(x, N=3, simPoints=500, numOfEnergyLevels=None):
+def plotEigenenergies(x, N=4, simPoints=1000, numOfEnergyLevels=None):
     if numOfEnergyLevels is None:
         numOfEnergyLevels = N**3
     
@@ -409,7 +409,7 @@ def plotEigenenergies(x, N=3, simPoints=500, numOfEnergyLevels=None):
                 i = i + 1
 
     HBareBasisComponents = getHamiltonian(x, N=N, getBBHamiltonianComps=True)
-    thetas = np.linspace(0, 0.5, simPoints)
+    thetas = np.linspace(-0.5, 0.5, simPoints)
     
     for i, theta in enumerate(thetas):
         omegaTBTh = coeffomegaTB(omegas[2], theta)
@@ -427,24 +427,26 @@ def plotEigenenergies(x, N=3, simPoints=500, numOfEnergyLevels=None):
     ############################
     #Plot energies!
     print("Plotting!")
-
+    linestyle = [':', '--', '-.']
     labels = []
     plt.figure(figsize=(8,7))
 
-    for item in energyOfEigenstate:
+    for index, item in enumerate(energyOfEigenstate):
         flux, energy, state = item
         if not (len(flux) == 0):
-            plt.plot(flux, energy)
+            plt.plot(flux, energy, ls=linestyle[index % 3])
             labels.append(indexToString(state))
     
     plt.plot([x[0], x[0]], [-200, 200], 'r--')
     plt.xlabel('Magnetic Flux [$\Phi$]', fontsize=16)
     plt.ylabel('Energi', fontsize=16)
-    plt.xlim([0, 0.5])
+    plt.xlim([-0.5, 0.5])
     plt.ylim([-1, 100])
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
-    plt.legend(labels, bbox_to_anchor=(1.1, 1), fontsize=10, loc="upper right")
+    leg = plt.legend(labels, bbox_to_anchor=(1.1, 1), fontsize=10, loc="upper right")
+    for legobj in leg.legendHandles:
+        legobj.set_linewidth(2.0)
     plt.show()
 
     ############################
