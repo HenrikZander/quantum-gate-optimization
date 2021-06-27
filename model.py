@@ -277,7 +277,7 @@ def getIndices(N):
 
 def eigenstateOrder(eigenvalues, eigenstates, N):
     dimension = N**3
-    result = []
+    order = []
     assignedEigenstates = set()
     for q1 in range(N):
         for q2 in range(N):
@@ -288,10 +288,10 @@ def eigenstateOrder(eigenvalues, eigenstates, N):
                     if currentOverlap.real > maxOverlap[0].real:
                         maxOverlap = (currentOverlap, (q1, q2, qTB), eigenstateIndex)
 
-                if (not {maxOverlap[2]}.issubset(assignedEigenstates)) and (maxOverlap[0].real > 0.95):
-                    assignedEigenstates.add(maxOverlap[2])
-                    result.append(maxOverlap)
-    return result
+                if (maxOverlap[0].real > 0.95): # (not {maxOverlap[2]}.issubset(assignedEigenstates)) and
+                    # assignedEigenstates.add(maxOverlap[2])
+                    order.append(maxOverlap)
+    return order
 
 
 def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wantI):

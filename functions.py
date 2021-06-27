@@ -387,25 +387,66 @@ def indexToString(indexTuple):
     return f'|{indexTuple[0]}{indexTuple[1]}{indexTuple[2]}>'
 
 
-def plotEigenenergies(x, N=3, simPoints=200):
-    energyOfEigenstate = {}
+def saveEnergyAndFlux(itemList, state, flux, energy):
+    for item in itemList:
+        if item[2] == state:
+            item[0].append(flux)
+            item[1].append(energy)
+            break
 
-    HBBComps = getHamiltonian(x, N=N, getBBHamiltonianComps=True)
+
+def plotEigenenergies(x, N=3, simPoints=500, numOfEnergyLevels=None):
+    if numOfEnergyLevels is None:
+        numOfEnergyLevels = N**3
+    
+    energyOfEigenstate = [ [ [],[],(x, x, x) ] for x in range(N**3)]
+
+    i = 0
+    for q1 in range(N):
+        for q2 in range(N):
+            for qTB in range(N):
+                energyOfEigenstate[i][2] = (q1,q2,qTB)
+                i = i + 1
+
+    HBareBasisComponents = getHamiltonian(x, N=N, getBBHamiltonianComps=True)
     thetas = np.linspace(0, 0.5, simPoints)
-    for i, theta in enumerate(thetas): 
+    
+    for i, theta in enumerate(thetas):
         omegaTBTh = coeffomegaTB(omegas[2], theta)
-        eigStsBB = getThetaEigenstates(x, HBBComps[0]+HBBComps[1], HBBComps[2], omegaTBTh)
-        order = eigenstateOrder(eigStsBB[0], eigStsBB[1], N)
+        eigenStatesAndEnergiesBareBasis = getThetaEigenstates(x, HBareBasisComponents[0]+HBareBasisComponents[1], HBareBasisComponents[2], omegaTBTh)
+        order = eigenstateOrder(eigenStatesAndEnergiesBareBasis[0][0:numOfEnergyLevels], eigenStatesAndEnergiesBareBasis[1][0:numOfEnergyLevels], N)
+
         for entry in order:
-            eigenstateID = indexToString(entry[1])
-            energies, magneticFlux = energyOfEigenstate.get(eigenstateID,[[],[]])
-            energies.append(eigStsBB[0][entry[2]])
-            magneticFlux.append(theta)
-            energyOfEigenstate[eigenstateID] = [energies, magneticFlux]
+            _, state, energyIndex = entry
+            energy = eigenStatesAndEnergiesBareBasis[0][energyIndex]
+
+            saveEnergyAndFlux(energyOfEigenstate, state, theta, energy)
 
         statusBar((i+1)*100/simPoints)
+
     ############################
-    #Plot something here!
+    #Plot energies!
+    print("Plotting!")
+
+    labels = []
+    plt.figure(figsize=(8,7))
+
+    for item in energyOfEigenstate:
+        flux, energy, state = item
+        if not (len(flux) == 0):
+            plt.plot(flux, energy)
+            labels.append(indexToString(state))
+    
+    plt.plot([x[0], x[0]], [-200, 200], 'r--')
+    plt.xlabel('Magnetic Flux [$\Phi$]', fontsize=16)
+    plt.ylabel('Energi', fontsize=16)
+    plt.xlim([0, 0.5])
+    plt.ylim([-1, 100])
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.legend(labels, bbox_to_anchor=(1.1, 1), fontsize=10, loc="upper right")
+    plt.show()
+
     ############################
 
 

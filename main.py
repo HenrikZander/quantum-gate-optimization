@@ -71,7 +71,7 @@ x_0525_CZ_3_4lvl = [-3.33260202e-01,  9.12536869e-02,  3.03332840e+00,  1.539833
 x_0525_CZ_4_4lvl = [3.31034106e-01, 7.56628827e-02, 2.03924480e+00, 1.16525277e+02]
 
 # Solution to use in simulations: 
-xUsed = [0,  3.74318501e-02,  2.45144003e+00, 9.51244239e+01]
+xUsed = x_0522_CZ_1_4lvl
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -91,6 +91,7 @@ def main():
     # deltaPulsePlot()
     # testPlotStates()
     testEigenstateOrder()
+    # test()
 
     print(f'Total running time: {time.time() - start} seconds.')
 
@@ -98,8 +99,12 @@ def main():
 ######################################################################################################################################################################
 # Functions used in testing.
 
+def test():
+    pass
+
+
 def testEigenstateOrder(N=3):
-    plotEigenenergies(xUsed, N=3)
+    plotEigenenergies(xUsed, numOfEnergyLevels=15)
     # HBBComps = model.getHamiltonian(xUsed, N=N, getBBHamiltonianComps=True)
     # omegaTBTh = model.coeffomegaTB(omegas[2], xUsed[0])
     # eigStsBB = model.getThetaEigenstates(xUsed, HBBComps[0]+HBBComps[1], HBBComps[2], omegaTBTh)
