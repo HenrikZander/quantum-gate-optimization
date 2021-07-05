@@ -35,10 +35,12 @@ PI = np.pi
 # PHI0 = HBAR * PI / Q_e
 
 # These are in Gigarad/s:
-omegas = np.array([2*PI*4.2 ,2*PI*3.8, 2*PI*7.0]) # 4.02247024e+01])
-gs = 2*PI * np.array([0.05, 0.05])
-alphas = -2*PI * np.array([0.150, 0.150, 0.150])
-omegaPhi = np.abs(omegas[0] - omegas[1])
+omegas = np.array([2*PI*4.2 ,2*PI*3.8, 2*PI*7.0]) # 4.02247024e+01]) # omega1 omega2 omegaTB
+gs = 2*PI * np.array([0.05, 0.05]) # g1 g2
+alphas = -2*PI * np.array([0.150, 0.150, 0.150]) # alpha1 alpha2 alphaTB
+omegaPhi_iSWAP = np.abs(omegas[0] - omegas[1])
+omegaPhi_CZ_A = np.abs(omegas[0] + alphas[0] - omegas[1])
+omegaPhi_CZ_B = np.abs(omegas[0] - (omegas[1] + alphas[1]))
 
 
 Theta = -0.1 # DC flux applied to the tunable bus

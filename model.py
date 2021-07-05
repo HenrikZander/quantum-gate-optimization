@@ -21,6 +21,7 @@
 
 ######################################################################################################################################################################
 
+from numpy.core.numeric import False_
 from qutip import *
 import numpy as np
 from variables import *
@@ -29,7 +30,7 @@ from numba import njit
 ######################################################################################################################################################################
 # Parameter function.
 
-def getParameterBounds(maxAllowedGateTime=240):
+def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=False):
     """
     This function gets the bounds for the different
     parameters that the optimizer can change in the
@@ -37,13 +38,43 @@ def getParameterBounds(maxAllowedGateTime=240):
     to have the shape: x = [Theta, delta, omegaPhi, operationTime].
     ---------------------------------------------------------
     INPUT:
-            maxAllowedGateTime (int) {Optional}: The maximum gate time that will be allowed as a solution from the optimizer.
+            maxAllowedGateTime (int) {Optional}: The maximum gate time that
+                will be allowed as a solution from the optimizer.
+            wantTradCZ (boolean) {Optional}: If true, the parameter bounds
+                are constricted so that |Theta| < phi_crossing,
+                omegaPhi > 0.9 * min(omega_11<->20, omega_11<->02) and
+                omegaPhi < 1.1 * max(omega_11<->20, omega_11<->02).
+                Defaults to False.
+            wantTradiSWAP (boolean) {Optional}: If true, the parameter bounds
+                are constricted so that |Theta| < phi_crossing and
+                so that omegaPhi is within 10% of omega_10<->01.
+                Defaults to False.
     ---------------------------------------------------------
     OUTPUT:
-            parameterBounds (array(tuples(int))): Array of tuples that each contain the associated upper and lower bounds for that parameter.
+            parameterBounds (array(tuples(int))): Array of tuples that each
+                contain the associated upper and lower bounds for that parameter.
     ---------------------------------------------------------
     """
-    return [(-0.35, 0.35), (0, 0.25), (0, 8), (50, maxAllowedGateTime)]
+    if (wantTradCZ):
+        phi_crossing = np.arccos((np.maximum(omegas[0], omegas[1])/omegas[2])**2)/np.pi
+
+        if (omegaPhi_CZ_A > omegaPhi_CZ_B):
+            omegaPhiMin = 0.9 * omegaPhi_CZ_B
+            omegaPhiMax = 1.1 * omegaPhi_CZ_A
+        else:
+            omegaPhiMin = 0.9 * omegaPhi_CZ_A
+            omegaPhiMax = 1.1 * omegaPhi_CZ_B
+        
+        return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
+    elif (wantTradiSWAP):
+        phi_crossing = np.arccos((np.maximum(omegas[0], omegas[1])/omegas[2])**2)/np.pi
+
+        omegaPhiMin = 0.9 * omegaPhi_iSWAP
+        omegaPhiMax = 1.1 * omegaPhi_iSWAP
+        
+        return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
+    else:
+        return [(-0.5, 0.5), (0, 0.25), (0, 8), (50, maxAllowedGateTime)]
 
 
 ######################################################################################################################################################################
