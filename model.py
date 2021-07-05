@@ -285,10 +285,10 @@ def eigenstateOrder(eigenvalues, eigenstates, N):
                 maxOverlap = (0, 0, 0)
                 for eigenstateIndex in range(len(eigenstates)):
                     currentOverlap = Qobj(tensor(basis(N,q1),basis(N,q2),basis(N,qTB)),dims=[[N,N,N],[1,1,1]]).overlap(eigenstates[eigenstateIndex])
-                    if currentOverlap.real > maxOverlap[0].real:
+                    if np.abs(currentOverlap) > np.abs(maxOverlap[0]):
                         maxOverlap = (currentOverlap, (q1, q2, qTB), eigenstateIndex)
 
-                if (maxOverlap[0].real > 0.95): # (not {maxOverlap[2]}.issubset(assignedEigenstates)) and
+                if (np.abs(maxOverlap[0]) > 0.95): # (not {maxOverlap[2]}.issubset(assignedEigenstates)) and
                     # assignedEigenstates.add(maxOverlap[2])
                     order.append(maxOverlap)
     return order
