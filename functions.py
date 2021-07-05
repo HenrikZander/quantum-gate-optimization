@@ -34,15 +34,12 @@ from variables import *
 ######################################################################################################################################################################
 # Global variables
 
-
 i = 0
 global maxRuntime
 maxRuntime = 40000
 
-
 ######################################################################################################################################################################
 # Helper function for the callback functions
-
 
 def evaluateResult(x, fun, resultList, N=5):
     """
@@ -64,7 +61,6 @@ def evaluateResult(x, fun, resultList, N=5):
 
 ######################################################################################################################################################################
 # Callback functions
-
 
 def callbackDE(x,convergence=None):
     """
@@ -159,9 +155,7 @@ def callbackSHG(x):
     else: 
         return False
 
-
 ######################################################################################################################################################################
-
 
 def findMinimum(costFunction, bounds, runSHG=True, runDA=True, runDE=True):
     """
@@ -229,10 +223,8 @@ def findMinimum(costFunction, bounds, runSHG=True, runDA=True, runDE=True):
     saveAllFinalResults(result, algorithmsUsed, runtime)
     return result
 
-
 ######################################################################################################################################################################
 # Simulation functions
-
 
 def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, highestProjectionIndex=8, N=4):
     """
@@ -396,7 +388,7 @@ def saveEnergyAndFlux(itemList, state, flux, energy):
             break
 
 
-def plotEigenenergies(x, N=4, simPoints=500, numOfEnergyLevels=None):
+def plotEigenenergies(x, N=3, simPoints=200, numOfEnergyLevels=None):
     if numOfEnergyLevels is None:
         numOfEnergyLevels = N**3
     
@@ -449,9 +441,7 @@ def plotEigenenergies(x, N=4, simPoints=500, numOfEnergyLevels=None):
     for legobj in leg.legendHandles:
         legobj.set_linewidth(2.0)
     plt.show()
-
     ############################
-
 
 
 def findEigenIndex(x0, eigenStateIndex=0, N=4, printResult=False):
