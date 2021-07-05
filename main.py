@@ -90,11 +90,11 @@ def main():
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=200, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
-    simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=4, highestProjectionIndex=12)
+    # simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=4, highestProjectionIndex=12)
     # plotFidelity(xUsed, wantiSWAP=True, wantCZ=False)
     # deltaPulsePlot()
     # testPlotStates()
-    # testEigenstateOrder()
+    testEigenstateOrder()
     # test()
 
     print(f'Total running time: {time.time() - start} seconds.')

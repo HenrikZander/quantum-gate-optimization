@@ -29,7 +29,6 @@ from numba import njit
 ######################################################################################################################################################################
 # Parameter function.
 
-
 def getParameterBounds(maxAllowedGateTime=240):
     """
     This function gets the bounds for the different
