@@ -318,17 +318,18 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     # Plot the expectation values.
     plt.figure(figsize=(8,7))
     #labels = ["|000>", "|010>", "|100>", "|001>", "|020>", "|110>", "|011>", "|200>", "|101>"]
-    labels = []
+    # labels = []
+    labels = ['|000>','|010>','|100>','|001>','|020>','|110>']
     
     for index, values in enumerate(expectationValues):
         plt.plot(timeStamps, values)
-        eigenOrder = (findEigenIndex(x0, eigenStateIndex=index))[1]
-        labels.append(f'|{eigenOrder[0]}{eigenOrder[1]}{eigenOrder[2]}>')
+        # eigenOrder = (findEigenIndex(x0, eigenStateIndex=index))[1]
+        # labels.append(f'|{eigenOrder[0]}{eigenOrder[1]}{eigenOrder[2]}>')
     
     plt.grid()
     plt.ylim([0, 1.1])
     plt.xlim([0, timeStamps[-1]])
-    leg = plt.legend(labels, fontsize=19, loc='center left')
+    leg = plt.legend(labels, fontsize=19, loc='center right')
     plt.xlabel("Tid efter grindstart [ns]", fontsize=26)
     plt.ylabel("Population", fontsize=26)
     plt.xticks(fontsize=16)
@@ -350,7 +351,7 @@ def plotFidelity(x, wantiSWAP=False, wantCZ=False):
     plt.grid()
     plt.ylim([0.99, 1])
     plt.xlim([times[0], times[-1]])
-    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=19, loc="upper right")
+    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=19, loc="lower right")
     #plt.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
     plt.xlabel("Tid efter grindstart [ns]", fontsize=26)
     plt.ylabel("Fidelitet", fontsize=26)
@@ -395,7 +396,7 @@ def saveEnergyAndFlux(itemList, state, flux, energy):
             break
 
 
-def plotEigenenergies(x, N=4, simPoints=1000, numOfEnergyLevels=None):
+def plotEigenenergies(x, N=4, simPoints=500, numOfEnergyLevels=None):
     if numOfEnergyLevels is None:
         numOfEnergyLevels = N**3
     
@@ -409,7 +410,7 @@ def plotEigenenergies(x, N=4, simPoints=1000, numOfEnergyLevels=None):
                 i = i + 1
 
     HBareBasisComponents = getHamiltonian(x, N=N, getBBHamiltonianComps=True)
-    thetas = np.linspace(-0.5, 0.5, simPoints)
+    thetas = np.linspace(-0.5, 0, simPoints)
     
     for i, theta in enumerate(thetas):
         omegaTBTh = coeffomegaTB(omegas[2], theta)
@@ -440,7 +441,7 @@ def plotEigenenergies(x, N=4, simPoints=1000, numOfEnergyLevels=None):
     plt.plot([x[0], x[0]], [-200, 200], 'r--')
     plt.xlabel('Magnetic Flux [$\Phi$]', fontsize=16)
     plt.ylabel('Energi', fontsize=16)
-    plt.xlim([-0.5, 0.5])
+    plt.xlim([-0.5, 0])
     plt.ylim([-1, 100])
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
@@ -452,7 +453,7 @@ def plotEigenenergies(x, N=4, simPoints=1000, numOfEnergyLevels=None):
     ############################
 
 
-"""
+
 def findEigenIndex(x0, eigenStateIndex=0, N=4, printResult=False):
 
     # Get eigenindices and dimension.
@@ -486,7 +487,7 @@ def findEigenIndex(x0, eigenStateIndex=0, N=4, printResult=False):
         print(f'The eigenstate with eigen index {eigenStateIndex} is the |{result[1][0]}{result[1][1]}{result[1][2]}> state. The norm difference is {result[0]}.')
 
     return result
-"""
+
 
 ######################################################################################################################################################################
 # Cost function definitions
