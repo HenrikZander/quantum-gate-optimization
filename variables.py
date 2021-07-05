@@ -35,9 +35,24 @@ PI = np.pi
 # PHI0 = HBAR * PI / Q_e
 
 # These are in Gigarad/s:
-omegas = np.array([2*PI*4.2 ,2*PI*3.8, 2*PI*7.0]) # 4.02247024e+01]) # omega1 omega2 omegaTB
+'''
+# Our original testing values
+omegas = np.array([2*PI*4.2, 2*PI*3.8, 2*PI*7.0]) # 4.02247024e+01]) # omega1 omega2 omegaTB0
 gs = 2*PI * np.array([0.05, 0.05]) # g1 g2
 alphas = -2*PI * np.array([0.150, 0.150, 0.150]) # alpha1 alpha2 alphaTB
+'''
+# Qubits 0 and 1 from 5-qubit design, April 2021
+omegas = 2*PI * np.array([4.7381, 4.1762, 8.960]) # omega1 omega2 omegaTB0
+gs = 2*PI * np.array([0.0545, 0.05552]) # g1 g2
+alphas = -2*PI * np.array([0.221, 0.230, 0.08]) # alpha1 alpha2 alphaTB
+'''
+# Qubits 0 and 3 from 5-qubit design, April 2021
+omegas = 2*PI * np.array([4.7381, 4.2936, 8.692]) # omega1 omega2 omegaTB0
+gs = 2*PI * np.array([0.055, 0.05574]) # g1 g2
+alphas = -2*PI * np.array([0.221, 0.226, 0.08]) # alpha1 alpha2 alphaTB
+'''
+
+
 omegaPhi_iSWAP = np.abs(omegas[0] - omegas[1])
 omegaPhi_CZ_A = np.abs(omegas[0] + alphas[0] - omegas[1])
 omegaPhi_CZ_B = np.abs(omegas[0] - (omegas[1] + alphas[1]))
