@@ -274,10 +274,10 @@ def getIndices(N):
     return eigIndices
 
 
-def eigenstateOrder(eigenvalues, eigenstates, N):
-    dimension = N**3
+def eigenstateOrder(eigenstates, N):
+    # dimension = N**3
+    # assignedEigenstates = set()
     order = []
-    assignedEigenstates = set()
     for q1 in range(N):
         for q2 in range(N):
             for qTB in range(N):
@@ -402,7 +402,7 @@ def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices
 
     # Simulate evolution of eigenstates:
 
-    # Determine the time stamps for which the evolution will be solved at.
+    # Determine the time stamps for which the evolution will be solved.
     opTime = x[-1]
     ts1, stepSize = np.linspace(0, opTime, 3*int(opTime), retstep=True)
     ts2 = np.linspace(opTime+stepSize, opTime+75*stepSize, 75)

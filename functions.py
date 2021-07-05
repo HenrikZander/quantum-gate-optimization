@@ -407,7 +407,7 @@ def plotEigenenergies(x, N=3, simPoints=200, numOfEnergyLevels=None):
     for i, theta in enumerate(thetas):
         omegaTBTh = coeffomegaTB(omegas[2], theta)
         eigenStatesAndEnergiesBareBasis = getThetaEigenstates(x, HBareBasisComponents[0]+HBareBasisComponents[1], HBareBasisComponents[2], omegaTBTh)
-        order = eigenstateOrder(eigenStatesAndEnergiesBareBasis[0][0:numOfEnergyLevels], eigenStatesAndEnergiesBareBasis[1][0:numOfEnergyLevels], N)
+        order = eigenstateOrder(eigenStatesAndEnergiesBareBasis[1][0:numOfEnergyLevels], N) # eigenStatesAndEnergiesBareBasis[0][0:numOfEnergyLevels],
 
         for entry in order:
             _, state, energyIndex = entry
