@@ -298,7 +298,7 @@ def getIndices(N, eigenstates):
         return eigenIndices
 
 
-def eigenstateOrder(eigenstates, N): # eigenvalues,
+def eigenstateOrder(eigenstates, N):
     # dimension = N**3
     # assignedEigenstates = set()
     order = []
@@ -414,7 +414,7 @@ def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices
     # We are especially interested in |000>, |010>, |100> and |110> since these make up the computational basis.
     # These states correspond (most closely) to the eigenstates with the following eigenindices:
     eigIndices = getIndices(N, eigStsBB[1])
-    # print(eigIndices)
+    print(eigIndices)
     if (eigIndices == None):
         return 0.2
 
