@@ -522,7 +522,7 @@ def costCZ4(x):
 # Optimize gate function
 
 
-def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, maxAllowedGateTime=240, runSHG=False, runDA=False, runDE=False, wantTradCZ=False, wantTradiSWAP=False):
+def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, maxAllowedGateTime=240, runSHG=False, runDA=False, runDE=False, wantTradGate=False):
     """
     The function tries to optimize the choosen gate for the
     choosen parameters, using the optimization algorithms 
@@ -535,8 +535,7 @@ def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, ma
             runSHG (boolean) {Optional}: If True the function will use the Simplicial Homology Global algorithm to optimize the gate.
             runDA (boolean) {Optional}: If True the function will use the Dual Anneling algorithm to optimize the gate.
             runDE (boolean) {Optional}: If True the function will use the Differential Evolution algorithm to optimize the gate.
-            wantTradCZ (boolean) {Optional}: If True the function will restrict the parameter space to focus on ''traditional'', well-understood CZ gates.
-            wantTradiSWAP (boolean) {Optional}: If True the function will restrict the parameter space to focus on ''traditional'', well-understood iSWAP gates.
+            wantTradGate (boolean) {Optional}: If True the function will restrict the parameter space to focus on ''traditional'', well-understood iSWAP/CZ gates.
 
         Set only ONE of these to True!:
             iSWAP (boolean) {Optional}: Optimize the iSWAP quantum gate.
@@ -552,6 +551,8 @@ def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, ma
     maxRuntime = timeoutAlgorithm
 
     # Get the parameter bounds.
+    wantTradCZ = (wantTradGate and CZ)
+    wantTradiSWAP = (wantTradGate and iSWAP)
     parameterBounds = getParameterBounds(maxAllowedGateTime=maxAllowedGateTime, wantTradCZ=wantTradCZ, wantTradiSWAP=wantTradiSWAP)
     
     # Check the gate specifiers.
