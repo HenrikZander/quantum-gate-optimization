@@ -107,8 +107,8 @@ def test():
     pass
 
 
-def testEigenstateOrder(N=4):
-    plotEigenenergies(xUsed, numOfEnergyLevels=None)
+def testEigenstateOrder():
+    plotEigenenergies(xUsed, N=3, simPoints=200, numOfEnergyLevels=None)
     # HBBComps = model.getHamiltonian(xUsed, N=N, getBBHamiltonianComps=True)
     # omegaTBTh = model.coeffomegaTB(omegas[2], xUsed[0])
     # eigStsBB = model.getThetaEigenstates(xUsed, HBBComps[0]+HBBComps[1], HBBComps[2], omegaTBTh)
