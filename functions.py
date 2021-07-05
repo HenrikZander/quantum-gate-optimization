@@ -245,9 +245,6 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
             gateFidelity_iSWAP, gateFidelity_CZ (float, float): The gate fidelity for both the iSWAP and CZ gate.
     ---------------------------------------------------------
     """
-
-    # Get eigenindices.
-    eigIndices = getIndices(N)
     
     # Calculate the dimension of the tensor states and set the simulation time.
     D = N**3
@@ -261,6 +258,9 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
 
     # Calculate eigenstates and eigenenergies of the hamiltonian in the bare basis when the flux only has it's DC part.
     eigenStatesAndEnergies = getThetaEigenstates(x0, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
+
+    # Get eigenindices.
+    eigIndices = getIndices(N, eigenStatesAndEnergies[1])
 
     # Calculate the unitary for transforming the hamiltonian to the eigen basis.
     eigenBasisUnitary = getEBUnitary(x0, eigenStatesAndEnergies, N, D)
@@ -447,7 +447,7 @@ def plotEigenenergies(x, N=3, simPoints=200, numOfEnergyLevels=None):
 def findEigenIndex(x0, eigenStateIndex=0, N=4, printResult=False):
 
     # Get eigenindices and dimension.
-    eigIndices = getIndices(N)
+    eigIndices = getIndicesOld(N)
     D = N**3
 
     # Get the bare basis hamiltonian.

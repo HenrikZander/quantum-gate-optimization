@@ -264,7 +264,7 @@ def getRFUnitary(Hrot, t):
     return U_rf
 
 
-def getIndices(N):
+def getIndicesOld(N):
     if N == 4:
         eigIndices = [0, 1, 2, 5]
     elif N == 3:
@@ -273,8 +273,32 @@ def getIndices(N):
         eigIndices = [0, 1, 2, 4]
     return eigIndices
 
+def getIndices(N, eigenstates):
+    eigenIndices = []
+    for q1 in range(2):
+        for q2 in range(2):
+            qTB = 0
+            eigIndMaxOverlap = 0
+            maxOverlap = 0
+            for eigenstateIndex in range(len(eigenstates)):
+                currentOverlap = Qobj(tensor(basis(N,q1),basis(N,q2),basis(N,qTB)),dims=[[N,N,N],[1,1,1]]).overlap(eigenstates[eigenstateIndex])
+                if np.abs(currentOverlap) > np.abs(maxOverlap):
+                    eigIndMaxOverlap = eigenstateIndex
+                    maxOverlap = currentOverlap
 
-def eigenstateOrder(eigenstates, N):
+            if (np.abs(maxOverlap) > 0.95):
+                eigenIndices.append(eigIndMaxOverlap)
+            else:
+                print('Bad Theta: At least one state in the computational subspace had a maximum eigenstate overlap below 0.95')
+                return None
+    if len(eigenIndices) > len(set(eigenIndices)):
+        print('Bad Theta: At least two states in the computational subspace got the same eigenindex')
+        return None
+    else:
+        return eigenIndices
+
+
+def eigenstateOrder(eigenstates, N): # eigenvalues,
     # dimension = N**3
     # assignedEigenstates = set()
     order = []
@@ -381,19 +405,23 @@ def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices
     D = N**3
     # From here on, unless otherwise stated, every state is considered a tensor state.
 
-    # We are especially interested in |000>, |010>, |100> and |110> since these make up the computational basis.
-    eigIndices = getIndices(N)
-
-    # Define a list r of eigenstates in the eigenbasis.
-    r = []
-    for ei in eigIndices:
-        r.append(Qobj(basis(D, ei), dims=[[N, N, N], [1, 1, 1]]))
-
     # Calculate omegaTB at Phi = Theta
     omegaTBTh = coeffomegaTB(omegas[2], x[0])
 
     # Calculate eigenstates and eigenenergies in the bare basis at Phi = Theta
     eigStsBB = getThetaEigenstates(x, HBBComps[0]+HBBComps[1], HBBComps[2], omegaTBTh)
+
+    # We are especially interested in |000>, |010>, |100> and |110> since these make up the computational basis.
+    # These states correspond (most closely) to the eigenstates with the following eigenindices:
+    eigIndices = getIndices(N, eigStsBB[1])
+    # print(eigIndices)
+    if (eigIndices == None):
+        return 0.2
+
+    # Define a list r of eigenstates in the eigenbasis.
+    r = []
+    for ei in eigIndices:
+        r.append(Qobj(basis(D, ei), dims=[[N, N, N], [1, 1, 1]]))
 
     # Get unitary for transformation into eigenbasis
     U_e = getEBUnitary(x, eigStsBB, N, D)
