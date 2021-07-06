@@ -56,8 +56,6 @@ def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=F
     ---------------------------------------------------------
     """
     if (wantTradCZ):
-        phi_crossing = np.arccos((np.maximum(omegas[0], omegas[1])/omegas[2])**2)/np.pi
-
         if (omegaPhi_CZ_A > omegaPhi_CZ_B):
             omegaPhiMin = 0.9 * omegaPhi_CZ_B
             omegaPhiMax = 1.1 * omegaPhi_CZ_A
@@ -67,7 +65,6 @@ def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=F
         
         return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
     elif (wantTradiSWAP):
-        phi_crossing = np.arccos((np.maximum(omegas[0], omegas[1])/omegas[2])**2)/np.pi
 
         omegaPhiMin = 0.9 * omegaPhi_iSWAP
         omegaPhiMax = 1.1 * omegaPhi_iSWAP
@@ -317,10 +314,10 @@ def getIndices(N, eigenstates):
                     eigIndMaxOverlap = eigenstateIndex
                     maxOverlap = currentOverlap
 
-            if (np.abs(maxOverlap) > 0.95):
+            if (np.abs(maxOverlap) > 0.9):
                 eigenIndices.append(eigIndMaxOverlap)
             else:
-                print('Bad Theta: At least one state in the computational subspace had a maximum eigenstate overlap below 0.95')
+                print('Bad Theta: At least one state in the computational subspace had a maximum eigenstate overlap below 0.9')
                 return None
     if len(eigenIndices) > len(set(eigenIndices)):
         print('Bad Theta: At least two states in the computational subspace got the same eigenindex')
@@ -349,7 +346,7 @@ def eigenstateOrder(eigenstates, N):
 
 
 def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wantI):
-    F = []
+    fidelities = []
     fidelityTimes = []
 
     for timeIndex in tIndices:
@@ -403,14 +400,17 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
 
         # Calculate gate fidelity
         dimComputationalSubspace = 4
-        F.append((np.absolute(np.trace(M*U.H))**2 + np.trace(M.H*M))/(dimComputationalSubspace*(dimComputationalSubspace+1)))
+        fidelities.append((np.absolute(np.trace(M*U.H))**2 + np.trace(M.H*M))/(dimComputationalSubspace*(dimComputationalSubspace+1)))
         fidelityTimes.append(ts[timeIndex])
-    return F, fidelityTimes
+
+    #print(fidelities)
+    #print(fidelityTimes)
+    return fidelities, fidelityTimes
 
 ######################################################################################################################################################################
 # Gate fidelity function.
 
-def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices=[-76, -51, -26, -1]):
+def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices=[-76, -61, -23, -1]):
     """
     This function calculates the average gate fidelity for the
     iSWAP and CZ quantum gates given a parameter set x.
@@ -446,18 +446,18 @@ def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices
     # These states correspond (most closely) to the eigenstates with the following eigenindices:
     eigIndices = getIndices(N, eigStsBB[1])
     #print(eigIndices)
-    if (eigIndices == None):
-        return 0.2
+    
+    if (eigIndices is not None):
+        # Define a list r of eigenstates in the eigenbasis.
+        r = []
+        for ei in eigIndices:
+            r.append(Qobj(basis(D, ei), dims=[[N, N, N], [1, 1, 1]]))
 
-    # Define a list r of eigenstates in the eigenbasis.
-    r = []
-    for ei in eigIndices:
-        r.append(Qobj(basis(D, ei), dims=[[N, N, N], [1, 1, 1]]))
+        # Get unitary for transformation into eigenbasis
+        U_e = getEBUnitary(x, eigStsBB, N, D)
 
-    # Get unitary for transformation into eigenbasis
-    U_e = getEBUnitary(x, eigStsBB, N, D)
+        # NB: r and U_e are ordered based on eigenenergies
 
-    # NB: r and U_e are ordered based on eigenenergies
 
     # Simulate evolution of eigenstates:
 
@@ -466,6 +466,18 @@ def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices
     ts1, stepSize = np.linspace(0, opTime, 3*int(opTime), retstep=True)
     ts2 = np.linspace(opTime+stepSize, opTime+75*stepSize, 75)
     ts = np.append(ts1,ts2)
+
+    # If eigenindices couldn't be generated, the function returns fidelity 0.2 at all examined timestamps.
+    if (eigIndices is None):
+        fidelities = []
+        fidelityTimes = []
+        for ti in tIndices:
+            fidelities.append(0.2)
+            fidelityTimes.append(ts[ti])
+        #print(fidelities)
+        #print(fidelityTimes)
+        return fidelities, fidelityTimes
+    
     # Calculate the eigenbasis hamiltonian
     HEB = getHamiltonian(x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinStepHamiltonian=True)
 

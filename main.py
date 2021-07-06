@@ -70,12 +70,15 @@ x_0525_CZ_2_4lvl = [-3.42944957e-01,  4.54371850e-02,  3.03927755e+00,  1.758604
 x_0525_CZ_3_4lvl = [-3.33260202e-01,  9.12536869e-02,  3.03332840e+00,  1.53983390e+02]
 x_0525_CZ_4_4lvl = [3.31034106e-01, 7.56628827e-02, 2.03924480e+00, 1.16525277e+02]
 
-#Presented solutions in the report:
+# Presented solutions in the report:
 x_0502_iSWAP_2_3lvl = [-3.23785448e-01,  3.74318501e-02,  2.45144003e+00, 9.51244239e+01] # ometaTB0 = 4.02247024e+01 # Fidelitet stiger efter att griden stängts av.     # F = [(0.9945143458523513+0j), (0.9946846702621196+0j), (0.9948477877462383+0j), (0.9950036555493578+0j)]
 x_0522_CZ_1_4lvl = [-3.42740346e-01,  5.14288612e-02,  2.97036730e+00,  1.13806249e+02]
 
+# Solutions for qubit pair 01 at Chalmers:
+x_0706_iSWAP_4lvl = [-0.24300583, 0.18855054, 3.52505319, 139.68066173]
+
 # Solution to use in simulations: 
-xUsed = x_0522_CZ_1_4lvl
+xUsed = x_0706_iSWAP_4lvl
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -86,13 +89,13 @@ def main():
 
     # for index in range(64):
     #     findEigenIndex(xUsed, eigenStateIndex=index, N=4, printResult=True)
-    optimizeGate(iSWAP=True, energyLevels=4, maxAllowedGateTime=240, runDE=True, wantTradGate=True)
+    # optimizeGate(iSWAP=True, energyLevels=4, maxAllowedGateTime=140, runDE=True, wantTradGate=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=240, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=200, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
-    # simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=4, highestProjectionIndex=12)
-    # plotFidelity(xUsed, wantiSWAP=False, wantCZ=True)
+    simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=2, N=4, highestProjectionIndex=12)
+    # plotFidelity(xUsed, wantiSWAP=True, wantCZ=False)
     # deltaPulsePlot()
     # testPlotStates()
     # testEigenstateOrder()
