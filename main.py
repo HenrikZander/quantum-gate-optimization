@@ -76,9 +76,10 @@ x_0522_CZ_1_4lvl = [-3.42740346e-01,  5.14288612e-02,  2.97036730e+00,  1.138062
 
 # Solutions for qubit pair 01 at Chalmers:
 x_0706_iSWAP_4lvl = [-0.24300583, 0.18855054, 3.52505319, 139.68066173]
+x_0707_CZ_4lvl = [-3.66144215e-01, 7.76542110e-02, 5.31979461e+00, 1.35483199e+02]
 
 # Solution to use in simulations: 
-xUsed = x_0706_iSWAP_4lvl
+xUsed = x_0707_CZ_4lvl
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -89,13 +90,13 @@ def main():
 
     # for index in range(64):
     #     findEigenIndex(xUsed, eigenStateIndex=index, N=4, printResult=True)
-    # optimizeGate(iSWAP=True, energyLevels=4, maxAllowedGateTime=140, runDE=True, wantTradGate=True)
+    # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True, wantTradGate=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=240, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=200, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
-    simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=2, N=4, highestProjectionIndex=12)
-    # plotFidelity(xUsed, wantiSWAP=True, wantCZ=False)
+    simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=4, highestProjectionIndex=12)
+    # plotFidelity(xUsed, wantiSWAP=False, wantCZ=True)
     # deltaPulsePlot()
     # testPlotStates()
     # testEigenstateOrder()
@@ -112,7 +113,7 @@ def test():
 
 
 def testEigenstateOrder():
-    plotEigenenergies(xUsed, N=3, simPoints=200, numOfEnergyLevels=None)
+    plotEigenenergies(xUsed, N=4, simPoints=200, numOfEnergyLevels=None)
     # HBBComps = model.getHamiltonian(xUsed, N=N, getBBHamiltonianComps=True)
     # omegaTBTh = model.coeffomegaTB(omegas[2], xUsed[0])
     # eigStsBB = model.getThetaEigenstates(xUsed, HBBComps[0]+HBBComps[1], HBBComps[2], omegaTBTh)
