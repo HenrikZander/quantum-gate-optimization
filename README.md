@@ -1,2 +1,2 @@
 # quantum-gate-optimization
-For optimizing the CZ and iSWAP gates, implemented using a tunable coupler on a superconducting quantum computer.
+Software to be used for optimizing the CZ and iSWAP gates, implemented using a tunable coupler on a superconducting quantum computer.
