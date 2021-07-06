@@ -311,7 +311,7 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     plt.figure(figsize=(8,7))
     #labels = ["|000>", "|010>", "|100>", "|001>", "|020>", "|110>", "|011>", "|200>", "|101>"]
     # labels = []
-    labels = ['|000>','|010>','|100>','|001>','|020>','|110>','|200>','|011>','|101>','|002>','|003>','|120>']
+    labels = ['|000>','|010>','|100>','|001>','|020>','|110>'] #,'|200>','|011>','|101>','|002>','|003>','|120>']
     
     for index, values in enumerate(expectationValues):
         plt.plot(timeStamps, values)

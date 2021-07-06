@@ -57,17 +57,17 @@ def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=F
     """
     if (wantTradCZ):
         if (omegaPhi_CZ_A > omegaPhi_CZ_B):
-            omegaPhiMin = 0.9 * omegaPhi_CZ_B
-            omegaPhiMax = 1.1 * omegaPhi_CZ_A
+            omegaPhiMin = omegaPhi_CZ_B - 0.15
+            omegaPhiMax = omegaPhi_CZ_A + 0.15
         else:
-            omegaPhiMin = 0.9 * omegaPhi_CZ_A
-            omegaPhiMax = 1.1 * omegaPhi_CZ_B
+            omegaPhiMin = omegaPhi_CZ_A - 0.15
+            omegaPhiMax = omegaPhi_CZ_B + 0.15
         
         return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
     elif (wantTradiSWAP):
 
-        omegaPhiMin = 0.9 * omegaPhi_iSWAP
-        omegaPhiMax = 1.1 * omegaPhi_iSWAP
+        omegaPhiMin = omegaPhi_iSWAP - 0.15
+        omegaPhiMax = omegaPhi_iSWAP + 0.15
         
         return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
     else:
