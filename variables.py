@@ -53,8 +53,8 @@ alphas = -2*PI * np.array([0.221, 0.226, 0.08]) # alpha1 alpha2 alphaTB
 '''
 
 omegaPhi_iSWAP = np.abs(omegas[0] - omegas[1])
-omegaPhi_CZ_A = np.abs(omegas[0] + alphas[0] - omegas[1])
-omegaPhi_CZ_B = np.abs(omegas[0] - (omegas[1] + alphas[1]))
+omegaPhi_CZ_20 = np.abs(omegas[0] + alphas[0] - omegas[1])
+omegaPhi_CZ_02 = np.abs(omegas[0] - (omegas[1] + alphas[1]))
 phi_crossing = np.arccos((np.maximum(omegas[0], omegas[1])/omegas[2])**2)/np.pi
 
 

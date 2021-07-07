@@ -30,7 +30,7 @@ from numba import njit
 ######################################################################################################################################################################
 # Parameter function.
 
-def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=False):
+def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=False, wantCZ_20=False):
     """
     This function gets the bounds for the different
     parameters that the optimizer can change in the
@@ -56,12 +56,12 @@ def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=F
     ---------------------------------------------------------
     """
     if (wantTradCZ):
-        if (omegaPhi_CZ_A > omegaPhi_CZ_B):
-            omegaPhiMin = omegaPhi_CZ_B - 0.15
-            omegaPhiMax = omegaPhi_CZ_A + 0.15
+        if (wantCZ_20):
+            omegaPhiMin = omegaPhi_CZ_20 - 0.15
+            omegaPhiMax = omegaPhi_CZ_20 + 0.15
         else:
-            omegaPhiMin = omegaPhi_CZ_A - 0.15
-            omegaPhiMax = omegaPhi_CZ_B + 0.15
+            omegaPhiMin = omegaPhi_CZ_02 - 0.15
+            omegaPhiMax = omegaPhi_CZ_02 + 0.15
         
         return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
     elif (wantTradiSWAP):
