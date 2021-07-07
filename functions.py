@@ -311,7 +311,7 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     plt.figure(figsize=(8,7))
     #labels = ["|000>", "|010>", "|100>", "|001>", "|020>", "|110>", "|011>", "|200>", "|101>"]
     # labels = []
-    labels = ['|000>','|010>','|100>','|001>','|020>','|110>'] #,'|200>','|011>','|101>','|002>','|003>','|120>']
+    labels = ['|000>','|010>','|100>','|001>','|020>','|110>','|011>','|200>','|101>','|002>','|003>','|120>']
     
     for index, values in enumerate(expectationValues):
         plt.plot(timeStamps, values)
@@ -374,7 +374,6 @@ def deltaPulsePlot():
     plt.annotate('', xy=(operationTime-25,0.5), xytext=(operationTime,0.5), arrowprops=dict(arrowstyle='<->'))
     plt.annotate("$t_{Fall}$", xy=(operationTime-10,0.53), fontsize=18)
     plt.show()
-
 
 def indexToString(indexTuple):
     return f'|{indexTuple[0]}{indexTuple[1]}{indexTuple[2]}>'
@@ -522,7 +521,7 @@ def costCZ4(x):
 # Optimize gate function
 
 
-def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, maxAllowedGateTime=240, runSHG=False, runDA=False, runDE=False, wantTradGate=False):
+def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, maxAllowedGateTime=240, runSHG=False, runDA=False, runDE=False, wantTradGate=False, wantCZ_20=False):
     """
     The function tries to optimize the choosen gate for the
     choosen parameters, using the optimization algorithms 
@@ -532,10 +531,13 @@ def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, ma
             energyLevels (int) {Optional}: How many energy levels that should be accounted for in the simulations.
             timeoutAlgorithm (int) {Optional}: How many seconds each optimization algorithm can run, before a forced termination is initiated.
             maxAllowedGateTime (int) {Optional}: The longest gate time we will allow a solution to have.
-            runSHG (boolean) {Optional}: If True the function will use the Simplicial Homology Global algorithm to optimize the gate.
-            runDA (boolean) {Optional}: If True the function will use the Dual Anneling algorithm to optimize the gate.
-            runDE (boolean) {Optional}: If True the function will use the Differential Evolution algorithm to optimize the gate.
-            wantTradGate (boolean) {Optional}: If True the function will restrict the parameter space to focus on ''traditional'', well-understood iSWAP/CZ gates.
+            runSHG (boolean) {Optional}: If True, the function will use the Simplicial Homology Global algorithm to optimize the gate.
+            runDA (boolean) {Optional}: If True, the function will use the Dual Anneling algorithm to optimize the gate.
+            runDE (boolean) {Optional}: If True, the function will use the Differential Evolution algorithm to optimize the gate.
+            wantTradGate (boolean) {Optional}: If True, the function will restrict the parameter space to focus on ''traditional'', 
+                well-understood iSWAP/CZ gates.
+            wantCZ_20 (boolean) {Optional}: This boolean is only relevant if the optimizer is looking for a traditional CZ gate.
+                If True, the function will try to find a CZ gate using the 11<->20 transition. If False, the 11<->02 transition will be used instead.
 
         Set only ONE of these to True!:
             iSWAP (boolean) {Optional}: Optimize the iSWAP quantum gate.
@@ -553,7 +555,7 @@ def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, ma
     # Get the parameter bounds.
     wantTradCZ = (wantTradGate and CZ)
     wantTradiSWAP = (wantTradGate and iSWAP)
-    parameterBounds = getParameterBounds(maxAllowedGateTime=maxAllowedGateTime, wantTradCZ=wantTradCZ, wantTradiSWAP=wantTradiSWAP)
+    parameterBounds = getParameterBounds(maxAllowedGateTime=maxAllowedGateTime, wantTradCZ=wantTradCZ, wantTradiSWAP=wantTradiSWAP, wantCZ_20=wantCZ_20)
     
     # Check the gate specifiers.
     if not (iSWAP or CZ):

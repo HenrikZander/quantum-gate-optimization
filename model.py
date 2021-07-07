@@ -412,20 +412,26 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
 
 def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices=[-76, -61, -23, -1]):
     """
-    This function calculates the average gate fidelity for the
+    This function calculates the gate fidelity for the
     iSWAP and CZ quantum gates given a parameter set x.
     ---------------------------------------------------------
     INPUT:
             x (array(float)): An array containing the parameters needed to time evolve the hamiltonian.
             N (int) {Optional}: Specifies the amount of energy levels that should be used in the hamiltonian. Defaults to 2 energy levels.
+            tIndices (array(int)): Determines at which times to calculate the gate fidelity. Since the time evolution of the computational
+                basis eigenstates is simulated for 75 extra time steps (each roughly 0.33 ns long) after the gate is applied, a time index
+                of -76 corresponds to when the (oscillating part of) gate control signal is shut off, and a time index of -1 corresponds to
+                the final simulated time, roughly 25 ns after the gate is applied. 
 
         Only change ONE of these to True!:
             wantiSWAP (boolean) {Optional}: Specifies that the gate fidelity is to be calculated for the iSWAP gate. Defaults to False.
             wantCZ (boolean) {Optional}: Specifies that the gate fidelity is to be calculated for the CZ gate. Defaults to False.
-            wantI (boolean) {Optional}: USED IN TESTING ONLY! Specifies that the gate fidelity is to be calculated for the identity gate. Defaults to False.
+            wantI (boolean) {Optional}: USED IN TESTING ONLY! Specifies that the gate fidelity is to be calculated for the identity gate.
+                Defaults to False.
     ---------------------------------------------------------
     OUTPUT:
-            F_avg (float): The average gate fidelity for the parameter set x and the choosen gate.
+            fidelities, fidelityTimes (array(float), array(float)): The gate fidelity for the parameter set x and the selected gate,
+                evaluated at times corresponding to the tIndices input, as well as those times.
     ---------------------------------------------------------
     """
 
@@ -463,8 +469,10 @@ def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices
 
     # Determine the time stamps for which the evolution will be solved.
     opTime = x[-1]
+    nExtraSteps = 75
+
     ts1, stepSize = np.linspace(0, opTime, 3*int(opTime), retstep=True)
-    ts2 = np.linspace(opTime+stepSize, opTime+75*stepSize, 75)
+    ts2 = np.linspace(opTime+stepSize, opTime + nExtraSteps*stepSize, nExtraSteps)
     ts = np.append(ts1,ts2)
 
     # If eigenindices couldn't be generated, the function returns fidelity 0.2 at all examined timestamps.
