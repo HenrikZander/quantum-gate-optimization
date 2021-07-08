@@ -103,7 +103,7 @@ def main():
     # testPlotStates()
     # testEigenstateOrder()
     # test()
-    getRobustnessPlot(xUsed, wantCZ=True, checkOmegaPhi=True, nPoints=9)
+    getRobustnessPlot(xUsed, wantCZ=True, checkOmegaPhi=True, checkOpTime=True, nPoints=17)
 
     print(f'Total running time: {time.time() - start} seconds.')
 

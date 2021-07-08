@@ -377,70 +377,108 @@ def deltaPulsePlot():
 
 # WIP:
 def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPoints = 9):
-    if (sum([checkTheta, checkDelta, checkOmegaPhi, checkOpTime]) == 0):
+    checkList = [checkTheta, checkDelta, checkOmegaPhi, checkOpTime]
+    if (sum(checkList) < 1):
         print("You need to specify at least one parameter to check")
-    elif (sum([checkTheta, checkDelta, checkOmegaPhi, checkOpTime]) == 1):
+    elif (sum(checkList) > 2):
+        print("Too many parameters! There is currently only support for checking one or two parameters simultaneously")
+    else:
         xDev = [xi for xi in x]
         plt.figure(figsize=(11,7))
         plt.xticks(fontsize=16)
         plt.yticks(fontsize=16)
+        xIndices = []
+
+        axlabels = ["Avvikelse från hittat $\Theta$ [$\Phi_0$]", "Avvikelse från hittat $\delta$ [$\Phi_0$]", "Avvikelse från hittat $\omega_\Phi$ [MHz]", "Avvikelse från hittat $t_{MOD}$ [ns]"]
+        legendStrs = ["$\Theta = %.4f$" %x[0], "$\delta = %.4f$" %x[1], "$\omega_\Phi = %.1f$" %(x[2]/(2*np.pi)*1000), "$t_{MOD} = %.1f$" %x[3]]
+        maxDevs = [3e-4, 1e-3, 2*np.pi * 2e-3, 4e0] # Regular bounds, good for 1D
+        #maxDevs = [3e-4, 1e-3, 2*np.pi * 8e-3, 40e0] # Testing extended bounds, looking for chevrons
 
         if (checkTheta):
-            xIndex = 0
-            thetaDevMax = 3e-4
-            deviations = np.linspace(-thetaDevMax, thetaDevMax, nPoints)
+            xIndices.append(0)
+        if (checkDelta):
+            xIndices.append(1)
+        if (checkOmegaPhi):
+            xIndices.append(2)
+        if (checkOpTime):
+            xIndices.append(3)
 
-            #plt.title("Grindfidelitet kring $\Theta = %.3f$" %x[0], fontsize=17)
-            plt.xlabel("Avvikelse från hittat $\Theta$ [$\Phi_0$]", fontsize=26)
-            legendStr = "$\Theta = %.4f$" %x[xIndex]
-        elif (checkDelta):
-            xIndex = 1
-            deltaDevMax = 1e-3
-            deviations = np.linspace(-deltaDevMax, deltaDevMax, nPoints)
+        if (sum(checkList) == 1):
+            xIndex = xIndices[0]
+            deviations = np.linspace(-maxDevs[xIndex], maxDevs[xIndex], nPoints)
 
-            #plt.title("Grindfidelitet kring $\delta = %.3f$" %x[xIndex], fontsize=17)
-            plt.xlabel("Avvikelse från hittat $\delta$ [$\Phi_0$]", fontsize=26)
-            legendStr = "$\delta = %.4f$" %x[xIndex]
-        elif (checkOmegaPhi):
-            xIndex = 2
-            omegaPhiDevMax = 2*np.pi*2e-3
-            deviations = np.linspace(-omegaPhiDevMax, omegaPhiDevMax, nPoints)
+            if (xIndex == 2):
+                # Re-scale x-axis to MHz
+                nTicks = 9
+                locs = np.linspace(-maxDevs[2], maxDevs[2], nTicks)
+                newDevMax = maxDevs[2]/(2*np.pi)*1e3
+                newTicks = np.linspace(-newDevMax,newDevMax,nTicks)
+                plt.xticks(locs,newTicks)
 
-            #plt.title("Grindfidelitet kring $\omega_\Phi = %.3f$" %x[xIndex], fontsize=17)
-            plt.xlabel("Avvikelse från hittat $\omega_\Phi$ [MHz]", fontsize=26)
-
-            # Re-scale x-axis to MHz
-            nxTicks = 9
-            locs = np.linspace(-omegaPhiDevMax, omegaPhiDevMax, nxTicks)
-            newDevMax = omegaPhiDevMax/(2*np.pi)*1e3
-            newXticks = np.linspace(-newDevMax,newDevMax,nxTicks)
-            plt.xticks(locs,newXticks)
+            fidelities = []
+            for i, d in enumerate(deviations):
+                xDev[xIndex] = x[xIndex] + d
+                fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
+                fidelities.append(fidelity)
+                statusBar((i+1)*100/nPoints)
             
-            legendStr = "$\omega_\Phi = %.1f$" %(x[xIndex]/(2*np.pi)*1000) # Convert Grad/s to MHz
-        elif (checkOpTime):
-            xIndex = 3
-            tMODDevMax = 4e0
-            deviations = np.linspace(-tMODDevMax, tMODDevMax, nPoints)
+            plt.plot(deviations, fidelities, 'b-')
+            plt.plot([0, 0], [0, 1], 'r--')
+            plt.legend(["Fidelitet", legendStrs[xIndex]], fontsize=19, loc="upper right")
+            plt.grid()
+            plt.xlabel(axlabels[xIndex], fontsize=26)
+            plt.ylabel("Fidelitet", fontsize=26)
+            plt.xlim([deviations[0], deviations[-1]])
+            plt.ylim([0.99, 1])
+            plt.tight_layout()
+            plt.show()
+        elif (sum(checkList) == 2):
+            iDeviations = np.linspace(-maxDevs[xIndices[0]], maxDevs[xIndices[0]], nPoints)
+            jDeviations = np.linspace(-maxDevs[xIndices[1]], maxDevs[xIndices[1]], nPoints)
+            plt.xlabel(axlabels[xIndices[0]], fontsize=26)
+            plt.ylabel(axlabels[xIndices[1]], fontsize=26)
+            iLegendStr = legendStrs[xIndices[0]]
+            jLegendStr = legendStrs[xIndices[1]]
 
-            #plt.title("Grindfidelitet kring $\delta = %.3f$" %x[xIndex], fontsize=17)
-            plt.xlabel("Avvikelse från hittat $t_{MOD}$ [ns]", fontsize=26)
-            legendStr = "$t_{MOD} = %.1f$" %x[xIndex]
+            fidelities = []
+            for j, jDev in enumerate(jDeviations):
+                xDev[xIndices[1]] = x[xIndices[1]] + jDev
+                for i, iDev in enumerate(iDeviations):
+                    xDev[xIndices[0]] = x[xIndices[0]] + iDev
+                    fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
+                    fidelities.append(np.abs(fidelity))
+                    statusBar((j*nPoints + (i+1))*100/(nPoints**2))
+            fidelities2D = np.array(fidelities).reshape(nPoints, nPoints)
 
-        fidelities = []
-        for i, d in enumerate(deviations):
-            xDev[xIndex] = x[xIndex] + d
-            fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
-            fidelities.append(fidelity)
-            statusBar((i+1)*100/nPoints)
-        plt.plot(deviations, fidelities, 'b-')
-        plt.plot([0, 0], [0, 1], 'r--')
-        plt.legend(["Fidelitet", legendStr], fontsize=19, loc="upper right")
-        plt.grid()
-        plt.ylabel("Fidelitet", fontsize=26)
-        plt.xlim([deviations[0], deviations[-1]])
-        plt.ylim([0.99, 1])
-        plt.tight_layout()
-        plt.show()
+            nyTicks = nxTicks = 9
+
+            xlocs = np.linspace(0,nPoints-1,nxTicks)
+            xticks = np.linspace(-maxDevs[xIndices[0]], maxDevs[xIndices[0]], nxTicks)
+            plt.xticks(xlocs,xticks)
+            ylocs = np.linspace(0,nPoints-1,nyTicks)
+            yticks = np.linspace(-maxDevs[xIndices[1]], maxDevs[xIndices[1]], nyTicks)
+            plt.yticks(ylocs,yticks)
+
+            if (xIndices[0] == 2):
+                # Re-scale x-axis to MHz
+                xlocs = np.linspace(0,nPoints-1,nxTicks)
+                newDevMax = maxDevs[2]/(2*np.pi)*1e3
+                xticks = np.linspace(-newDevMax, newDevMax, nxTicks)
+                plt.xticks(xlocs,xticks)
+            elif (xIndices[1] == 2):
+                # Re-scale y-axis to MHz
+                ylocs = np.linspace(0,nPoints-1,nyTicks)
+                newDevMax = maxDevs[2]/(2*np.pi)*1e3
+                yticks = np.linspace(-newDevMax, newDevMax, nyTicks)
+                plt.yticks(ylocs,yticks)
+
+            plt.imshow(fidelities2D, interpolation="bilinear", origin="lower")
+            plt.colorbar(label="Fidelitet", orientation="vertical")
+
+            plt.axvline(x=(nPoints-1)/2, color='k')
+            plt.axhline(y=(nPoints-1)/2, color='r')
+            plt.legend([iLegendStr, jLegendStr], fontsize=19, loc="upper right")
+            plt.show()
 
 def indexToString(indexTuple):
     return f'|{indexTuple[0]}{indexTuple[1]}{indexTuple[2]}>'
