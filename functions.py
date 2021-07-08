@@ -311,7 +311,7 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     plt.figure(figsize=(8,7))
     #labels = ["|000>", "|010>", "|100>", "|001>", "|020>", "|110>", "|011>", "|200>", "|101>"]
     # labels = []
-    labels = ['|000>','|010>','|100>','|001>','|020>','|110>','|011>','|200>','|101>','|002>','|003>','|120>']
+    labels = ['|000>','|010>','|100>','|001>','|020>','|110>','|200>','|011>','|101>','|002>','|003>','|120>']
     
     for index, values in enumerate(expectationValues):
         plt.plot(timeStamps, values)
@@ -374,6 +374,34 @@ def deltaPulsePlot():
     plt.annotate('', xy=(operationTime-25,0.5), xytext=(operationTime,0.5), arrowprops=dict(arrowstyle='<->'))
     plt.annotate("$t_{Fall}$", xy=(operationTime-10,0.53), fontsize=18)
     plt.show()
+
+# WIP:
+def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False):
+    thetaDevMax = 1e-3
+    nThetaPoints = 21
+    if (checkTheta):
+        xDev = [xi for xi in x]
+        fidelities = []
+        thetaDeviations = np.linspace(-thetaDevMax, thetaDevMax, nThetaPoints)
+        for i, td in enumerate(thetaDeviations):
+            xDev[0] = x[0] + td
+            fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
+            fidelities.append(fidelity)
+            statusBar((i+1)*100/nThetaPoints)
+        plt.figure(figsize=(8,7))
+        plt.plot(thetaDeviations, fidelities, 'bx')
+        plt.plot([0, 0], [0, 1], 'r--')
+        plt.grid()
+        plt.ylim([0.2, 1])
+        plt.xlim([thetaDeviations[0], thetaDeviations[-1]])
+        plt.legend(["Fidelitet", "$\Theta = %.3f$" %x[0]], fontsize=19, loc="lower right")
+        #plt.title("Grindfidelitet kring $\Theta = %.3f$" %x[0], fontsize=17)
+        plt.xlabel("Avvikelse från optimalt $\Theta$ [$\Phi_0$]", fontsize=26)
+        plt.ylabel("Fidelitet", fontsize=26)
+        plt.xticks(fontsize=16)
+        plt.yticks(fontsize=16)
+        plt.tight_layout()
+        plt.show()
 
 def indexToString(indexTuple):
     return f'|{indexTuple[0]}{indexTuple[1]}{indexTuple[2]}>'
