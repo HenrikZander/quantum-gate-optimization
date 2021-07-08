@@ -81,7 +81,7 @@ x_0707_CZ_2_4lvl = [-3.97197613e-01, 4.50017315e-02, 5.04744811e+00, 1.20619159e
 x_0708_CZ_1_4lvl = [-3.87809473e-01, 4.70332021e-02, 2.01877517e+00, 1.37128800e+02]
 
 # Solution to use in simulations: 
-xUsed = x_0708_CZ_1_4lvl
+xUsed = x_0707_CZ_1_4lvl
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -103,7 +103,7 @@ def main():
     # testPlotStates()
     # testEigenstateOrder()
     # test()
-    # getRobustnessPlot(xUsed, wantCZ=True, checkTheta=True)
+    getRobustnessPlot(xUsed, wantCZ=True, checkOmegaPhi=True, nPoints=9)
 
     print(f'Total running time: {time.time() - start} seconds.')
 

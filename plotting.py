@@ -200,7 +200,7 @@ def statusBar(amountDoneProcent):
 
     print("Progress:", end=" ")
     print(bar[int(amountDoneProcent/10)], end=" ")
-    print(f'{amountDoneProcent}%', end="\r")
+    print(f'{amountDoneProcent:.2f}%', end="\r")
     if amountDoneProcent == 100:
         print("\nDone!")
 

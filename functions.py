@@ -376,30 +376,69 @@ def deltaPulsePlot():
     plt.show()
 
 # WIP:
-def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False):
-    thetaDevMax = 1e-3
-    nThetaPoints = 21
-    if (checkTheta):
+def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPoints = 9):
+    if (sum([checkTheta, checkDelta, checkOmegaPhi, checkOpTime]) == 0):
+        print("You need to specify at least one parameter to check")
+    elif (sum([checkTheta, checkDelta, checkOmegaPhi, checkOpTime]) == 1):
         xDev = [xi for xi in x]
-        fidelities = []
-        thetaDeviations = np.linspace(-thetaDevMax, thetaDevMax, nThetaPoints)
-        for i, td in enumerate(thetaDeviations):
-            xDev[0] = x[0] + td
-            fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
-            fidelities.append(fidelity)
-            statusBar((i+1)*100/nThetaPoints)
-        plt.figure(figsize=(8,7))
-        plt.plot(thetaDeviations, fidelities, 'bx')
-        plt.plot([0, 0], [0, 1], 'r--')
-        plt.grid()
-        plt.ylim([0.2, 1])
-        plt.xlim([thetaDeviations[0], thetaDeviations[-1]])
-        plt.legend(["Fidelitet", "$\Theta = %.3f$" %x[0]], fontsize=19, loc="lower right")
-        #plt.title("Grindfidelitet kring $\Theta = %.3f$" %x[0], fontsize=17)
-        plt.xlabel("Avvikelse från optimalt $\Theta$ [$\Phi_0$]", fontsize=26)
-        plt.ylabel("Fidelitet", fontsize=26)
+        plt.figure(figsize=(11,7))
         plt.xticks(fontsize=16)
         plt.yticks(fontsize=16)
+
+        if (checkTheta):
+            xIndex = 0
+            thetaDevMax = 3e-4
+            deviations = np.linspace(-thetaDevMax, thetaDevMax, nPoints)
+
+            #plt.title("Grindfidelitet kring $\Theta = %.3f$" %x[0], fontsize=17)
+            plt.xlabel("Avvikelse från hittat $\Theta$ [$\Phi_0$]", fontsize=26)
+            legendStr = "$\Theta = %.4f$" %x[xIndex]
+        elif (checkDelta):
+            xIndex = 1
+            deltaDevMax = 1e-3
+            deviations = np.linspace(-deltaDevMax, deltaDevMax, nPoints)
+
+            #plt.title("Grindfidelitet kring $\delta = %.3f$" %x[xIndex], fontsize=17)
+            plt.xlabel("Avvikelse från hittat $\delta$ [$\Phi_0$]", fontsize=26)
+            legendStr = "$\delta = %.4f$" %x[xIndex]
+        elif (checkOmegaPhi):
+            xIndex = 2
+            omegaPhiDevMax = 2*np.pi*2e-3
+            deviations = np.linspace(-omegaPhiDevMax, omegaPhiDevMax, nPoints)
+
+            #plt.title("Grindfidelitet kring $\omega_\Phi = %.3f$" %x[xIndex], fontsize=17)
+            plt.xlabel("Avvikelse från hittat $\omega_\Phi$ [MHz]", fontsize=26)
+
+            # Re-scale x-axis to MHz
+            nxTicks = 9
+            locs = np.linspace(-omegaPhiDevMax, omegaPhiDevMax, nxTicks)
+            newDevMax = omegaPhiDevMax/(2*np.pi)*1e3
+            newXticks = np.linspace(-newDevMax,newDevMax,nxTicks)
+            plt.xticks(locs,newXticks)
+            
+            legendStr = "$\omega_\Phi = %.1f$" %(x[xIndex]/(2*np.pi)*1000) # Convert Grad/s to MHz
+        elif (checkOpTime):
+            xIndex = 3
+            tMODDevMax = 4e0
+            deviations = np.linspace(-tMODDevMax, tMODDevMax, nPoints)
+
+            #plt.title("Grindfidelitet kring $\delta = %.3f$" %x[xIndex], fontsize=17)
+            plt.xlabel("Avvikelse från hittat $t_{MOD}$ [ns]", fontsize=26)
+            legendStr = "$t_{MOD} = %.1f$" %x[xIndex]
+
+        fidelities = []
+        for i, d in enumerate(deviations):
+            xDev[xIndex] = x[xIndex] + d
+            fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
+            fidelities.append(fidelity)
+            statusBar((i+1)*100/nPoints)
+        plt.plot(deviations, fidelities, 'b-')
+        plt.plot([0, 0], [0, 1], 'r--')
+        plt.legend(["Fidelitet", legendStr], fontsize=19, loc="upper right")
+        plt.grid()
+        plt.ylabel("Fidelitet", fontsize=26)
+        plt.xlim([deviations[0], deviations[-1]])
+        plt.ylim([0.99, 1])
         plt.tight_layout()
         plt.show()
 
