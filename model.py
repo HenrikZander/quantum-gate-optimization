@@ -21,6 +21,7 @@
 
 ######################################################################################################################################################################
 
+from numpy.core.numeric import False_
 from qutip import *
 import numpy as np
 from variables import *
@@ -29,7 +30,7 @@ from numba import njit
 ######################################################################################################################################################################
 # Parameter function.
 
-def getParameterBounds(maxAllowedGateTime=240):
+def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=False, wantCZ_20=False):
     """
     This function gets the bounds for the different
     parameters that the optimizer can change in the
@@ -37,13 +38,40 @@ def getParameterBounds(maxAllowedGateTime=240):
     to have the shape: x = [Theta, delta, omegaPhi, operationTime].
     ---------------------------------------------------------
     INPUT:
-            maxAllowedGateTime (int) {Optional}: The maximum gate time that will be allowed as a solution from the optimizer.
+            maxAllowedGateTime (int) {Optional}: The maximum gate time that
+                will be allowed as a solution from the optimizer.
+            wantTradCZ (boolean) {Optional}: If true, the parameter bounds
+                are constricted so that |Theta| < phi_crossing,
+                omegaPhi > 0.9 * min(omega_11<->20, omega_11<->02) and
+                omegaPhi < 1.1 * max(omega_11<->20, omega_11<->02).
+                Defaults to False.
+            wantTradiSWAP (boolean) {Optional}: If true, the parameter bounds
+                are constricted so that |Theta| < phi_crossing and
+                so that omegaPhi is within 10% of omega_10<->01.
+                Defaults to False.
     ---------------------------------------------------------
     OUTPUT:
-            parameterBounds (array(tuples(int))): Array of tuples that each contain the associated upper and lower bounds for that parameter.
+            parameterBounds (array(tuples(int))): Array of tuples that each
+                contain the associated upper and lower bounds for that parameter.
     ---------------------------------------------------------
     """
-    return [(-0.35, 0.35), (0, 0.25), (0, 8), (50, maxAllowedGateTime)]
+    if (wantTradCZ):
+        if (wantCZ_20):
+            omegaPhiMin = omegaPhi_CZ_20 - 0.15
+            omegaPhiMax = omegaPhi_CZ_20 + 0.15
+        else:
+            omegaPhiMin = omegaPhi_CZ_02 - 0.15
+            omegaPhiMax = omegaPhi_CZ_02 + 0.15
+        
+        return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
+    elif (wantTradiSWAP):
+
+        omegaPhiMin = omegaPhi_iSWAP - 0.15
+        omegaPhiMax = omegaPhi_iSWAP + 0.15
+        
+        return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
+    else:
+        return [(-0.5, 0.5), (0, 0.25), (0, 8), (50, maxAllowedGateTime)]
 
 
 ######################################################################################################################################################################
@@ -65,7 +93,7 @@ def tunableBus(t, theta, delta, omegaphi, omegatb0):
     This function calculates the frequency for the tunable bus, for the case
     when the AC part of the flux has a constant amplitude.
     """
-    oTB = omegatb0*np.sqrt(np.abs(np.cos(PI*Phi(t, theta, delta, omegaphi))))
+    oTB = omegatb0*np.sqrt(np.abs(np.cos(np.pi*Phi(t, theta, delta, omegaphi))))
     return oTB
 
 
@@ -124,7 +152,7 @@ def tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal):
     This function calculates the frequency for the tunable bus, in the case
     where the AC part of the flux has a sinusoidal box envelope.
     """
-    oTB = omegatb0 * np.sqrt(np.abs(np.cos(PI*PhiSinStep(t, theta, delta, omegaphi, sinBoxVal))))
+    oTB = omegatb0 * np.sqrt(np.abs(np.cos(np.pi*PhiSinStep(t, theta, delta, omegaphi, sinBoxVal))))
     return oTB
 
 
@@ -182,17 +210,57 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
     """
 
     # Choose the number of energy levels that should be used in the creation of the hamiltonian components.
-    if N == 4:
+    if N > 2:
+        # Definition of basic operators for an N-level system
+        a = destroy(N) # Annihilation operator for an N-level system
+        ad = create(N) # Creation operator for an N-level system
+        I = qeye(N) # Identity operator for an N-level system
+
+        # The upgraded operators that are given by the tensor product between the different basic operators and the identity operator
+        # Upgraded states are defined as qubit one, qubit two and tunable bus in that order
+        a_1 = tensor(a,I,I)
+        a_2 = tensor(I,a,I)
+        a_TB = tensor(I,I,a)
+
+        ad_1 = tensor(ad,I,I)
+        ad_2 = tensor(I,ad,I)
+        ad_TB = tensor(I,I,ad)
+
         # Get the 4 energy level hamltonian components.
-        H0BB = omegas[0]*ad4_1*a4_1 - (alphas[0]/2.0)*(1-ad4_1*a4_1)*ad4_1*a4_1 + omegas[1]*ad4_2*a4_2 - (alphas[1]/2.0)*(1-ad4_2*a4_2)*ad4_2*a4_2 - (alphas[2]/2.0)*(1-ad4_TB*a4_TB)*ad4_TB*a4_TB
-        HiBB = gs[0]*(ad4_1 + a4_1)*(ad4_TB + a4_TB) + gs[1]*(ad4_2 + a4_2)*(ad4_TB + a4_TB)
-        H1BB = ad4_TB*a4_TB
-    elif N == 3:
-        # Get the 3 energy level hamltonian components.
-        H0BB = omegas[0]*ad3_1*a3_1 - (alphas[0]/2.0)*(1-ad3_1*a3_1)*ad3_1*a3_1 + omegas[1]*ad3_2*a3_2 - (alphas[1]/2.0)*(1-ad3_2*a3_2)*ad3_2*a3_2 - (alphas[2]/2.0)*(1-ad3_TB*a3_TB)*ad3_TB*a3_TB
-        HiBB = gs[0]*(ad3_1 + a3_1)*(ad3_TB + a3_TB) + gs[1]*(ad3_2 + a3_2)*(ad3_TB + a3_TB)
-        H1BB = ad3_TB*a3_TB
+        H0BB = omegas[0]*ad_1*a_1 - (alphas[0]/2.0)*(1-ad_1*a_1)*ad_1*a_1 + omegas[1]*ad_2*a_2 - (alphas[1]/2.0)*(1-ad_2*a_2)*ad_2*a_2 - (alphas[2]/2.0)*(1-ad_TB*a_TB)*ad_TB*a_TB
+        HiBB = gs[0]*(ad_1 + a_1)*(ad_TB + a_TB) + gs[1]*(ad_2 + a_2)*(ad_TB + a_TB)
+        H1BB = ad_TB*a_TB
     else:
+        # Definition of basic operators for a two-level system
+        sp = sigmap() # Raising operator for a two-level system
+        sm = sigmam() # Lowering operator for a two-level system
+        sx = sigmax() # Pauli sigma-x operator
+        sy = sigmay() # Pauli sigma-y operator
+        sz = sigmaz() # Pauli sigma-z operator
+        I = qeye(2) # Identity operator for a two-level system
+
+        # The upgraded operators that are given by the tensor product between the different basic operators and the identity operator
+        # Upgraded states are defined as qubit one, qubit two and tunable bus in that order
+        sx1 = tensor(sx,I,I)
+        sx2 = tensor(I,sx,I)
+        sxTB = tensor(I,I,sx)
+
+        sy1 = tensor(sy,I,I)
+        sy2 = tensor(I,sy,I)
+        syTB = tensor(I,I,sy)
+
+        sz1 = tensor(sz,I,I)
+        sz2 = tensor(I,sz,I)
+        szTB = tensor(I,I,sz)
+
+        sp1 = tensor(sp,I,I)
+        sp2 = tensor(I,sp,I)
+        spTB = tensor(I,I,sp)
+
+        sm1 = tensor(sm,I,I)
+        sm2 = tensor(I,sm,I)
+        smTB = tensor(I,I,sm)
+        
         # Get the 2 energy level hamltonian components.
         H0BB = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2
         HiBB = gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
@@ -264,7 +332,7 @@ def getRFUnitary(Hrot, t):
     return U_rf
 
 
-def getIndices(N):
+def getIndicesOld(N):
     if N == 4:
         eigIndices = [0, 1, 2, 5]
     elif N == 3:
@@ -272,6 +340,30 @@ def getIndices(N):
     else:
         eigIndices = [0, 1, 2, 4]
     return eigIndices
+
+def getIndices(N, eigenstates):
+    eigenIndices = []
+    for q1 in range(2):
+        for q2 in range(2):
+            qTB = 0
+            eigIndMaxOverlap = 0
+            maxOverlap = 0
+            for eigenstateIndex in range(len(eigenstates)):
+                currentOverlap = Qobj(tensor(basis(N,q1),basis(N,q2),basis(N,qTB)),dims=[[N,N,N],[1,1,1]]).overlap(eigenstates[eigenstateIndex])
+                if np.abs(currentOverlap) > np.abs(maxOverlap):
+                    eigIndMaxOverlap = eigenstateIndex
+                    maxOverlap = currentOverlap
+
+            if (np.abs(maxOverlap) > 0.9):
+                eigenIndices.append(eigIndMaxOverlap)
+            else:
+                print('Bad Theta: At least one state in the computational subspace had a maximum eigenstate overlap below 0.9')
+                return None
+    if len(eigenIndices) > len(set(eigenIndices)):
+        print('Bad Theta: At least two states in the computational subspace got the same eigenindex')
+        return None
+    else:
+        return eigenIndices
 
 
 def eigenstateOrder(eigenstates, N):
@@ -294,7 +386,7 @@ def eigenstateOrder(eigenstates, N):
 
 
 def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wantI):
-    F = []
+    fidelities = []
     fidelityTimes = []
 
     for timeIndex in tIndices:
@@ -319,11 +411,11 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
         if wantiSWAP:
             # Calculate phases (iSWAP):
             phi = np.angle(M[0][0])
-            theta1 = np.angle(M[1][2]) + PI/2 - phi
-            theta2 = np.angle(M[2][1]) + PI/2 - phi
+            theta1 = np.angle(M[1][2]) + np.pi/2 - phi
+            theta2 = np.angle(M[2][1]) + np.pi/2 - phi
 
             # Ideal iSWAP gate matrix (with phases):
-            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, 0, np.exp(1j*(-PI/2 + theta1 + phi)), 0], [0, np.exp(1j*(-PI/2 + theta2 + phi)), 0, 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
+            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, 0, np.exp(1j*(-np.pi/2 + theta1 + phi)), 0], [0, np.exp(1j*(-np.pi/2 + theta2 + phi)), 0, 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
         elif wantCZ:
             # Calculate phases (CZ):
             phi = np.angle(M[0][0])
@@ -331,7 +423,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
             theta2 = np.angle(M[2][2]) - phi
 
             # Ideal CZ gate matrix (with phases):
-            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(PI + theta1 + theta2 + phi))]])
+            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(np.pi + theta1 + theta2 + phi))]])
         elif wantI:
             # Calculate phases (I):
             phi = np.angle(M[0][0])
@@ -348,29 +440,38 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
 
         # Calculate gate fidelity
         dimComputationalSubspace = 4
-        F.append((np.absolute(np.trace(M*U.H))**2 + np.trace(M.H*M))/(dimComputationalSubspace*(dimComputationalSubspace+1)))
+        fidelities.append((np.absolute(np.trace(M*U.H))**2 + np.trace(M.H*M))/(dimComputationalSubspace*(dimComputationalSubspace+1)))
         fidelityTimes.append(ts[timeIndex])
-    return F, fidelityTimes
+
+    #print(fidelities)
+    #print(fidelityTimes)
+    return fidelities, fidelityTimes
 
 ######################################################################################################################################################################
 # Gate fidelity function.
 
-def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices=[-76, -51, -26, -1]):
+def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices=[-76, -61, -23, -1]):
     """
-    This function calculates the average gate fidelity for the
+    This function calculates the gate fidelity for the
     iSWAP and CZ quantum gates given a parameter set x.
     ---------------------------------------------------------
     INPUT:
             x (array(float)): An array containing the parameters needed to time evolve the hamiltonian.
             N (int) {Optional}: Specifies the amount of energy levels that should be used in the hamiltonian. Defaults to 2 energy levels.
+            tIndices (array(int)): Determines at which times to calculate the gate fidelity. Since the time evolution of the computational
+                basis eigenstates is simulated for 75 extra time steps (each roughly 0.33 ns long) after the gate is applied, a time index
+                of -76 corresponds to when the (oscillating part of) gate control signal is shut off, and a time index of -1 corresponds to
+                the final simulated time, roughly 25 ns after the gate is applied. 
 
         Only change ONE of these to True!:
             wantiSWAP (boolean) {Optional}: Specifies that the gate fidelity is to be calculated for the iSWAP gate. Defaults to False.
             wantCZ (boolean) {Optional}: Specifies that the gate fidelity is to be calculated for the CZ gate. Defaults to False.
-            wantI (boolean) {Optional}: USED IN TESTING ONLY! Specifies that the gate fidelity is to be calculated for the identity gate. Defaults to False.
+            wantI (boolean) {Optional}: USED IN TESTING ONLY! Specifies that the gate fidelity is to be calculated for the identity gate.
+                Defaults to False.
     ---------------------------------------------------------
     OUTPUT:
-            F_avg (float): The average gate fidelity for the parameter set x and the choosen gate.
+            fidelities, fidelityTimes (array(float), array(float)): The gate fidelity for the parameter set x and the selected gate,
+                evaluated at times corresponding to the tIndices input, as well as those times.
     ---------------------------------------------------------
     """
 
@@ -381,32 +482,50 @@ def getGateFidelity(x, N=2, wantiSWAP=False, wantCZ=False, wantI=False, tIndices
     D = N**3
     # From here on, unless otherwise stated, every state is considered a tensor state.
 
-    # We are especially interested in |000>, |010>, |100> and |110> since these make up the computational basis.
-    eigIndices = getIndices(N)
-
-    # Define a list r of eigenstates in the eigenbasis.
-    r = []
-    for ei in eigIndices:
-        r.append(Qobj(basis(D, ei), dims=[[N, N, N], [1, 1, 1]]))
-
     # Calculate omegaTB at Phi = Theta
     omegaTBTh = coeffomegaTB(omegas[2], x[0])
 
     # Calculate eigenstates and eigenenergies in the bare basis at Phi = Theta
     eigStsBB = getThetaEigenstates(x, HBBComps[0]+HBBComps[1], HBBComps[2], omegaTBTh)
 
-    # Get unitary for transformation into eigenbasis
-    U_e = getEBUnitary(x, eigStsBB, N, D)
+    # We are especially interested in |000>, |010>, |100> and |110> since these make up the computational basis.
+    # These states correspond (most closely) to the eigenstates with the following eigenindices:
+    eigIndices = getIndices(N, eigStsBB[1])
+    #print(eigIndices)
+    
+    if (eigIndices is not None):
+        # Define a list r of eigenstates in the eigenbasis.
+        r = []
+        for ei in eigIndices:
+            r.append(Qobj(basis(D, ei), dims=[[N, N, N], [1, 1, 1]]))
 
-    # NB: r and U_e are ordered based on eigenenergies
+        # Get unitary for transformation into eigenbasis
+        U_e = getEBUnitary(x, eigStsBB, N, D)
+
+        # NB: r and U_e are ordered based on eigenenergies
+
 
     # Simulate evolution of eigenstates:
 
     # Determine the time stamps for which the evolution will be solved.
     opTime = x[-1]
+    nExtraSteps = 75
+
     ts1, stepSize = np.linspace(0, opTime, 3*int(opTime), retstep=True)
-    ts2 = np.linspace(opTime+stepSize, opTime+75*stepSize, 75)
+    ts2 = np.linspace(opTime+stepSize, opTime + nExtraSteps*stepSize, nExtraSteps)
     ts = np.append(ts1,ts2)
+
+    # If eigenindices couldn't be generated, the function returns fidelity 0.2 at all examined timestamps.
+    if (eigIndices is None):
+        fidelities = []
+        fidelityTimes = []
+        for ti in tIndices:
+            fidelities.append(0.2)
+            fidelityTimes.append(ts[ti])
+        #print(fidelities)
+        #print(fidelityTimes)
+        return fidelities, fidelityTimes
+    
     # Calculate the eigenbasis hamiltonian
     HEB = getHamiltonian(x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinStepHamiltonian=True)
 

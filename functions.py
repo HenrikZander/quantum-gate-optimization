@@ -245,9 +245,6 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
             gateFidelity_iSWAP, gateFidelity_CZ (float, float): The gate fidelity for both the iSWAP and CZ gate.
     ---------------------------------------------------------
     """
-
-    # Get eigenindices.
-    eigIndices = getIndices(N)
     
     # Calculate the dimension of the tensor states and set the simulation time.
     D = N**3
@@ -261,6 +258,9 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
 
     # Calculate eigenstates and eigenenergies of the hamiltonian in the bare basis when the flux only has it's DC part.
     eigenStatesAndEnergies = getThetaEigenstates(x0, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
+
+    # Get eigenindices.
+    eigIndices = getIndices(N, eigenStatesAndEnergies[1])
 
     # Calculate the unitary for transforming the hamiltonian to the eigen basis.
     eigenBasisUnitary = getEBUnitary(x0, eigenStatesAndEnergies, N, D)
@@ -311,7 +311,7 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     plt.figure(figsize=(8,7))
     #labels = ["|000>", "|010>", "|100>", "|001>", "|020>", "|110>", "|011>", "|200>", "|101>"]
     # labels = []
-    labels = ['|000>','|010>','|100>','|001>','|020>','|110>']
+    labels = ['|000>','|010>','|100>','|001>','|020>','|110>','|200>','|011>','|101>','|002>','|003>','|120>']
     
     for index, values in enumerate(expectationValues):
         plt.plot(timeStamps, values)
@@ -375,6 +375,116 @@ def deltaPulsePlot():
     plt.annotate("$t_{Fall}$", xy=(operationTime-10,0.53), fontsize=18)
     plt.show()
 
+# WIP:
+def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[3e-4, 1e-3, 2*np.pi * 2e-3, 4e0], saveResults=True):
+    checkList = [checkTheta, checkDelta, checkOmegaPhi, checkOpTime]
+    if (sum(checkList) < 1):
+        print("You need to specify at least one parameter to check")
+    elif (sum(checkList) > 2):
+        print("Too many parameters! There is currently only support for checking one or two parameters simultaneously")
+    elif (len(nPointsList) > 2):
+        print("Can't plot in more than two dimensions!")
+    elif (len(nPointsList) < 1):
+        print("Can't plot in less than one dimension!")
+    else:
+        xDev = [xi for xi in x]
+        plt.figure(figsize=(11,7))
+        plt.xticks(fontsize=16)
+        plt.yticks(fontsize=16)
+
+        axlabels = ["Avvikelse från hittat $\Theta$ [$\Phi_0$]", "Avvikelse från hittat $\delta$ [$\Phi_0$]", "Avvikelse från hittat $\omega_\Phi$ [MHz]", "Avvikelse från hittat $t_{MOD}$ [ns]"]
+        legendStrs = ["$\Theta = %.4f$" %x[0], "$\delta = %.4f$" %x[1], "$\omega_\Phi = %.1f$" %(x[2]/(2*np.pi)*1000), "$t_{MOD} = %.1f$" %x[3]]
+        # maxDevs = [3e-4, 1e-3, 2*np.pi * 8e-3, 40e0] # Testing extended bounds, looking for chevrons
+
+        xIndices = []
+        if (checkTheta):
+            xIndices.append(0)
+        if (checkDelta):
+            xIndices.append(1)
+        if (checkOmegaPhi):
+            xIndices.append(2)
+        if (checkOpTime):
+            xIndices.append(3)
+
+        if (sum(checkList) == 1):
+            xIndex = xIndices[0]
+            deviations = np.linspace(-maxDevs[xIndex], maxDevs[xIndex], nPointsList[0])
+
+            if (xIndex == 2):
+                # Re-scale x-axis to MHz
+                nTicks = 9
+                locs = np.linspace(-maxDevs[2], maxDevs[2], nTicks)
+                newDevMax = maxDevs[2]/(2*np.pi)*1e3
+                newTicks = np.linspace(-newDevMax,newDevMax,nTicks)
+                plt.xticks(locs,newTicks)
+
+            fidelities = []
+            for i, d in enumerate(deviations):
+                xDev[xIndex] = x[xIndex] + d
+                fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
+                fidelities.append(fidelity)
+                statusBar((i+1)*100/nPointsList[0])
+            
+            plt.plot(deviations, fidelities, 'b-')
+            plt.plot([0, 0], [0, 1], 'r--')
+            plt.legend(["Fidelitet", legendStrs[xIndex]], fontsize=19, loc="upper right")
+            plt.grid()
+            plt.xlabel(axlabels[xIndex], fontsize=26)
+            plt.ylabel("Fidelitet", fontsize=26)
+            plt.xlim([deviations[0], deviations[-1]])
+            plt.ylim([0.99, 1])
+            plt.tight_layout()
+            plt.show()
+        elif (sum(checkList) == 2):
+            if (len(nPointsList) == 1):
+                nPointsList.append(nPointsList[0])
+            
+            iDeviations = np.linspace(-maxDevs[xIndices[0]], maxDevs[xIndices[0]], nPointsList[0])
+            jDeviations = np.linspace(-maxDevs[xIndices[1]], maxDevs[xIndices[1]], nPointsList[1])
+            plt.xlabel(axlabels[xIndices[0]], fontsize=26)
+            plt.ylabel(axlabels[xIndices[1]], fontsize=26)
+            iLegendStr = legendStrs[xIndices[0]]
+            jLegendStr = legendStrs[xIndices[1]]
+
+            fidelities = []
+            for j, jDev in enumerate(jDeviations):
+                xDev[xIndices[1]] = x[xIndices[1]] + jDev
+                for i, iDev in enumerate(iDeviations):
+                    xDev[xIndices[0]] = x[xIndices[0]] + iDev
+                    fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
+                    fidelities.append(np.abs(fidelity))
+                    statusBar((j*nPointsList[0] + (i+1))*100/(nPointsList[0]*nPointsList[1]))
+            fidelities2D = np.array(fidelities).reshape(nPointsList[1], nPointsList[0])
+
+            nyTicks = nxTicks = 9
+
+            xlocs = np.linspace(0,nPointsList[0]-1,nxTicks)
+            xticks = np.linspace(-maxDevs[xIndices[0]], maxDevs[xIndices[0]], nxTicks)
+            plt.xticks(xlocs,xticks)
+            ylocs = np.linspace(0,nPointsList[1]-1,nyTicks)
+            yticks = np.linspace(-maxDevs[xIndices[1]], maxDevs[xIndices[1]], nyTicks)
+            plt.yticks(ylocs,yticks)
+
+            if (xIndices[0] == 2):
+                # Re-scale x-axis to MHz
+                xlocs = np.linspace(0,nPointsList[0]-1,nxTicks)
+                newDevMax = maxDevs[2]/(2*np.pi)*1e3
+                xticks = np.linspace(-newDevMax, newDevMax, nxTicks)
+                plt.xticks(xlocs,xticks)
+            elif (xIndices[1] == 2):
+                # Re-scale y-axis to MHz
+                ylocs = np.linspace(0,nPointsList[1]-1,nyTicks)
+                newDevMax = maxDevs[2]/(2*np.pi)*1e3
+                yticks = np.linspace(-newDevMax, newDevMax, nyTicks)
+                plt.yticks(ylocs,yticks)
+
+            plt.imshow(fidelities2D, interpolation="bilinear", origin="lower")
+            plt.colorbar(label="Fidelitet", orientation="vertical")
+
+            plt.axvline(x=(nPointsList[0]-1)/2, color='k')
+            plt.axhline(y=(nPointsList[1]-1)/2, color='r')
+            plt.legend([iLegendStr, jLegendStr], fontsize=19, loc="upper right")
+            plt.show()
 
 def indexToString(indexTuple):
     return f'|{indexTuple[0]}{indexTuple[1]}{indexTuple[2]}>'
@@ -447,7 +557,7 @@ def plotEigenenergies(x, N=3, simPoints=200, numOfEnergyLevels=None):
 def findEigenIndex(x0, eigenStateIndex=0, N=4, printResult=False):
 
     # Get eigenindices and dimension.
-    eigIndices = getIndices(N)
+    eigIndices = getIndicesOld(N)
     D = N**3
 
     # Get the bare basis hamiltonian.
@@ -522,7 +632,7 @@ def costCZ4(x):
 # Optimize gate function
 
 
-def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, maxAllowedGateTime=240, runSHG=False, runDA=False, runDE=False):
+def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, maxAllowedGateTime=240, runSHG=False, runDA=False, runDE=False, wantTradGate=False, wantCZ_20=False):
     """
     The function tries to optimize the choosen gate for the
     choosen parameters, using the optimization algorithms 
@@ -532,9 +642,13 @@ def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, ma
             energyLevels (int) {Optional}: How many energy levels that should be accounted for in the simulations.
             timeoutAlgorithm (int) {Optional}: How many seconds each optimization algorithm can run, before a forced termination is initiated.
             maxAllowedGateTime (int) {Optional}: The longest gate time we will allow a solution to have.
-            runSHG (boolean) {Optional}: If True the function will use the Simplicial Homology Global algorithm to optimize the gate.
-            runDA (boolean) {Optional}: If True the function will use the Dual Anneling algorithm to optimize the gate.
-            runDE (boolean) {Optional}: If True the function will use the Differential Evolution algorithm to optimize the gate.
+            runSHG (boolean) {Optional}: If True, the function will use the Simplicial Homology Global algorithm to optimize the gate.
+            runDA (boolean) {Optional}: If True, the function will use the Dual Anneling algorithm to optimize the gate.
+            runDE (boolean) {Optional}: If True, the function will use the Differential Evolution algorithm to optimize the gate.
+            wantTradGate (boolean) {Optional}: If True, the function will restrict the parameter space to focus on ''traditional'', 
+                well-understood iSWAP/CZ gates.
+            wantCZ_20 (boolean) {Optional}: This boolean is only relevant if the optimizer is looking for a traditional CZ gate.
+                If True, the function will try to find a CZ gate using the 11<->20 transition. If False, the 11<->02 transition will be used instead.
 
         Set only ONE of these to True!:
             iSWAP (boolean) {Optional}: Optimize the iSWAP quantum gate.
@@ -550,7 +664,9 @@ def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, ma
     maxRuntime = timeoutAlgorithm
 
     # Get the parameter bounds.
-    parameterBounds = getParameterBounds(maxAllowedGateTime=maxAllowedGateTime)
+    wantTradCZ = (wantTradGate and CZ)
+    wantTradiSWAP = (wantTradGate and iSWAP)
+    parameterBounds = getParameterBounds(maxAllowedGateTime=maxAllowedGateTime, wantTradCZ=wantTradCZ, wantTradiSWAP=wantTradiSWAP, wantCZ_20=wantCZ_20)
     
     # Check the gate specifiers.
     if not (iSWAP or CZ):

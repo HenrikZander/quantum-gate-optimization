@@ -161,7 +161,7 @@ def createAnimationVideo(states, dirc, framerate=60):
         filename = createFilename(path, i)
         b.save(name=filename)
     os.system('ffmpeg -r ' + str(framerate) + ' -i ' + '.\\' + dirc + '\\' + '%03d.png -vf scale=-2:1080 -pix_fmt yuv420p bloch.mp4')
-    #Idea: create a new folder if this one already exsists.
+    #Idea: create a new folder if this one already exists.
     #ffmpeg -r 20 -i %03d.png -vf scale=-2:1080 -pix_fmt yuv420p bloch.mp4
     
 
@@ -200,7 +200,7 @@ def statusBar(amountDoneProcent):
 
     print("Progress:", end=" ")
     print(bar[int(amountDoneProcent/10)], end=" ")
-    print(f'{amountDoneProcent}%', end="\r")
+    print(f'{amountDoneProcent:.2f}%', end="\r")
     if amountDoneProcent == 100:
         print("\nDone!")
 
