@@ -376,24 +376,27 @@ def deltaPulsePlot():
     plt.show()
 
 # WIP:
-def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPoints = 9):
+def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[3e-4, 1e-3, 2*np.pi * 2e-3, 4e0]):
     checkList = [checkTheta, checkDelta, checkOmegaPhi, checkOpTime]
     if (sum(checkList) < 1):
         print("You need to specify at least one parameter to check")
     elif (sum(checkList) > 2):
         print("Too many parameters! There is currently only support for checking one or two parameters simultaneously")
+    elif (len(nPointsList) > 2):
+        print("Can't plot in more than two dimensions!")
+    elif (len(nPointsList) < 1):
+        print("Can't plot in less than one dimension!")
     else:
         xDev = [xi for xi in x]
         plt.figure(figsize=(11,7))
         plt.xticks(fontsize=16)
         plt.yticks(fontsize=16)
-        xIndices = []
 
         axlabels = ["Avvikelse från hittat $\Theta$ [$\Phi_0$]", "Avvikelse från hittat $\delta$ [$\Phi_0$]", "Avvikelse från hittat $\omega_\Phi$ [MHz]", "Avvikelse från hittat $t_{MOD}$ [ns]"]
         legendStrs = ["$\Theta = %.4f$" %x[0], "$\delta = %.4f$" %x[1], "$\omega_\Phi = %.1f$" %(x[2]/(2*np.pi)*1000), "$t_{MOD} = %.1f$" %x[3]]
-        maxDevs = [3e-4, 1e-3, 2*np.pi * 2e-3, 4e0] # Regular bounds, good for 1D
-        #maxDevs = [3e-4, 1e-3, 2*np.pi * 8e-3, 40e0] # Testing extended bounds, looking for chevrons
+        # maxDevs = [3e-4, 1e-3, 2*np.pi * 8e-3, 40e0] # Testing extended bounds, looking for chevrons
 
+        xIndices = []
         if (checkTheta):
             xIndices.append(0)
         if (checkDelta):
@@ -405,7 +408,7 @@ def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkD
 
         if (sum(checkList) == 1):
             xIndex = xIndices[0]
-            deviations = np.linspace(-maxDevs[xIndex], maxDevs[xIndex], nPoints)
+            deviations = np.linspace(-maxDevs[xIndex], maxDevs[xIndex], nPointsList[0])
 
             if (xIndex == 2):
                 # Re-scale x-axis to MHz
@@ -420,7 +423,7 @@ def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkD
                 xDev[xIndex] = x[xIndex] + d
                 fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
                 fidelities.append(fidelity)
-                statusBar((i+1)*100/nPoints)
+                statusBar((i+1)*100/nPointsList[0])
             
             plt.plot(deviations, fidelities, 'b-')
             plt.plot([0, 0], [0, 1], 'r--')
@@ -433,8 +436,11 @@ def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkD
             plt.tight_layout()
             plt.show()
         elif (sum(checkList) == 2):
-            iDeviations = np.linspace(-maxDevs[xIndices[0]], maxDevs[xIndices[0]], nPoints)
-            jDeviations = np.linspace(-maxDevs[xIndices[1]], maxDevs[xIndices[1]], nPoints)
+            if (len(nPointsList) == 1):
+                nPointsList.append(nPointsList[0])
+            
+            iDeviations = np.linspace(-maxDevs[xIndices[0]], maxDevs[xIndices[0]], nPointsList[0])
+            jDeviations = np.linspace(-maxDevs[xIndices[1]], maxDevs[xIndices[1]], nPointsList[1])
             plt.xlabel(axlabels[xIndices[0]], fontsize=26)
             plt.ylabel(axlabels[xIndices[1]], fontsize=26)
             iLegendStr = legendStrs[xIndices[0]]
@@ -447,27 +453,27 @@ def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkD
                     xDev[xIndices[0]] = x[xIndices[0]] + iDev
                     fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
                     fidelities.append(np.abs(fidelity))
-                    statusBar((j*nPoints + (i+1))*100/(nPoints**2))
-            fidelities2D = np.array(fidelities).reshape(nPoints, nPoints)
+                    statusBar((j*nPointsList[0] + (i+1))*100/(nPointsList[0]*nPointsList[1]))
+            fidelities2D = np.array(fidelities).reshape(nPointsList[1], nPointsList[0])
 
             nyTicks = nxTicks = 9
 
-            xlocs = np.linspace(0,nPoints-1,nxTicks)
+            xlocs = np.linspace(0,nPointsList[0]-1,nxTicks)
             xticks = np.linspace(-maxDevs[xIndices[0]], maxDevs[xIndices[0]], nxTicks)
             plt.xticks(xlocs,xticks)
-            ylocs = np.linspace(0,nPoints-1,nyTicks)
+            ylocs = np.linspace(0,nPointsList[1]-1,nyTicks)
             yticks = np.linspace(-maxDevs[xIndices[1]], maxDevs[xIndices[1]], nyTicks)
             plt.yticks(ylocs,yticks)
 
             if (xIndices[0] == 2):
                 # Re-scale x-axis to MHz
-                xlocs = np.linspace(0,nPoints-1,nxTicks)
+                xlocs = np.linspace(0,nPointsList[0]-1,nxTicks)
                 newDevMax = maxDevs[2]/(2*np.pi)*1e3
                 xticks = np.linspace(-newDevMax, newDevMax, nxTicks)
                 plt.xticks(xlocs,xticks)
             elif (xIndices[1] == 2):
                 # Re-scale y-axis to MHz
-                ylocs = np.linspace(0,nPoints-1,nyTicks)
+                ylocs = np.linspace(0,nPointsList[1]-1,nyTicks)
                 newDevMax = maxDevs[2]/(2*np.pi)*1e3
                 yticks = np.linspace(-newDevMax, newDevMax, nyTicks)
                 plt.yticks(ylocs,yticks)
@@ -475,8 +481,8 @@ def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkD
             plt.imshow(fidelities2D, interpolation="bilinear", origin="lower")
             plt.colorbar(label="Fidelitet", orientation="vertical")
 
-            plt.axvline(x=(nPoints-1)/2, color='k')
-            plt.axhline(y=(nPoints-1)/2, color='r')
+            plt.axvline(x=(nPointsList[0]-1)/2, color='k')
+            plt.axhline(y=(nPointsList[1]-1)/2, color='r')
             plt.legend([iLegendStr, jLegendStr], fontsize=19, loc="upper right")
             plt.show()
 
