@@ -376,7 +376,7 @@ def deltaPulsePlot():
     plt.show()
 
 # WIP:
-def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[3e-4, 1e-3, 2*np.pi * 2e-3, 4e0]):
+def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[3e-4, 1e-3, 2*np.pi * 2e-3, 4e0], saveResults=True):
     checkList = [checkTheta, checkDelta, checkOmegaPhi, checkOpTime]
     if (sum(checkList) < 1):
         print("You need to specify at least one parameter to check")

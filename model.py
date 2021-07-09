@@ -93,7 +93,7 @@ def tunableBus(t, theta, delta, omegaphi, omegatb0):
     This function calculates the frequency for the tunable bus, for the case
     when the AC part of the flux has a constant amplitude.
     """
-    oTB = omegatb0*np.sqrt(np.abs(np.cos(PI*Phi(t, theta, delta, omegaphi))))
+    oTB = omegatb0*np.sqrt(np.abs(np.cos(np.pi*Phi(t, theta, delta, omegaphi))))
     return oTB
 
 
@@ -152,7 +152,7 @@ def tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal):
     This function calculates the frequency for the tunable bus, in the case
     where the AC part of the flux has a sinusoidal box envelope.
     """
-    oTB = omegatb0 * np.sqrt(np.abs(np.cos(PI*PhiSinStep(t, theta, delta, omegaphi, sinBoxVal))))
+    oTB = omegatb0 * np.sqrt(np.abs(np.cos(np.pi*PhiSinStep(t, theta, delta, omegaphi, sinBoxVal))))
     return oTB
 
 
@@ -210,17 +210,57 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
     """
 
     # Choose the number of energy levels that should be used in the creation of the hamiltonian components.
-    if N == 4:
+    if N > 2:
+        # Definition of basic operators for an N-level system
+        a = destroy(N) # Annihilation operator for an N-level system
+        ad = create(N) # Creation operator for an N-level system
+        I = qeye(N) # Identity operator for an N-level system
+
+        # The upgraded operators that are given by the tensor product between the different basic operators and the identity operator
+        # Upgraded states are defined as qubit one, qubit two and tunable bus in that order
+        a_1 = tensor(a,I,I)
+        a_2 = tensor(I,a,I)
+        a_TB = tensor(I,I,a)
+
+        ad_1 = tensor(ad,I,I)
+        ad_2 = tensor(I,ad,I)
+        ad_TB = tensor(I,I,ad)
+
         # Get the 4 energy level hamltonian components.
-        H0BB = omegas[0]*ad4_1*a4_1 - (alphas[0]/2.0)*(1-ad4_1*a4_1)*ad4_1*a4_1 + omegas[1]*ad4_2*a4_2 - (alphas[1]/2.0)*(1-ad4_2*a4_2)*ad4_2*a4_2 - (alphas[2]/2.0)*(1-ad4_TB*a4_TB)*ad4_TB*a4_TB
-        HiBB = gs[0]*(ad4_1 + a4_1)*(ad4_TB + a4_TB) + gs[1]*(ad4_2 + a4_2)*(ad4_TB + a4_TB)
-        H1BB = ad4_TB*a4_TB
-    elif N == 3:
-        # Get the 3 energy level hamltonian components.
-        H0BB = omegas[0]*ad3_1*a3_1 - (alphas[0]/2.0)*(1-ad3_1*a3_1)*ad3_1*a3_1 + omegas[1]*ad3_2*a3_2 - (alphas[1]/2.0)*(1-ad3_2*a3_2)*ad3_2*a3_2 - (alphas[2]/2.0)*(1-ad3_TB*a3_TB)*ad3_TB*a3_TB
-        HiBB = gs[0]*(ad3_1 + a3_1)*(ad3_TB + a3_TB) + gs[1]*(ad3_2 + a3_2)*(ad3_TB + a3_TB)
-        H1BB = ad3_TB*a3_TB
+        H0BB = omegas[0]*ad_1*a_1 - (alphas[0]/2.0)*(1-ad_1*a_1)*ad_1*a_1 + omegas[1]*ad_2*a_2 - (alphas[1]/2.0)*(1-ad_2*a_2)*ad_2*a_2 - (alphas[2]/2.0)*(1-ad_TB*a_TB)*ad_TB*a_TB
+        HiBB = gs[0]*(ad_1 + a_1)*(ad_TB + a_TB) + gs[1]*(ad_2 + a_2)*(ad_TB + a_TB)
+        H1BB = ad_TB*a_TB
     else:
+        # Definition of basic operators for a two-level system
+        sp = sigmap() # Raising operator for a two-level system
+        sm = sigmam() # Lowering operator for a two-level system
+        sx = sigmax() # Pauli sigma-x operator
+        sy = sigmay() # Pauli sigma-y operator
+        sz = sigmaz() # Pauli sigma-z operator
+        I = qeye(2) # Identity operator for a two-level system
+
+        # The upgraded operators that are given by the tensor product between the different basic operators and the identity operator
+        # Upgraded states are defined as qubit one, qubit two and tunable bus in that order
+        sx1 = tensor(sx,I,I)
+        sx2 = tensor(I,sx,I)
+        sxTB = tensor(I,I,sx)
+
+        sy1 = tensor(sy,I,I)
+        sy2 = tensor(I,sy,I)
+        syTB = tensor(I,I,sy)
+
+        sz1 = tensor(sz,I,I)
+        sz2 = tensor(I,sz,I)
+        szTB = tensor(I,I,sz)
+
+        sp1 = tensor(sp,I,I)
+        sp2 = tensor(I,sp,I)
+        spTB = tensor(I,I,sp)
+
+        sm1 = tensor(sm,I,I)
+        sm2 = tensor(I,sm,I)
+        smTB = tensor(I,I,sm)
+        
         # Get the 2 energy level hamltonian components.
         H0BB = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2
         HiBB = gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
@@ -371,11 +411,11 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
         if wantiSWAP:
             # Calculate phases (iSWAP):
             phi = np.angle(M[0][0])
-            theta1 = np.angle(M[1][2]) + PI/2 - phi
-            theta2 = np.angle(M[2][1]) + PI/2 - phi
+            theta1 = np.angle(M[1][2]) + np.pi/2 - phi
+            theta2 = np.angle(M[2][1]) + np.pi/2 - phi
 
             # Ideal iSWAP gate matrix (with phases):
-            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, 0, np.exp(1j*(-PI/2 + theta1 + phi)), 0], [0, np.exp(1j*(-PI/2 + theta2 + phi)), 0, 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
+            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, 0, np.exp(1j*(-np.pi/2 + theta1 + phi)), 0], [0, np.exp(1j*(-np.pi/2 + theta2 + phi)), 0, 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
         elif wantCZ:
             # Calculate phases (CZ):
             phi = np.angle(M[0][0])
@@ -383,7 +423,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
             theta2 = np.angle(M[2][2]) - phi
 
             # Ideal CZ gate matrix (with phases):
-            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(PI + theta1 + theta2 + phi))]])
+            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(np.pi + theta1 + theta2 + phi))]])
         elif wantI:
             # Calculate phases (I):
             phi = np.angle(M[0][0])
