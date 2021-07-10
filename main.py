@@ -92,7 +92,7 @@ def main():
 
     # for index in range(64):
     #     findEigenIndex(xUsed, eigenStateIndex=index, N=4, printResult=True)
-    optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True, wantTradGate=True, wantCZ_20=False)
+    optimizeGate(iSWAP=True, energyLevels=4, maxAllowedGateTime=100, runDE=True, wantTradGate=True, wantCZ_20=False)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=240, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=200, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
