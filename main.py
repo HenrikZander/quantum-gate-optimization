@@ -237,6 +237,10 @@ def testMultiprocessing(hamiltonianModule, x):
     print(f'Total running time for cost evaluation in a series: {time.time() - start} seconds.')
 
 
+def testPrint():
+    global cancelOptimization
+    print(f'Test {cancelOptimization}')
+
 ######################################################################################################################################################################
 # Auto-run the main()-function if main.py is compiled.
 
