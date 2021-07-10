@@ -92,12 +92,12 @@ def main():
 
     # for index in range(64):
     #     findEigenIndex(xUsed, eigenStateIndex=index, N=4, printResult=True)
-    # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True, wantTradGate=True, wantCZ_20=False)
+    optimizeGate(iSWAP=True, energyLevels=4, maxAllowedGateTime=100, runDE=True, wantTradGate=True, wantCZ_20=False)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=240, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=200, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
-    simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=4, highestProjectionIndex=12)
+    # simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=5, N=4, highestProjectionIndex=12)
     # plotFidelity(xUsed, wantiSWAP=False, wantCZ=True)
     # deltaPulsePlot()
     # testPlotStates()
@@ -236,6 +236,10 @@ def testMultiprocessing(hamiltonianModule, x):
         costParallel(x)
     print(f'Total running time for cost evaluation in a series: {time.time() - start} seconds.')
 
+
+def testPrint():
+    global cancelOptimization
+    print(f'Test {cancelOptimization}')
 
 ######################################################################################################################################################################
 # Auto-run the main()-function if main.py is compiled.
