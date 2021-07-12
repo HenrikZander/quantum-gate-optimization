@@ -14,18 +14,23 @@ cancelOptimization = False
 relativeHeight = 0.85
 relativeWidth = 1
 
+SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+subscriptZero = "0".translate(SUB)
+
 def generateGlobalVariables(root):
     global runDifferentialEvolution
     global runSimplicalHomologyGlobal
     global runDualAnneling
     global selectedGate
     global energyLevels
+    global riseTime
 
     runDifferentialEvolution = BooleanVar(root)
     runSimplicalHomologyGlobal = BooleanVar(root)
     runDualAnneling = BooleanVar(root)
     selectedGate = StringVar(root)
     energyLevels = IntVar(root)
+    riseTime = IntVar(root)
 
 ######################################################################################################################################################################
 # Button callbacks
@@ -306,6 +311,124 @@ def generateSelectEnergyLevels(settingsFrameRight):
     selectEnergyLevels.pack(side=LEFT)
 
 
+def generateThetaBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
+
+    thetaInputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60, background="yellow")
+    thetaInputFrameOuter.grid(row=1, column=0, columnspan=3)
+
+    thetaInputFrameInner = Frame(thetaInputFrameOuter, background="blue")
+    thetaInputFrameInner.place(anchor="e", relx=0.8, rely=0.5)
+
+    thetaLabel = Label(thetaInputFrameInner, text="Strength of DC-flux \u0398 [\u03A6"+subscriptZero+"]:")
+    thetaLabel.pack(side=LEFT, padx=(0,5))
+
+    lowerThetaLabel = Label(thetaInputFrameInner, text="Lower limit:")
+    lowerThetaLabel.pack(side=LEFT)
+
+    lowerThetaEntry = Entry(thetaInputFrameInner, width=entryCharacterWidth)
+    lowerThetaEntry.pack(side=LEFT, padx=(0,5))
+
+    upperThetaLabel = Label(thetaInputFrameInner, text="Upper limit:")
+    upperThetaLabel.pack(side=LEFT)
+
+    upperThetaEntry = Entry(thetaInputFrameInner, width=entryCharacterWidth)
+    upperThetaEntry.pack(side=LEFT)
+
+
+def generateDeltaBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
+
+    deltaInputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60, background="green")
+    deltaInputFrameOuter.grid(row=2, column=0, columnspan=3)
+
+    deltaInputFrameInner = Frame(deltaInputFrameOuter, background="blue")
+    deltaInputFrameInner.place(anchor="e", relx=0.8, rely=0.5)
+
+    deltaLabel = Label(deltaInputFrameInner, text="Amplitude of \u03B4(t) [\u03A6"+subscriptZero+"]:")
+    deltaLabel.pack(side=LEFT, padx=(0,5))
+
+    lowerDeltaLabel = Label(deltaInputFrameInner, text="Lower limit:")
+    lowerDeltaLabel.pack(side=LEFT)
+
+    lowerDeltaEntry = Entry(deltaInputFrameInner, width=entryCharacterWidth)
+    lowerDeltaEntry.pack(side=LEFT, padx=(0,5))
+
+    upperDeltaLabel = Label(deltaInputFrameInner, text="Upper limit:")
+    upperDeltaLabel.pack(side=LEFT)
+
+    upperDeltaEntry = Entry(deltaInputFrameInner, width=entryCharacterWidth)
+    upperDeltaEntry.pack(side=LEFT)
+
+
+def generateOmegaPhiBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
+
+    omegaPhiInputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60, background="yellow")
+    omegaPhiInputFrameOuter.grid(row=3, column=0, columnspan=3)
+
+    omegaPhiInputFrameInner = Frame(omegaPhiInputFrameOuter, background="blue")
+    omegaPhiInputFrameInner.place(anchor="e", relx=0.8, rely=0.5)
+
+    omegaPhiLabel = Label(omegaPhiInputFrameInner, text="Frequency \u03C9 of AC-flux [GHz]:")
+    omegaPhiLabel.pack(side=LEFT, padx=(0,5))
+
+    lowerOmegaPhiLabel = Label(omegaPhiInputFrameInner, text="Lower limit:")
+    lowerOmegaPhiLabel.pack(side=LEFT)
+
+    lowerOmegaPhiEntry = Entry(omegaPhiInputFrameInner, width=entryCharacterWidth)
+    lowerOmegaPhiEntry.pack(side=LEFT, padx=(0,5))
+
+    upperOmegaPhiLabel = Label(omegaPhiInputFrameInner, text="Upper limit:")
+    upperOmegaPhiLabel.pack(side=LEFT)
+
+    upperOmegaPhiEntry = Entry(omegaPhiInputFrameInner, width=entryCharacterWidth)
+    upperOmegaPhiEntry.pack(side=LEFT)
+
+
+def generateModulationTimeBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
+
+    modulationTimeInputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60, background="green")
+    modulationTimeInputFrameOuter.grid(row=4, column=0, columnspan=3)
+
+    modulationTimeInputFrameInner = Frame(modulationTimeInputFrameOuter, background="blue")
+    modulationTimeInputFrameInner.place(anchor="e", relx=0.8, rely=0.5)
+
+    modulationTimeLabel = Label(modulationTimeInputFrameInner, text="Total modulation time of AC-flux [s]:")
+    modulationTimeLabel.pack(side=LEFT, padx=(0,5))
+
+    lowerModulationTimeLabel = Label(modulationTimeInputFrameInner, text="Lower limit:")
+    lowerModulationTimeLabel.pack(side=LEFT)
+
+    lowerModulationTimeEntry = Entry(modulationTimeInputFrameInner, width=entryCharacterWidth)
+    lowerModulationTimeEntry.pack(side=LEFT, padx=(0,5))
+
+    upperModulationTimeLabel = Label(modulationTimeInputFrameInner, text="Upper limit:")
+    upperModulationTimeLabel.pack(side=LEFT)
+
+    upperModulationTimeEntry = Entry(modulationTimeInputFrameInner, width=entryCharacterWidth)
+    upperModulationTimeEntry.pack(side=LEFT)
+
+
+def generateBoundaryInput(inputBoundaryFrame):
+    entryCharacterWidth = 4
+
+    riseTimeFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60, background="red")
+    riseTimeFrameOuter.grid(row=0, column=0, columnspan=3)
+
+    riseTimeFrame = Frame(riseTimeFrameOuter, background="blue")
+    riseTimeFrame.place(anchor="center", relx=0.5, rely=0.5)
+
+    riseTimeLabel = Label(riseTimeFrame, text="Rise time of \u03B4(t) (from 0% to 100%) [ns]:")
+    riseTimeLabel.pack(side=LEFT, padx=(0,5))
+
+    riseTimeEntry = ttk.Spinbox(riseTimeFrame, from_=15, to=100, textvariable=riseTime, width=4, state="readonly")
+    riseTimeEntry.set(25)
+    riseTimeEntry.pack(side=LEFT)
+
+    generateThetaBoundaryInput(inputBoundaryFrame, entryCharacterWidth)
+    generateDeltaBoundaryInput(inputBoundaryFrame, entryCharacterWidth)
+    generateOmegaPhiBoundaryInput(inputBoundaryFrame, entryCharacterWidth)
+    generateModulationTimeBoundaryInput(inputBoundaryFrame, entryCharacterWidth)
+
+
 def generateLeftSettings(settingsFrameLeft):
     generateSelectAlgorithm(settingsFrameLeft)
 
@@ -325,9 +448,15 @@ def generateBoundarySettings(settingsBoundaryFrame):
     selectSignalTitle = Label(selectSignalFrameInner, text="Shape of magnetic flux signal (\u03A6):")
     selectSignalTitle.pack(side=LEFT, padx=(0,5))
 
-    selectSignal = ttk.Combobox(selectSignalFrameInner, state="readonly", values=('\u03A6 = \u0398 + \u03B4 \u2022 cos(\u03C9t)','Another signal'))
+    selectSignal = ttk.Combobox(selectSignalFrameInner, state="readonly", values=('\u03A6 = \u0398 + \u03B4(t) \u2022 cos(\u03C9t)','Arccos-signal'))
     selectSignal.current(0)
     selectSignal.pack(side=LEFT)
+
+    inputBoundaryFrame = Frame(settingsBoundaryFrame, height=175, width=relativeWidth*width*0.60, background="orange")
+    inputBoundaryFrame.grid(row=1, column=0)
+    inputBoundaryFrame.grid_propagate(0)
+
+    generateBoundaryInput(inputBoundaryFrame)
 
 
 def optimizerSettingsFrame(topFrame):
@@ -358,11 +487,11 @@ def optimizerSettingsFrame(topFrame):
     settingsBoundaryTitleFrame = Frame(settingsFrame, height=settingsTitleFrameHeight, width=relativeWidth*width*0.60, background="orange")
     settingsBoundaryTitleFrame.grid(row=2, column=0, columnspan=2)
 
-    settingsBoundaryTitle = Label(settingsBoundaryTitleFrame, text='Boundary search limits', font=('Helvetica',12))
+    settingsBoundaryTitle = Label(settingsBoundaryTitleFrame, text='Magnetic flux signal and search boundaries', font=('Helvetica',12))
     settingsBoundaryTitle.configure(font=titleSettingsFont)
     settingsBoundaryTitle.place(anchor='center', relx=0.5, rely=0.5)
 
-    settingsBoundaryFrame = Frame(settingsFrame, height=relativeHeight*height-settingsFrameHeight, width=relativeWidth*width*0.60, background="green")
+    settingsBoundaryFrame = Frame(settingsFrame, height=relativeHeight*height-settingsFrameHeight, width=relativeWidth*width*0.60, background="orange")
     settingsBoundaryFrame.grid(row=3, column=0, columnspan=2)
     settingsBoundaryFrame.grid_propagate(0)
 
