@@ -111,9 +111,6 @@ def main():
 ######################################################################################################################################################################
 # Functions used in testing.
 
-def test():
-    pass
-
 
 def testEigenstateOrder():
     plotEigenenergies(xUsed, N=4, simPoints=200, numOfEnergyLevels=None)
