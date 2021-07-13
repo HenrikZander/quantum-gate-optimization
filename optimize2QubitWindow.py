@@ -7,7 +7,7 @@ import time
 from main import *
 
 ######################################################################################################################################################################
-# Global variables and function to generate global variables
+# Global variables and function to initiate global variables
 
 height = 600
 width = int(1.62*height)
@@ -17,6 +17,7 @@ relativeWidth = 0.98
 
 SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 subscriptZero = "0".translate(SUB)
+
 
 def initiateGlobalVariables(root):
     global frequencyQ1
@@ -42,7 +43,7 @@ def initiateGlobalVariables(root):
     global numberOfConsecutiveSessions
     resultFolderPath = StringVar(root)
     numberOfConsecutiveSessions = IntVar(root)
-
+    
     global runDifferentialEvolution
     global runSimplicalHomologyGlobal
     global runDualAnneling
@@ -81,7 +82,9 @@ def initiateGlobalVariables(root):
     modulationTimeUpper = DoubleVar(root)
 
     global progressValue
+    global statusString
     progressValue = DoubleVar(root)
+    statusString = StringVar(root)
 
 ######################################################################################################################################################################
 # Button callbacks
@@ -89,7 +92,7 @@ def initiateGlobalVariables(root):
 def selectSaveFolder():
     folderPath = filedialog.askdirectory(title="Choose folder to save results in", initialdir="C:/")
     if folderPath:
-        print(folderPath)
+        resultFolderPath.set(folderPath)
 
 
 def startOptimizing():
@@ -110,7 +113,7 @@ def stopOptimizing():
 
 
 def loadCircuit():
-    print(runDifferentialEvolution.get())
+    print(frequencyQ1.get())
     print("Circuit loaded.")
 
 
@@ -144,12 +147,10 @@ def optimizeStatusFrame(bottomFrame):
     progressFrame.grid(column=0, row=0, rowspan=2, columnspan=2)
     progressFrame.grid_propagate(0)
 
-    global progressLabel
-    progressLabel = Label(bottomFrame, text="Status: Ready to optimize.", font=("Helvetica", 11))
+    progressLabel = Label(bottomFrame, text="Status: Ready to optimize.", font=("Helvetica", 11), textvariable=statusString)
     progressLabel.place(relx=0.05, rely=0.5, anchor='sw')
 
-    global progress
-    progress = ttk.Progressbar(bottomFrame, length=width*0.67, orient=HORIZONTAL, mode='determinate', value=0)
+    progress = ttk.Progressbar(bottomFrame, length=width*0.67, orient=HORIZONTAL, mode='determinate', value=0, variable=progressValue)
     progress.place(relx=0.05, rely=0.5, anchor='nw')
 
 ##################################################################################
@@ -174,7 +175,7 @@ def generateSaveFolderInput(circuitFrame, entryCharacterWidth):
     saveFolderFrameInner = Frame(saveFolderFrameOuter)
     saveFolderFrameInner.place(anchor='center', relx=0.5, rely=0.5)
 
-    saveFolderEntry = Entry(saveFolderFrameInner, state="readonly", width=45, readonlybackground="white")
+    saveFolderEntry = Entry(saveFolderFrameInner, state="readonly", width=45, readonlybackground="white", textvariable=resultFolderPath)
     saveFolderEntry.pack(side=LEFT)
 
     saveFolderButton = Button(saveFolderFrameInner, text="Select Folder", command=selectSaveFolder, background="#21e4d7")
@@ -189,7 +190,7 @@ def generateSaveFolderInput(circuitFrame, entryCharacterWidth):
     numOfSessionsLabel = Label(numOfSessionsFrameInner, text="Number of consecutive optimizations to run: ")
     numOfSessionsLabel.pack(side=LEFT)
 
-    numOfSessionsInputBox = ttk.Spinbox(numOfSessionsFrameInner, from_=1, to=10, state="readonly", width=4)
+    numOfSessionsInputBox = ttk.Spinbox(numOfSessionsFrameInner, from_=1, to=10, state="readonly", width=4, textvariable=numberOfConsecutiveSessions)
     numOfSessionsInputBox.set(1)
     numOfSessionsInputBox.pack(side=LEFT)
 
@@ -204,13 +205,13 @@ def generateCouplingInputs(circuitFrame, entryCharacterWidth):
     couplingLabelQ1 = Label(couplingInputFrameInner, text="Q1: ")
     couplingLabelQ1.pack(side=LEFT, padx=(0,0))
 
-    couplingEntryQ1 = Entry(couplingInputFrameInner, width=entryCharacterWidth)
+    couplingEntryQ1 = Entry(couplingInputFrameInner, width=entryCharacterWidth, textvariable=couplingQ1)
     couplingEntryQ1.pack(side=LEFT)
 
     couplingLabelQ2 = Label(couplingInputFrameInner, text="Q2: ")
     couplingLabelQ2.pack(side=LEFT, padx=(10,0), pady=5)
 
-    couplingEntryQ2 = Entry(couplingInputFrameInner, width=entryCharacterWidth)
+    couplingEntryQ2 = Entry(couplingInputFrameInner, width=entryCharacterWidth, textvariable=couplingQ2)
     couplingEntryQ2.pack(side=LEFT, padx=(0,5))
 
 
@@ -224,23 +225,23 @@ def generateAnharmonicityInputs(circuitFrame, entryCharacterWidth):
     anharmonicityLabelQ1 = Label(anharmonicityInputFrameInner, text="Q1: ")
     anharmonicityLabelQ1.pack(side=LEFT, padx=(0,0))
 
-    anharmonicityEntryQ1 = Entry(anharmonicityInputFrameInner, width=entryCharacterWidth)
+    anharmonicityEntryQ1 = Entry(anharmonicityInputFrameInner, width=entryCharacterWidth, textvariable=anharmonicityQ1)
     anharmonicityEntryQ1.pack(side=LEFT)
 
     anharmonicityLabelQ2 = Label(anharmonicityInputFrameInner, text="Q2: ")
     anharmonicityLabelQ2.pack(side=LEFT, padx=(10,0))
 
-    anharmonicityEntryQ2 = Entry(anharmonicityInputFrameInner, width=entryCharacterWidth)
+    anharmonicityEntryQ2 = Entry(anharmonicityInputFrameInner, width=entryCharacterWidth, textvariable=anharmonicityQ2)
     anharmonicityEntryQ2.pack(side=LEFT)
 
     anharmonicityLabelCoupler = Label(anharmonicityInputFrameInner, text="Coupler: ")
     anharmonicityLabelCoupler.pack(side=LEFT, padx=(10,0), pady=5)
 
-    anharmonicityEntryCoupler = Entry(anharmonicityInputFrameInner, width=entryCharacterWidth)
+    anharmonicityEntryCoupler = Entry(anharmonicityInputFrameInner, width=entryCharacterWidth, textvariable=anharmonicityCoupler)
     anharmonicityEntryCoupler.pack(side=LEFT, padx=(0,5))
 
 
-def generateFrequencyInputs(circuitFrame, entryCharacterWidth):
+def generateFrequencyInputs(circuitFrame, entryCharacterWidth):    
     frequencyInputFrameOuter = Frame(circuitFrame, height=60, width=relativeWidth*width*0.40)#, background="orange")
     frequencyInputFrameOuter.grid(row=1, column=0, columnspan=3)
 
@@ -250,19 +251,19 @@ def generateFrequencyInputs(circuitFrame, entryCharacterWidth):
     frequencyLabelQ1 = Label(frequencyInputFrameInner, text="Q1: ")
     frequencyLabelQ1.pack(side=LEFT, padx=(0,0))
 
-    frequencyEntryQ1 = Entry(frequencyInputFrameInner, width=entryCharacterWidth)
+    frequencyEntryQ1 = Entry(frequencyInputFrameInner, width=entryCharacterWidth, textvariable=frequencyQ1)
     frequencyEntryQ1.pack(side=LEFT)
 
     frequencyLabelQ2 = Label(frequencyInputFrameInner, text="Q2: ")
     frequencyLabelQ2.pack(side=LEFT, padx=(10,0))
 
-    frequencyEntryQ2 = Entry(frequencyInputFrameInner, width=entryCharacterWidth)
+    frequencyEntryQ2 = Entry(frequencyInputFrameInner, width=entryCharacterWidth, textvariable=frequencyQ2)
     frequencyEntryQ2.pack(side=LEFT)
 
     frequencyLabelCoupler = Label(frequencyInputFrameInner, text="Coupler: ")
     frequencyLabelCoupler.pack(side=LEFT, padx=(10,0), pady=5)
 
-    frequencyEntryCoupler = Entry(frequencyInputFrameInner, width=entryCharacterWidth)
+    frequencyEntryCoupler = Entry(frequencyInputFrameInner, width=entryCharacterWidth, textvariable=frequencyCoupler)
     frequencyEntryCoupler.pack(side=LEFT, padx=(0,5))
 
 
@@ -328,13 +329,13 @@ def generateModulationTimeBoundaryInput(inputBoundaryFrame, entryCharacterWidth)
     lowerModulationTimeLabel = Label(modulationTimeInputFrameInner, text="Lower limit:")
     lowerModulationTimeLabel.pack(side=LEFT)
 
-    lowerModulationTimeEntry = Entry(modulationTimeInputFrameInner, width=entryCharacterWidth)
+    lowerModulationTimeEntry = Entry(modulationTimeInputFrameInner, width=entryCharacterWidth, textvariable=modulationTimeLower)
     lowerModulationTimeEntry.pack(side=LEFT, padx=(0,5))
 
     upperModulationTimeLabel = Label(modulationTimeInputFrameInner, text="Upper limit:")
     upperModulationTimeLabel.pack(side=LEFT)
 
-    upperModulationTimeEntry = Entry(modulationTimeInputFrameInner, width=entryCharacterWidth)
+    upperModulationTimeEntry = Entry(modulationTimeInputFrameInner, width=entryCharacterWidth, textvariable=modulationTimeUpper)
     upperModulationTimeEntry.pack(side=LEFT)
 
 
@@ -351,13 +352,13 @@ def generateOmegaPhiBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
     lowerOmegaPhiLabel = Label(omegaPhiInputFrameInner, text="Lower limit:")
     lowerOmegaPhiLabel.pack(side=LEFT)
 
-    lowerOmegaPhiEntry = Entry(omegaPhiInputFrameInner, width=entryCharacterWidth)
+    lowerOmegaPhiEntry = Entry(omegaPhiInputFrameInner, width=entryCharacterWidth, textvariable=omegaPhiLower)
     lowerOmegaPhiEntry.pack(side=LEFT, padx=(0,5))
 
     upperOmegaPhiLabel = Label(omegaPhiInputFrameInner, text="Upper limit:")
     upperOmegaPhiLabel.pack(side=LEFT)
 
-    upperOmegaPhiEntry = Entry(omegaPhiInputFrameInner, width=entryCharacterWidth)
+    upperOmegaPhiEntry = Entry(omegaPhiInputFrameInner, width=entryCharacterWidth, textvariable=omegaPhiUpper)
     upperOmegaPhiEntry.pack(side=LEFT)
 
 
@@ -374,13 +375,13 @@ def generateDeltaBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
     lowerDeltaLabel = Label(deltaInputFrameInner, text="Lower limit:")
     lowerDeltaLabel.pack(side=LEFT)
 
-    lowerDeltaEntry = Entry(deltaInputFrameInner, width=entryCharacterWidth)
+    lowerDeltaEntry = Entry(deltaInputFrameInner, width=entryCharacterWidth, textvariable=deltaLower)
     lowerDeltaEntry.pack(side=LEFT, padx=(0,5))
 
     upperDeltaLabel = Label(deltaInputFrameInner, text="Upper limit:")
     upperDeltaLabel.pack(side=LEFT)
 
-    upperDeltaEntry = Entry(deltaInputFrameInner, width=entryCharacterWidth)
+    upperDeltaEntry = Entry(deltaInputFrameInner, width=entryCharacterWidth, textvariable=deltaUpper)
     upperDeltaEntry.pack(side=LEFT)
 
 
@@ -397,13 +398,13 @@ def generateThetaBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
     lowerThetaLabel = Label(thetaInputFrameInner, text="Lower limit:")
     lowerThetaLabel.pack(side=LEFT)
 
-    lowerThetaEntry = Entry(thetaInputFrameInner, width=entryCharacterWidth)
+    lowerThetaEntry = Entry(thetaInputFrameInner, width=entryCharacterWidth, textvariable=thetaLower)
     lowerThetaEntry.pack(side=LEFT, padx=(0,5))
 
     upperThetaLabel = Label(thetaInputFrameInner, text="Upper limit:")
     upperThetaLabel.pack(side=LEFT)
 
-    upperThetaEntry = Entry(thetaInputFrameInner, width=entryCharacterWidth)
+    upperThetaEntry = Entry(thetaInputFrameInner, width=entryCharacterWidth, textvariable=thetaUpper)
     upperThetaEntry.pack(side=LEFT)
 
 
@@ -491,7 +492,7 @@ def generateBoundarySettings(settingsBoundaryFrame):
     selectSignalTitle = Label(selectSignalFrameInner, text="Shape of magnetic flux signal (\u03A6):")
     selectSignalTitle.pack(side=LEFT, padx=(0,5))
 
-    selectSignal = ttk.Combobox(selectSignalFrameInner, state="readonly", values=('\u03A6 = \u0398 + \u03B4(t) \u2022 cos(\u03C9t)','Arccos-signal (not implemented)'))
+    selectSignal = ttk.Combobox(selectSignalFrameInner, state="readonly", values=('\u03A6 = \u0398 + \u03B4(t) \u2022 cos(\u03C9t)','Arccos-signal (not implemented)'), textvariable=signalShape)
     selectSignal.current(0)
     selectSignal.pack(side=LEFT)
 
