@@ -28,7 +28,6 @@ def main():
     programIcon = PhotoImage(file = "../GUI/Gateside_Logomark.png")
     root.iconphoto(False, programIcon)
 
-    generateGlobalVariables(root)
     optimizeControlWindow(root)
 
     root.mainloop()
@@ -37,6 +36,8 @@ def main():
 # Generate different windows
 
 def optimizeControlWindow(root):
+    initiateGlobalVariables(root)
+
     topFrame = Frame(root, height=relativeHeight*height, width=relativeWidth*width)#, background="green")
     topFrame.grid(row=0, column=0)
     topFrame.grid_propagate(0)

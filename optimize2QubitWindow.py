@@ -18,7 +18,7 @@ relativeWidth = 0.98
 SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 subscriptZero = "0".translate(SUB)
 
-def generateGlobalVariables(root):
+def initiateGlobalVariables(root):
     global runDifferentialEvolution
     global runSimplicalHomologyGlobal
     global runDualAnneling
