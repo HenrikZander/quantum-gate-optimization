@@ -4,16 +4,13 @@ import tkinter.font as tkFont
 import time
 
 from main import *
-from optimize2QubitWindow import *
+import optimize2QubitWindow
 
 ######################################################################################################################################################################
-# Global variables and function to generate global variables
+# Global variables
 
 height = 600
 width = int(1.62*height)
-cancelOptimization = False
-relativeHeight = 0.85
-relativeWidth = 1
 
 ######################################################################################################################################################################
 # Main 
@@ -22,32 +19,46 @@ def main():
     global root
 
     root = Tk()
-    generateGlobalVariables(root)
     root.title("GateSide")
     root.geometry(str(width)+"x"+str(height))
     root.resizable(width=False, height=False)
     programIcon = PhotoImage(file = "../GUI/Gateside_Logomark.png")
     root.iconphoto(False, programIcon)
 
-    optimizeControlWindow(root)
+    optimizeControlWindow(root, height)
 
     root.mainloop()
 
 ######################################################################################################################################################################
-# Generate different windows
+# Functions that is used to manage the config.JSON-file.
 
-def optimizeControlWindow(root):
-    topFrame = Frame(root, height=relativeHeight*height, width=relativeWidth*width, background="green")
-    topFrame.grid(column=0, row=0)
+
+
+######################################################################################################################################################################
+# Functions that generate different windows
+
+def optimizeControlWindow(root, height):
+    optimize2QubitWindow.initiateGlobalVariables(root, height)
+    relativeHeight = optimize2QubitWindow.relativeHeight
+    relativeWidth = optimize2QubitWindow.relativeWidth
+
+    topFrame = Frame(root, height=relativeHeight*height, width=relativeWidth*width)#, background="green")
+    topFrame.grid(row=0, column=0)
     topFrame.grid_propagate(0)
 
-    bottomFrame = Frame(root, height=(1-relativeHeight)*height, width=relativeWidth*width)
-    bottomFrame.grid(column=0, row=1)
+    separator = ttk.Separator(root, orient='horizontal')
+    separator.grid(row=1, column=0, sticky="nesw")
+
+    bottomFrame = Frame(root, height=(1-relativeHeight-0.02)*height, width=relativeWidth*width)
+    bottomFrame.grid(row=2, column=0)
     bottomFrame.grid_propagate(0)
 
-    optimizeStatusFrame(bottomFrame)
-    optimizeCircuitParameterFrame(topFrame)
-    optimizerSettingsFrame(topFrame)
+    optimize2QubitWindow.optimizeStatusFrame(bottomFrame)
+    optimize2QubitWindow.optimizeCircuitParameterFrame(topFrame)
+    optimize2QubitWindow.optimizerSettingsFrame(topFrame)
+
+    optimize2QubitWindow.useDefaultCircuit()
+    optimize2QubitWindow.setDefaultBoundaryValues()
 
 ######################################################################################################################################################################
 # Auto-run the main()-function if main.py is compiled.

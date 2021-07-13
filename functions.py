@@ -236,13 +236,16 @@ def getjsonDict(fileName):
         jsonDict = json.load(jsonFile)
     return jsonDict
 
-def dumpjsonDict(dict, fileName):
+
+def dumpjsonDict(data, fileName):
     with open(fileName, 'w') as jsonFile:
-        json.dump(dict, jsonFile, ensure_ascii=False, indent=4)
+        json.dump(data, jsonFile, ensure_ascii=False, indent=4)
+
 
 def getSolutionNameList():
     solsDict = getjsonDict('solutions.json')
     return [xName for xName in solsDict]
+
 
 def createSolName(ymd,gateType,solNumberStr,usedNlvls):
     return "x_" + ymd + "_" + gateType + "_" + solNumberStr + "_" + usedNlvls
@@ -290,7 +293,6 @@ def saveSolutionsTojson(results, gateType, N, fileName="solutions.json", dateAnd
         x = results[i].x.tolist()
         addNewSolution(x, gateType, N, fileName=fileName, creationTime=dateAndTime)
     
-
 ######################################################################################################################################################################
 # Simulation functions
 

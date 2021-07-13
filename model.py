@@ -35,7 +35,7 @@ def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=F
     This function gets the bounds for the different
     parameters that the optimizer can change in the
     simulation. The function assumes the associated parameters
-    to have the shape: x = [Theta, delta, omegaPhi, operationTime].
+    to have the shape: x = [Theta, delta, omegaPhi, modulationTime].
     ---------------------------------------------------------
     INPUT:
             maxAllowedGateTime (int) {Optional}: The maximum gate time that
