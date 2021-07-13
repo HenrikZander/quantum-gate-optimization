@@ -31,11 +31,10 @@ from datetime import datetime
 # Functions for saving optimization results to a .txt file.
 
 
-def saveAllFinalResults(results, algorithm, runtime, fileName="result.txt"):
+def saveAllFinalResults(results, algorithm, runtime, fileName="result.txt", dateAndTime=datetime.today()):
     resultFile = open(fileName, "a")
-    todaysDate = datetime.now()
     for i in range(len(results)):
-        dateStr = f'Result (full) from: {todaysDate}\n'
+        dateStr = f'Result (full) from: {dateAndTime}\n'
         algorithmStr = f'Algorithm: {algorithm[i]}\n'
         runtimeStr = f'Total runtime: {runtime[i]} seconds\n'
         dividerStr = "##################################################\n"
@@ -46,11 +45,10 @@ def saveAllFinalResults(results, algorithm, runtime, fileName="result.txt"):
     resultFile.close()
     
     
-def saveResToFile(result, algorithmName, iterations, runtime, algorithmDE=False, algorithmSHG=False, fileName="result.txt"):
+def saveResToFile(result, algorithmName, iterations, runtime, algorithmDE=False, algorithmSHG=False, fileName="result.txt", dateAndTime=datetime.today()):
     resultFile = open(fileName, "a")
-    todaysDate = datetime.now()
     
-    dateStr = f'Result (timeout) from: {todaysDate}\n'
+    dateStr = f'Result (timeout) from: {dateAndTime}\n'
     iterStr = f'Total iterations performed (or minima found): {iterations}\n'
     runtimeStr = f'Total runtime for algorithm: {runtime} seconds.\n'
     dividerStr = "##################################################\n"
