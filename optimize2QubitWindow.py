@@ -9,9 +9,6 @@ from main import *
 ######################################################################################################################################################################
 # Global variables and function to initiate global variables
 
-height = 600
-width = int(1.62*height)
-cancelOptimization = False
 relativeHeight = 0.85
 relativeWidth = 0.98
 
@@ -19,7 +16,12 @@ SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 subscriptZero = "0".translate(SUB)
 
 
-def initiateGlobalVariables(root):
+def initiateGlobalVariables(root, givenHeight):
+    global height
+    global width
+    height = givenHeight
+    width = int(1.62*height)
+
     global frequencyQ1
     global frequencyQ2
     global frequencyCoupler

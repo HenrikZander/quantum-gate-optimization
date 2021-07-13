@@ -7,13 +7,10 @@ from main import *
 from optimize2QubitWindow import *
 
 ######################################################################################################################################################################
-# Global variables and function to generate global variables
+# Global variables
 
 height = 600
 width = int(1.62*height)
-cancelOptimization = False
-relativeHeight = 0.85
-relativeWidth = 1
 
 ######################################################################################################################################################################
 # Main 
@@ -28,15 +25,20 @@ def main():
     programIcon = PhotoImage(file = "../GUI/Gateside_Logomark.png")
     root.iconphoto(False, programIcon)
 
-    optimizeControlWindow(root)
+    optimizeControlWindow(root, height)
 
     root.mainloop()
 
 ######################################################################################################################################################################
-# Generate different windows
+# Functions that is used to manage the config.JSON-file.
 
-def optimizeControlWindow(root):
-    initiateGlobalVariables(root)
+
+
+######################################################################################################################################################################
+# Functions that generate different windows
+
+def optimizeControlWindow(root, height):
+    initiateGlobalVariables(root, height)
 
     topFrame = Frame(root, height=relativeHeight*height, width=relativeWidth*width)#, background="green")
     topFrame.grid(row=0, column=0)
