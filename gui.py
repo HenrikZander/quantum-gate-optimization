@@ -22,13 +22,13 @@ def main():
     global root
 
     root = Tk()
-    generateGlobalVariables(root)
     root.title("GateSide")
     root.geometry(str(width)+"x"+str(height))
     root.resizable(width=False, height=False)
     programIcon = PhotoImage(file = "../GUI/Gateside_Logomark.png")
     root.iconphoto(False, programIcon)
 
+    generateGlobalVariables(root)
     optimizeControlWindow(root)
 
     root.mainloop()
@@ -37,12 +37,15 @@ def main():
 # Generate different windows
 
 def optimizeControlWindow(root):
-    topFrame = Frame(root, height=relativeHeight*height, width=relativeWidth*width, background="green")
-    topFrame.grid(column=0, row=0)
+    topFrame = Frame(root, height=relativeHeight*height, width=relativeWidth*width)#, background="green")
+    topFrame.grid(row=0, column=0)
     topFrame.grid_propagate(0)
 
-    bottomFrame = Frame(root, height=(1-relativeHeight)*height, width=relativeWidth*width)
-    bottomFrame.grid(column=0, row=1)
+    separator = ttk.Separator(root, orient='horizontal')
+    separator.grid(row=1, column=0, sticky="nesw")
+
+    bottomFrame = Frame(root, height=(1-relativeHeight-0.02)*height, width=relativeWidth*width)
+    bottomFrame.grid(row=2, column=0)
     bottomFrame.grid_propagate(0)
 
     optimizeStatusFrame(bottomFrame)

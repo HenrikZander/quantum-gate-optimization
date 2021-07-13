@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import filedialog
 import tkinter.ttk as ttk
 import tkinter.font as tkFont
 import time
@@ -12,7 +13,7 @@ height = 600
 width = int(1.62*height)
 cancelOptimization = False
 relativeHeight = 0.85
-relativeWidth = 1
+relativeWidth = 0.98
 
 SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 subscriptZero = "0".translate(SUB)
@@ -34,6 +35,12 @@ def generateGlobalVariables(root):
 
 ######################################################################################################################################################################
 # Button callbacks
+
+def selectSaveFolder():
+    folderPath = filedialog.askdirectory(title="Choose folder to save results in", initialdir="C:/")
+    if folderPath:
+        print(folderPath)
+
 
 def startOptimizing():
     progress.start(5)
@@ -80,7 +87,7 @@ def optimizeStatusFrame(bottomFrame):
     stopOptimizeButton = Button(bottomFrame, text="Stop Optimizing", padx=3, pady=3, background="grey")
     stopOptimizeButton.grid(column=2, row=1)
 
-    progressFrame = Frame(bottomFrame, height=(1-relativeHeight)*height, width=relativeWidth*width*0.80)
+    progressFrame = Frame(bottomFrame, height=(1-relativeHeight)*height, width=width*0.80)
     progressFrame.grid(column=0, row=0, rowspan=2, columnspan=2)
     progressFrame.grid_propagate(0)
 
@@ -94,8 +101,8 @@ def optimizeStatusFrame(bottomFrame):
 
 
 def generateCircuitInputControls(circuitFrame):
-    controlsInputFrameOuter = Frame(circuitFrame, height=120, width=relativeWidth*width*0.40)#, background="orange")
-    controlsInputFrameOuter.grid(row=7, column=0, columnspan=3)
+    controlsInputFrameOuter = Frame(circuitFrame, height=80, width=relativeWidth*width*0.40)#, background="orange")
+    controlsInputFrameOuter.grid(row=4, column=0, columnspan=3)
 
     controlsInputFrameInner = Frame(controlsInputFrameOuter)
     controlsInputFrameInner.place(anchor='center', relx=0.5, rely=0.5)
@@ -118,16 +125,16 @@ def generateCircuitInputControls(circuitFrame):
 
 
 def generateCouplingInputs(circuitFrame, entryCharacterWidth):
-    couplingTitleFrame = Frame(circuitFrame, height=30, width=relativeWidth*width*0.40)#, background="blue")
-    couplingTitleFrame.grid(row=5, column=0, columnspan=3)
+    # couplingTitleFrame = Frame(circuitFrame, height=30, width=relativeWidth*width*0.40)#, background="blue")
+    # couplingTitleFrame.grid(row=5, column=0, columnspan=3)
     
-    couplingTitle = Label(couplingTitleFrame, text="Coupling strength to coupler [GHz]:")
-    couplingTitle.place(anchor='center', relx=0.5, rely=0.5)
+    # couplingTitle = Label(couplingTitleFrame, text="Coupling strength to coupler [GHz]:")
+    # couplingTitle.place(anchor='center', relx=0.5, rely=0.5)
 
-    couplingInputFrameOuter = Frame(circuitFrame, height=30, width=relativeWidth*width*0.40)#, background="orange")
-    couplingInputFrameOuter.grid(row=6, column=0, columnspan=3)
+    couplingInputFrameOuter = Frame(circuitFrame, height=60, width=relativeWidth*width*0.40)#, background="orange")
+    couplingInputFrameOuter.grid(row=3, column=0, columnspan=3)
 
-    couplingInputFrameInner = Frame(couplingInputFrameOuter)
+    couplingInputFrameInner = LabelFrame(couplingInputFrameOuter, text="Coupling strength to coupler [GHz]: ")
     couplingInputFrameInner.place(anchor='center', relx=0.5, rely=0.5)
 
     couplingLabelQ1 = Label(couplingInputFrameInner, text="Q1: ")
@@ -138,31 +145,31 @@ def generateCouplingInputs(circuitFrame, entryCharacterWidth):
     couplingEntryQ1.pack(side=LEFT)
 
     couplingLabelQ2 = Label(couplingInputFrameInner, text="Q2: ")
-    couplingLabelQ2.pack(side=LEFT, padx=(10,0))
+    couplingLabelQ2.pack(side=LEFT, padx=(10,0), pady=5)
 
     global couplingEntryQ2
     couplingEntryQ2 = Entry(couplingInputFrameInner, width=entryCharacterWidth)
-    couplingEntryQ2.pack(side=LEFT)
+    couplingEntryQ2.pack(side=LEFT, padx=(0,5))
 
-    couplingLabelCoupler = Label(couplingInputFrameInner, text="Coupler: ")
-    couplingLabelCoupler.pack(side=LEFT, padx=(10,0))
+    # couplingLabelCoupler = Label(couplingInputFrameInner, text="Coupler: ")
+    # couplingLabelCoupler.pack(side=LEFT, padx=(10,0))
 
-    global couplingEntryCoupler
-    couplingEntryCoupler = Entry(couplingInputFrameInner, width=entryCharacterWidth)
-    couplingEntryCoupler.pack(side=LEFT)
+    # global couplingEntryCoupler
+    # couplingEntryCoupler = Entry(couplingInputFrameInner, width=entryCharacterWidth)
+    # couplingEntryCoupler.pack(side=LEFT)
 
 
 def generateAnharmonicityInputs(circuitFrame, entryCharacterWidth):
-    anharmonicityTitleFrame = Frame(circuitFrame, height=30, width=relativeWidth*width*0.40)#, background="blue")
-    anharmonicityTitleFrame.grid(row=3, column=0, columnspan=3)
+    # anharmonicityTitleFrame = Frame(circuitFrame, height=30, width=relativeWidth*width*0.40)#, background="blue")
+    # anharmonicityTitleFrame.grid(row=3, column=0, columnspan=3)
     
-    anharmonicityTitle = Label(anharmonicityTitleFrame, text="Anharmonicites [GHz]:")
-    anharmonicityTitle.place(anchor='center', relx=0.5, rely=0.5)
+    # anharmonicityTitle = Label(anharmonicityTitleFrame, text="Anharmonicites [GHz]:")
+    # anharmonicityTitle.place(anchor='center', relx=0.5, rely=0.5)
 
-    anharmonicityInputFrameOuter = Frame(circuitFrame, height=30, width=relativeWidth*width*0.40)#, background="orange")
-    anharmonicityInputFrameOuter.grid(row=4, column=0, columnspan=3)
+    anharmonicityInputFrameOuter = Frame(circuitFrame, height=60, width=relativeWidth*width*0.40)#, background="orange")
+    anharmonicityInputFrameOuter.grid(row=2, column=0, columnspan=3)
 
-    anharmonicityInputFrameInner = Frame(anharmonicityInputFrameOuter)
+    anharmonicityInputFrameInner = LabelFrame(anharmonicityInputFrameOuter, text="Anharmonicites [GHz]: ")
     anharmonicityInputFrameInner.place(anchor='center', relx=0.5, rely=0.5)
 
     anharmonicityLabelQ1 = Label(anharmonicityInputFrameInner, text="Q1: ")
@@ -180,24 +187,24 @@ def generateAnharmonicityInputs(circuitFrame, entryCharacterWidth):
     anharmonicityEntryQ2.pack(side=LEFT)
 
     anharmonicityLabelCoupler = Label(anharmonicityInputFrameInner, text="Coupler: ")
-    anharmonicityLabelCoupler.pack(side=LEFT, padx=(10,0))
+    anharmonicityLabelCoupler.pack(side=LEFT, padx=(10,0), pady=5)
 
     global anharmonicityEntryCoupler
     anharmonicityEntryCoupler = Entry(anharmonicityInputFrameInner, width=entryCharacterWidth)
-    anharmonicityEntryCoupler.pack(side=LEFT)
+    anharmonicityEntryCoupler.pack(side=LEFT, padx=(0,5))
 
 
 def generateFrequencyInputs(circuitFrame, entryCharacterWidth):
-    frequencyTitleFrame = Frame(circuitFrame, height=30, width=relativeWidth*width*0.40)#, background="blue")
-    frequencyTitleFrame.grid(row=1, column=0, columnspan=3)
+    # frequencyTitleFrame = Frame(circuitFrame, height=30, width=relativeWidth*width*0.40)#, background="blue")
+    # frequencyTitleFrame.grid(row=1, column=0, columnspan=3)
     
-    frequencyTitle = Label(frequencyTitleFrame, text="Frequencies [GHz]:")
-    frequencyTitle.place(anchor='center', relx=0.5, rely=0.5)
+    # frequencyTitle = Label(frequencyTitleFrame, text="Frequencies [GHz]:")
+    # frequencyTitle.place(anchor='center', relx=0.5, rely=0.5)
 
-    frequencyInputFrameOuter = Frame(circuitFrame, height=30, width=relativeWidth*width*0.40)#, background="orange")
-    frequencyInputFrameOuter.grid(row=2, column=0, columnspan=3)
+    frequencyInputFrameOuter = Frame(circuitFrame, height=60, width=relativeWidth*width*0.40)#, background="orange")
+    frequencyInputFrameOuter.grid(row=1, column=0, columnspan=3)
 
-    frequencyInputFrameInner = Frame(frequencyInputFrameOuter)
+    frequencyInputFrameInner = LabelFrame(frequencyInputFrameOuter, text="Frequencies [GHz]: ")
     frequencyInputFrameInner.place(anchor='center', relx=0.5, rely=0.5)
 
     frequencyLabelQ1 = Label(frequencyInputFrameInner, text="Q1: ")
@@ -215,11 +222,50 @@ def generateFrequencyInputs(circuitFrame, entryCharacterWidth):
     frequencyEntryQ2.pack(side=LEFT)
 
     frequencyLabelCoupler = Label(frequencyInputFrameInner, text="Coupler: ")
-    frequencyLabelCoupler.pack(side=LEFT, padx=(10,0))
+    frequencyLabelCoupler.pack(side=LEFT, padx=(10,0), pady=5)
 
     global frequencyEntryCoupler
     frequencyEntryCoupler = Entry(frequencyInputFrameInner, width=entryCharacterWidth)
-    frequencyEntryCoupler.pack(side=LEFT)
+    frequencyEntryCoupler.pack(side=LEFT, padx=(0,5))
+
+
+def generateSaveFolderInput(circuitFrame, entryCharacterWidth):
+    separator = ttk.Separator(circuitFrame, orient='horizontal')
+    separator.grid(row=5, column=0, columnspan=3, sticky="nesw")
+
+    saveFolderTitleFrame = Frame(circuitFrame, height=50, width=relativeWidth*width*0.40)#, background="red")
+    saveFolderTitleFrame.grid(row=6, column=0, columnspan=3)
+
+    saveFolderTitle = Label(saveFolderTitleFrame, text='Configure result output', font=('Helvetica',12))
+    titleFont = tkFont.Font(saveFolderTitle, saveFolderTitle.cget("font"))
+    titleFont.configure(underline = True)
+    saveFolderTitle.configure(font=titleFont)
+    saveFolderTitle.place(anchor='center', relx=0.5, rely=0.5)
+
+    saveFolderFrameOuter = Frame(circuitFrame, height=50, width=relativeWidth*width*0.40)#, background="orange")
+    saveFolderFrameOuter.grid(row=7, column=0, columnspan=3)
+
+    saveFolderFrameInner = Frame(saveFolderFrameOuter)
+    saveFolderFrameInner.place(anchor='center', relx=0.5, rely=0.5)
+
+    saveFolderEntry = Entry(saveFolderFrameInner, state="readonly", width=45, readonlybackground="white")
+    saveFolderEntry.pack(side=LEFT)
+
+    saveFolderButton = Button(saveFolderFrameInner, text="Select Folder", command=selectSaveFolder, background="#21e4d7")
+    saveFolderButton.pack(side=LEFT)
+
+    numOfSessionsFrameOuter = Frame(circuitFrame, height=50, width=relativeWidth*width*0.40)#, background="red")
+    numOfSessionsFrameOuter.grid(row=8, column=0, columnspan=3)
+
+    numOfSessionsFrameInner = Frame(numOfSessionsFrameOuter)
+    numOfSessionsFrameInner.place(anchor='center', relx=0.5, rely=0.5)
+
+    numOfSessionsLabel = Label(numOfSessionsFrameInner, text="Number of consecutive optimizations to run: ")
+    numOfSessionsLabel.pack(side=LEFT)
+
+    numOfSessionsInputBox = ttk.Spinbox(numOfSessionsFrameInner, from_=1, to=10, state="readonly", width=4)
+    numOfSessionsInputBox.set(1)
+    numOfSessionsInputBox.pack(side=LEFT)
 
 
 def generateCircuitInputs(circuitFrame):
@@ -237,10 +283,11 @@ def generateCircuitInputs(circuitFrame):
     generateFrequencyInputs(circuitFrame, entryCharacterWidth)
     generateAnharmonicityInputs(circuitFrame, entryCharacterWidth)
     generateCouplingInputs(circuitFrame, entryCharacterWidth)
+    generateSaveFolderInput(circuitFrame, entryCharacterWidth)
 
 
 def optimizeCircuitParameterFrame(topFrame):
-    circuitFrame = Frame(topFrame, height=relativeHeight*height, width=relativeWidth*width*0.40)#, highlightbackground="black", highlightthickness=1, background='blue')
+    circuitFrame = Frame(topFrame, height=relativeHeight*height, width=relativeWidth*width*0.40)#, background='blue')#, highlightbackground="black", highlightthickness=1)
     circuitFrame.grid(column=0, row=0)
     circuitFrame.grid_propagate(0)
 
@@ -249,17 +296,17 @@ def optimizeCircuitParameterFrame(topFrame):
 
 
 def generateSelectAlgorithm(settingsFrameLeft):
-    selectAlgorithmTitleFrame = Frame(settingsFrameLeft, height=30, width=relativeWidth*width*0.30, background="blue")
-    selectAlgorithmTitleFrame.grid(row=0, column=0)
+    # selectAlgorithmTitleFrame = Frame(settingsFrameLeft, height=30, width=relativeWidth*width*0.30)#, background="blue")
+    # selectAlgorithmTitleFrame.grid(row=0, column=0)
     
-    selectAlgorithmTitle = Label(selectAlgorithmTitleFrame, text="Algorithms to use:")
-    selectAlgorithmTitle.place(anchor='center', relx=0.5, rely=0.5)
+    # selectAlgorithmTitle = Label(selectAlgorithmTitleFrame, text="Algorithms to use:")
+    # selectAlgorithmTitle.place(anchor='center', relx=0.5, rely=0.5)
 
-    selectAlgorithmFrameOuter = Frame(settingsFrameLeft, height=80, width=relativeWidth*width*0.30, background="orange")
-    selectAlgorithmFrameOuter.grid(row=1, column=0)
+    selectAlgorithmFrameOuter = Frame(settingsFrameLeft, height=110, width=relativeWidth*width*0.30)#, background="orange")
+    selectAlgorithmFrameOuter.grid(row=0, column=0)
 
-    selectAlgorithmFrameInner = Frame(selectAlgorithmFrameOuter)
-    selectAlgorithmFrameInner.place(anchor='center', relx=0.5, rely=0.5)
+    selectAlgorithmFrameInner = LabelFrame(selectAlgorithmFrameOuter, text="Algorithms to use: ")
+    selectAlgorithmFrameInner.place(anchor='n', relx=0.5, rely=0)
 
     selectDifferentialEvolutionBox = Checkbutton(selectAlgorithmFrameInner, text="Differential Evolution (recommended)", variable=runDifferentialEvolution)
     selectDifferentialEvolutionBox.select()
@@ -273,17 +320,18 @@ def generateSelectAlgorithm(settingsFrameLeft):
 
 
 def generateSelectGate(settingsFrameRight):
-    selectGateTitleFrame = Frame(settingsFrameRight, height=30, width=relativeWidth*width*0.30, background="blue")
-    selectGateTitleFrame.grid(row=0, column=0)
+    # selectGateTitleFrame = Frame(settingsFrameRight, height=30, width=relativeWidth*width*0.30)#, background="blue")
+    # selectGateTitleFrame.grid(row=0, column=0)
     
-    selectGateTitle = Label(selectGateTitleFrame, text="Gate to optimize for:")
-    selectGateTitle.place(anchor='center', relx=0.5, rely=0.5)
+    # selectGateTitle = Label(selectGateTitleFrame, text="Gate to optimize for:")
+    # selectGateTitle.place(anchor='center', relx=0.5, rely=0.5)
 
-    selectGateFrameOuter = Frame(settingsFrameRight, height=45, width=relativeWidth*width*0.30, background="orange")
-    selectGateFrameOuter.grid(row=1, column=0)
+    selectGateFrameOuter = Frame(settingsFrameRight, height=55, width=relativeWidth*width*0.30)#, background="orange")
+    selectGateFrameOuter.grid(row=0, column=0)
+    selectGateFrameOuter.pack_propagate(0)
 
-    selectGateFrameInner = Frame(selectGateFrameOuter)
-    selectGateFrameInner.place(anchor='center', relx=0.5, rely=0.5)
+    selectGateFrameInner = LabelFrame(selectGateFrameOuter, text="Gate to optimize for: ")
+    selectGateFrameInner.place(anchor='n', relx=0.5, rely=0)
 
     selectISWAP = Radiobutton(selectGateFrameInner, text="iSWAP", value="iSWAP", variable=selectedGate)
     selectISWAP.select()
@@ -297,11 +345,11 @@ def generateSelectGate(settingsFrameRight):
 
 
 def generateSelectEnergyLevels(settingsFrameRight):
-    selectEnergyLevelsFrameOuter = Frame(settingsFrameRight, height=35, width=relativeWidth*width*0.30, background="blue")
-    selectEnergyLevelsFrameOuter.grid(row=2, column=0)
+    selectEnergyLevelsFrameOuter = Frame(settingsFrameRight, height=55, width=relativeWidth*width*0.30)#, background="blue")
+    selectEnergyLevelsFrameOuter.grid(row=1, column=0)
 
-    selectEnergyLevelsFrameInner = Frame(selectEnergyLevelsFrameOuter, background="orange")
-    selectEnergyLevelsFrameInner.place(anchor="center", relx=0.5, rely=0.5)
+    selectEnergyLevelsFrameInner = Frame(selectEnergyLevelsFrameOuter)#, background="orange")
+    selectEnergyLevelsFrameInner.place(anchor="n", relx=0.5, rely=0.1)
 
     selectEnergyLevelsTitle = Label(selectEnergyLevelsFrameInner, text="Number of energy levels per qubit:")
     selectEnergyLevelsTitle.pack(side=LEFT, padx=(0,5))
@@ -313,10 +361,10 @@ def generateSelectEnergyLevels(settingsFrameRight):
 
 def generateThetaBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
 
-    thetaInputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60, background="yellow")
+    thetaInputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60)#, background="yellow")
     thetaInputFrameOuter.grid(row=1, column=0, columnspan=3)
 
-    thetaInputFrameInner = Frame(thetaInputFrameOuter, background="blue")
+    thetaInputFrameInner = Frame(thetaInputFrameOuter)#, background="blue")
     thetaInputFrameInner.place(anchor="e", relx=0.8, rely=0.5)
 
     thetaLabel = Label(thetaInputFrameInner, text="Strength of DC-flux \u0398 [\u03A6"+subscriptZero+"]:")
@@ -337,10 +385,10 @@ def generateThetaBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
 
 def generateDeltaBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
 
-    deltaInputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60, background="green")
+    deltaInputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60)#, background="green")
     deltaInputFrameOuter.grid(row=2, column=0, columnspan=3)
 
-    deltaInputFrameInner = Frame(deltaInputFrameOuter, background="blue")
+    deltaInputFrameInner = Frame(deltaInputFrameOuter)#, background="blue")
     deltaInputFrameInner.place(anchor="e", relx=0.8, rely=0.5)
 
     deltaLabel = Label(deltaInputFrameInner, text="Amplitude of \u03B4(t) [\u03A6"+subscriptZero+"]:")
@@ -361,10 +409,10 @@ def generateDeltaBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
 
 def generateOmegaPhiBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
 
-    omegaPhiInputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60, background="yellow")
+    omegaPhiInputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60)#, background="yellow")
     omegaPhiInputFrameOuter.grid(row=3, column=0, columnspan=3)
 
-    omegaPhiInputFrameInner = Frame(omegaPhiInputFrameOuter, background="blue")
+    omegaPhiInputFrameInner = Frame(omegaPhiInputFrameOuter)#, background="blue")
     omegaPhiInputFrameInner.place(anchor="e", relx=0.8, rely=0.5)
 
     omegaPhiLabel = Label(omegaPhiInputFrameInner, text="Frequency \u03C9 of AC-flux [GHz]:")
@@ -385,13 +433,13 @@ def generateOmegaPhiBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
 
 def generateModulationTimeBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
 
-    modulationTimeInputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60, background="green")
+    modulationTimeInputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60)#, background="green")
     modulationTimeInputFrameOuter.grid(row=4, column=0, columnspan=3)
 
-    modulationTimeInputFrameInner = Frame(modulationTimeInputFrameOuter, background="blue")
+    modulationTimeInputFrameInner = Frame(modulationTimeInputFrameOuter)#, background="blue")
     modulationTimeInputFrameInner.place(anchor="e", relx=0.8, rely=0.5)
 
-    modulationTimeLabel = Label(modulationTimeInputFrameInner, text="Total modulation time of AC-flux [s]:")
+    modulationTimeLabel = Label(modulationTimeInputFrameInner, text="Total modulation time of AC-flux [ns]:")
     modulationTimeLabel.pack(side=LEFT, padx=(0,5))
 
     lowerModulationTimeLabel = Label(modulationTimeInputFrameInner, text="Lower limit:")
@@ -410,10 +458,10 @@ def generateModulationTimeBoundaryInput(inputBoundaryFrame, entryCharacterWidth)
 def generateBoundaryInput(inputBoundaryFrame):
     entryCharacterWidth = 4
 
-    riseTimeFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60, background="red")
+    riseTimeFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60)#, background="red")
     riseTimeFrameOuter.grid(row=0, column=0, columnspan=3)
 
-    riseTimeFrame = Frame(riseTimeFrameOuter, background="blue")
+    riseTimeFrame = Frame(riseTimeFrameOuter)#, background="blue")
     riseTimeFrame.place(anchor="center", relx=0.5, rely=0.5)
 
     riseTimeLabel = Label(riseTimeFrame, text="Rise time of \u03B4(t) (from 0% to 100%) [ns]:")
@@ -439,10 +487,10 @@ def generateRightSettings(settingsFrameRight):
 
 
 def generateBoundarySettings(settingsBoundaryFrame):
-    selectSignalFrameOuter = Frame(settingsBoundaryFrame, height=35, width=relativeWidth*width*0.60, background="blue")
+    selectSignalFrameOuter = Frame(settingsBoundaryFrame, height=35, width=relativeWidth*width*0.60)#, background="blue")
     selectSignalFrameOuter.grid(row=0, column=0)
 
-    selectSignalFrameInner = Frame(selectSignalFrameOuter, background="orange")
+    selectSignalFrameInner = Frame(selectSignalFrameOuter)#, background="orange")
     selectSignalFrameInner.place(anchor="center", relx=0.5, rely=0.5)
 
     selectSignalTitle = Label(selectSignalFrameInner, text="Shape of magnetic flux signal (\u03A6):")
@@ -452,7 +500,7 @@ def generateBoundarySettings(settingsBoundaryFrame):
     selectSignal.current(0)
     selectSignal.pack(side=LEFT)
 
-    inputBoundaryFrame = Frame(settingsBoundaryFrame, height=175, width=relativeWidth*width*0.60, background="orange")
+    inputBoundaryFrame = Frame(settingsBoundaryFrame, height=175, width=relativeWidth*width*0.60)#, highlightbackground="black", highlightthickness=1)#, background="blue")
     inputBoundaryFrame.grid(row=1, column=0)
     inputBoundaryFrame.grid_propagate(0)
 
@@ -461,13 +509,16 @@ def generateBoundarySettings(settingsBoundaryFrame):
 
 def optimizerSettingsFrame(topFrame):
     settingsTitleFrameHeight = 50
-    settingsFrameHeight = 110
+    optimizeSettingsFrameHeight = 110
 
-    settingsFrame = Frame(topFrame, height=relativeHeight*height, width=relativeWidth*width*0.60, background="yellow")
-    settingsFrame.grid(column=1, row=0)
+    separator = ttk.Separator(topFrame, orient='vertical')
+    separator.grid(row=0, column=1, sticky="nesw")
+
+    settingsFrame = Frame(topFrame, height=relativeHeight*height, width=relativeWidth*width*0.60)#, background="yellow")
+    settingsFrame.grid(row=0, column=2)
     settingsFrame.grid_propagate(0)
 
-    settingsTitleFrame = Frame(settingsFrame, height=settingsTitleFrameHeight, width=relativeWidth*width*0.60, background="orange")
+    settingsTitleFrame = Frame(settingsFrame, height=settingsTitleFrameHeight, width=relativeWidth*width*0.60)#, background="orange")
     settingsTitleFrame.grid(row=0, column=0, columnspan=2)
 
     settingsTitle = Label(settingsTitleFrame, text='Optimizer configuration', font=('Helvetica',12))
@@ -476,23 +527,26 @@ def optimizerSettingsFrame(topFrame):
     settingsTitle.configure(font=titleSettingsFont)
     settingsTitle.place(anchor='center', relx=0.5, rely=0.5)
 
-    settingsFrameLeft = Frame(settingsFrame, height=settingsFrameHeight, width=relativeWidth*width*0.30, background="green")
+    settingsFrameLeft = Frame(settingsFrame, height=optimizeSettingsFrameHeight, width=relativeWidth*width*0.30)#, background="green")
     settingsFrameLeft.grid(column=0, row=1)
     settingsFrameLeft.grid_propagate(0)
 
-    settingsFrameRight = Frame(settingsFrame, height=settingsFrameHeight, width=relativeWidth*width*0.30, background="red")
+    settingsFrameRight = Frame(settingsFrame, height=optimizeSettingsFrameHeight, width=relativeWidth*width*0.30)#, background="red")
     settingsFrameRight.grid(column=1, row=1)
     settingsFrameRight.grid_propagate(0)
 
-    settingsBoundaryTitleFrame = Frame(settingsFrame, height=settingsTitleFrameHeight, width=relativeWidth*width*0.60, background="orange")
-    settingsBoundaryTitleFrame.grid(row=2, column=0, columnspan=2)
+    separator = ttk.Separator(settingsFrame, orient='horizontal')
+    separator.grid(row=2, column=0, columnspan=2, sticky="nesw")
+
+    settingsBoundaryTitleFrame = Frame(settingsFrame, height=settingsTitleFrameHeight, width=relativeWidth*width*0.60)#, background="orange")
+    settingsBoundaryTitleFrame.grid(row=3, column=0, columnspan=2)
 
     settingsBoundaryTitle = Label(settingsBoundaryTitleFrame, text='Magnetic flux signal and search boundaries', font=('Helvetica',12))
     settingsBoundaryTitle.configure(font=titleSettingsFont)
     settingsBoundaryTitle.place(anchor='center', relx=0.5, rely=0.5)
 
-    settingsBoundaryFrame = Frame(settingsFrame, height=relativeHeight*height-settingsFrameHeight, width=relativeWidth*width*0.60, background="orange")
-    settingsBoundaryFrame.grid(row=3, column=0, columnspan=2)
+    settingsBoundaryFrame = Frame(settingsFrame, height=relativeHeight*height-optimizeSettingsFrameHeight-2*settingsTitleFrameHeight, width=relativeWidth*width*0.60)#, background="orange")
+    settingsBoundaryFrame.grid(row=4, column=0, columnspan=2)
     settingsBoundaryFrame.grid_propagate(0)
 
     generateLeftSettings(settingsFrameLeft)
