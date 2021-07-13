@@ -5,6 +5,7 @@ import tkinter.font as tkFont
 import time
 
 from main import *
+from functions import *
 
 ######################################################################################################################################################################
 # Global variables and function to initiate global variables
@@ -44,6 +45,7 @@ def initiateGlobalVariables(root, givenHeight):
     global resultFolderPath
     global numberOfConsecutiveSessions
     resultFolderPath = StringVar(root)
+    resultFolderPath.set("C:/GateSide/Results")
     numberOfConsecutiveSessions = IntVar(root)
     
     global runDifferentialEvolution
@@ -89,6 +91,55 @@ def initiateGlobalVariables(root, givenHeight):
     statusString = StringVar(root)
 
 ######################################################################################################################################################################
+# Functions to interact with the global variables.
+
+def setDefaultBoundaryValues():
+    data = getjsonDict("config.json")
+
+    thetaLower.set(data["theta"][0])
+    thetaUpper.set(data["theta"][1])
+
+    deltaLower.set(data["delta"][0])
+    deltaUpper.set(data["delta"][1])
+
+    omegaPhiLower.set(data["omegaPhi"][0])
+    omegaPhiUpper.set(data["omegaPhi"][1])
+
+    modulationTimeLower.set(data["modulationTime"][0])
+    modulationTimeUpper.set(data["modulationTime"][1])
+
+
+def setCircuitVariables(data):
+    frequencyQ1.set(data["frequencies"][0])
+    frequencyQ2.set(data["frequencies"][1])
+    frequencyCoupler.set(data["frequencies"][2])
+
+    anharmonicityQ1.set(data["anharmonicities"][0])
+    anharmonicityQ2.set(data["anharmonicities"][1])
+    anharmonicityCoupler.set(data["anharmonicities"][2])
+
+    couplingQ1.set(data["couplings"][0])
+    couplingQ2.set(data["couplings"][1])
+
+
+def getCircuitVariables():
+    data = {}
+
+    data["frequencies"] = [frequencyQ1.get(), frequencyQ2.get(), frequencyCoupler.get()]
+    data["anharmonicities"] = [anharmonicityQ1.get(), anharmonicityQ2.get(), anharmonicityCoupler.get()]
+    data["couplings"] = [couplingQ1.get(), couplingQ2.get()]
+    
+    return data
+
+
+def setDefaultCircuitValuesFromVariables(configData, newCircuitData):
+    configData["frequencies"] = newCircuitData["frequencies"]
+    configData["anharmonicities"] = newCircuitData["anharmonicities"]
+    configData["couplings"] = newCircuitData["couplings"]
+
+    return configData
+
+######################################################################################################################################################################
 # Button callbacks
 
 def selectSaveFolder():
@@ -99,36 +150,43 @@ def selectSaveFolder():
 
 def startOptimizing():
     progress.start(5)
-    # print("Start")
     startOptimizeButton.config(background="grey", command=NONE)
     stopOptimizeButton.config(background="red", command=stopOptimizing)
-    progressLabel.config(text="Status: Optimization running, please wait.")
+    statusString.set("Status: Optimization running, please wait.")
 
 
 def stopOptimizing():
-    # print("Stop")
     startOptimizeButton.config(background="green", command=startOptimizing)
     stopOptimizeButton.config(background="grey", command=NONE)
-    progressLabel.config(text="Status: Optimization stopped. Ready to optimize.")
+    statusString.set("Status: Optimization stopped. Ready to optimize.")
     progress.stop()
-    progress["value"] = 0
+    progressValue.set(0)
 
 
 def loadCircuit():
-    print(frequencyQ1.get())
-    print("Circuit loaded.")
+    circuitFile = filedialog.askopenfilename(title="Select circuit", defaultextension='.json', filetypes=[("JSON files (.json)", '*.json')])
+    if circuitFile:
+        circuitData = getjsonDict(circuitFile)
+        setCircuitVariables(circuitData)
 
 
-def setDefaultCircuit():
-    print("Default Circuit set.")
+def changeDefaultCircuit():
+    configData = getjsonDict("config.json")
+    newCircuitData = getCircuitVariables()
+    setDefaultCircuitValuesFromVariables(configData, newCircuitData)
+    dumpjsonDict(configData, "config.json")
 
 
 def useDefaultCircuit():
-    print("Reset to default circuit.")
+    configData = getjsonDict("config.json")
+    setCircuitVariables(configData)
 
 
 def exportCircuit():
-    print("Circuit exported to JSON.")
+    circuitData = getCircuitVariables()
+    path = filedialog.asksaveasfilename(title="Save circuit", defaultextension='.json', filetypes=[("JSON files (.json)", '*.json')])
+    if path:
+        dumpjsonDict(circuitData, path)
 
 ######################################################################################################################################################################
 # Functions that generate the window for optimization control of two qubit gates.
@@ -149,9 +207,11 @@ def optimizeStatusFrame(bottomFrame):
     progressFrame.grid(column=0, row=0, rowspan=2, columnspan=2)
     progressFrame.grid_propagate(0)
 
-    progressLabel = Label(bottomFrame, text="Status: Ready to optimize.", font=("Helvetica", 11), textvariable=statusString)
+    progressLabel = Label(bottomFrame, font=("Helvetica", 11), textvariable=statusString)
+    statusString.set("Status: Ready to optimize.")
     progressLabel.place(relx=0.05, rely=0.5, anchor='sw')
 
+    global progress
     progress = ttk.Progressbar(bottomFrame, length=width*0.67, orient=HORIZONTAL, mode='determinate', value=0, variable=progressValue)
     progress.place(relx=0.05, rely=0.5, anchor='nw')
 
@@ -279,8 +339,8 @@ def generateCircuitInputControls(circuitFrame):
     loadCircuitButton = Button(controlsInputFrameInner, text="Load Circuit", command=loadCircuit, padx=3, pady=3, background="#21e4d7")
     loadCircuitButton.grid(row=0, column=0, padx=4, pady=4)
 
-    setDefaultCircuitButton = Button(controlsInputFrameInner, text="Set to Default", command=setDefaultCircuit, padx=3, pady=3, background="#21e4d7")
-    setDefaultCircuitButton.grid(row=0, column=1, padx=4, pady=4)
+    changeDefaultCircuitButton = Button(controlsInputFrameInner, text="Set to Default", command=changeDefaultCircuit, padx=3, pady=3, background="#21e4d7")
+    changeDefaultCircuitButton.grid(row=0, column=1, padx=4, pady=4)
 
     useDefaultCircuitButton = Button(controlsInputFrameInner, text="Use Default", command=useDefaultCircuit, padx=3, pady=3, background="#21e4d7")
     useDefaultCircuitButton.grid(row=0, column=2, padx=4, pady=4)

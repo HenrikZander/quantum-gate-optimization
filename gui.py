@@ -4,7 +4,7 @@ import tkinter.font as tkFont
 import time
 
 from main import *
-from optimize2QubitWindow import *
+import optimize2QubitWindow
 
 ######################################################################################################################################################################
 # Global variables
@@ -38,7 +38,9 @@ def main():
 # Functions that generate different windows
 
 def optimizeControlWindow(root, height):
-    initiateGlobalVariables(root, height)
+    optimize2QubitWindow.initiateGlobalVariables(root, height)
+    relativeHeight = optimize2QubitWindow.relativeHeight
+    relativeWidth = optimize2QubitWindow.relativeWidth
 
     topFrame = Frame(root, height=relativeHeight*height, width=relativeWidth*width)#, background="green")
     topFrame.grid(row=0, column=0)
@@ -51,9 +53,12 @@ def optimizeControlWindow(root, height):
     bottomFrame.grid(row=2, column=0)
     bottomFrame.grid_propagate(0)
 
-    optimizeStatusFrame(bottomFrame)
-    optimizeCircuitParameterFrame(topFrame)
-    optimizerSettingsFrame(topFrame)
+    optimize2QubitWindow.optimizeStatusFrame(bottomFrame)
+    optimize2QubitWindow.optimizeCircuitParameterFrame(topFrame)
+    optimize2QubitWindow.optimizerSettingsFrame(topFrame)
+
+    optimize2QubitWindow.useDefaultCircuit()
+    optimize2QubitWindow.setDefaultBoundaryValues()
 
 ######################################################################################################################################################################
 # Auto-run the main()-function if main.py is compiled.
