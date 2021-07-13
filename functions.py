@@ -27,9 +27,13 @@ import matplotlib.pyplot as plt
 import time
 import scipy
 from numba import njit
+
 from plotting import *
 from model import *
 from variables import *
+
+import json
+from datetime import datetime
 
 ######################################################################################################################################################################
 # Global variables
@@ -224,9 +228,66 @@ def findMinimum(costFunction, bounds, runSHG=True, runDA=True, runDE=True):
     return result
 
 ######################################################################################################################################################################
+# json helper functions
+
+def getjsonDict(fileName):
+    with open(fileName, 'r') as jsonFile:
+        jsonDict = json.load(jsonFile)
+    return jsonDict
+
+def dumpjsonDict(dict, fileName):
+    with open(fileName, 'w') as jsonFile:
+        json.dump(dict, jsonFile, ensure_ascii=False, indent=4)
+
+def getSolutionNameList():
+    solsDict = getjsonDict('solutions.json')
+    return [xName for xName in solsDict]
+
+def createSolName(ymd,gateType,solNumberStr,usedNlvls):
+    return "x_" + ymd + "_" + gateType + "_" + solNumberStr + "_" + usedNlvls
+
+def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today()):
+    ymd = creationTime.strftime('%Y%m%d')[2:]
+    creationTime = creationTime.strftime('%Y-%m-%d %H:%M:%S')
+    usedNlvls = str(N) + "lvl"
+    solName = createSolName(ymd,gateType,str(solNumber),usedNlvls)
+
+    # print(solName)
+
+    solsDict = getjsonDict('solutions.json')
+    while True:
+        if solName not in solsDict:
+            solsDict[solName] = {
+                "creationTime": creationTime,
+                "gateType": gateType,
+                "nOptimizationLvls": N,
+                'x': x,
+                'gateFidelity': None,
+                'times': None,
+                'fidelitiesAtTimes': None,
+                'fidelities1D_Dev': [[], [], [], []], # Listor med fideliten evaluerad runt korrekt Theta, delta, omegaPhi, opTime
+                'fidelities2D_Theta_delta': None,
+                'fidelities2D_Theta_omegaPhi': None,
+                'fidelities2D_Theta_opTime': None,
+                'fidelities2D_delta_omegaPhi': None,
+                'fidelities2D_delta_opTime': None,
+                'fidelities2D_omegaPhi_opTime': None
+            }
+
+            dumpjsonDict(solsDict, 'solutions.json')
+            return None
+        else:
+            if (solsDict[solName]['creationTime'] == creationTime):
+                print("Can't add solution: Solution already exists in solutions.json")
+                return None
+            solNumber += 1
+            solName = createSolName(ymd,gateType,str(solNumber),usedNlvls)
+    
+
+######################################################################################################################################################################
 # Simulation functions
 
-def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, highestProjectionIndex=8, N=4):
+def simulateHamiltonian(x=None, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, highestProjectionIndex=8, N=4, xName=None, saveFidelity=False):
     """
     This function simulates the population transfers between 
     different eigenstates of the 4-level hamiltonian from 
@@ -234,39 +295,50 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     the iSWAP and CZ gate using the 4-level system.
     ---------------------------------------------------------
     INPUT:
-            x0 (array(float)): The parameter set that the simulation is be performed for.
+            x (array(float)) {Optional}: The parameter set that the simulation is be performed for. If x is not provided, xName needs to be.
             sinStepHamiltonian (boolean) {Optional}: If True the amplitude of AC part of the flux signal that is applied to the tunable bus will be sinusodially modulated.
             rotatingFrame (boolean) {Optional}: If True the states will be transformed into the rotating frame after the time evolution has been completed.
             initialStateIndex (int) {Optional}: This parameter decides which eigenstate that will be the initial state in the time evolution. If initialStateIndex=0 the eigenstate with the lowest associated energy will be the inital state.
             highestProjectionIndex (int) {Optional}: The eigenstates between, and including, the one with the lowest energy up to the (highestProjectionIndex)-lowest eigenstate will be projected onto.
             N (int) {Optional}: How many energy levels that should be accounted for in the simulations.
+            xName (string) {Optional}: The name of (i.e. key to) the solution in solutions.json that one wants to simulate. If xName is not provided, x needs to be.
     ---------------------------------------------------------
     OUTPUT:
             gateFidelity_iSWAP, gateFidelity_CZ (float, float): The gate fidelity for both the iSWAP and CZ gate.
     ---------------------------------------------------------
     """
     
+    if (xName is not None):
+        if (x is not None):
+            print("Warning: Ignoring manually supplied x")
+        solsDict = getjsonDict('solutions.json')
+        x = solsDict[xName]['x']
+    elif (x is None):
+        print("At least one of the x and xName input fields needs to not be None!")
+        return None
+
+
     # Calculate the dimension of the tensor states and set the simulation time.
     D = N**3
-    simulationTime = int(x0[-1]) + 10
+    simulationTime = int(x[-1]) + 10
 
     # Calculate the eigenstates and eigenenergies of the bare basis hamiltonian.
-    hamiltonianBareBasis = getHamiltonian(x0,N=N,getBBHamiltonianComps=True)
+    hamiltonianBareBasis = getHamiltonian(x,N=N,getBBHamiltonianComps=True)
 
     # Calculate the tunable bus frequency when only the DC part of the flux is active.
-    omegaTBDC = coeffomegaTB(omegas[2],x0[0])
+    omegaTBDC = coeffomegaTB(omegas[2],x[0])
 
     # Calculate eigenstates and eigenenergies of the hamiltonian in the bare basis when the flux only has it's DC part.
-    eigenStatesAndEnergies = getThetaEigenstates(x0, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
+    eigenStatesAndEnergies = getThetaEigenstates(x, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
 
     # Get eigenindices.
     eigIndices = getIndices(N, eigenStatesAndEnergies[1])
 
     # Calculate the unitary for transforming the hamiltonian to the eigen basis.
-    eigenBasisUnitary = getEBUnitary(x0, eigenStatesAndEnergies, N, D)
+    eigenBasisUnitary = getEBUnitary(x, eigenStatesAndEnergies, N, D)
 
     # Get the hamiltonian that has a sinusodially modulated AC flux and also is in the eigen basis.
-    hamiltonian = getHamiltonian(x0, N=N, eigEs=eigenStatesAndEnergies[0], U_e=eigenBasisUnitary, sinStepHamiltonian=sinStepHamiltonian)
+    hamiltonian = getHamiltonian(x, N=N, eigEs=eigenStatesAndEnergies[0], U_e=eigenBasisUnitary, sinStepHamiltonian=sinStepHamiltonian)
     
     # Change the simulation settings and create the timestamps for where the evolution is to be evaluated. 
     options = solver.Options()
@@ -277,7 +349,7 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     initialState = Qobj(basis(D,initialStateIndex),dims=[[N,N,N],[1,1,1]])
 
     # Time evolve the initial state.
-    result = sesolve(hamiltonian, initialState, timeStamps, [], options=options, args={'theta': x0[0], 'delta': x0[1], 'omegaphi': x0[2], 'omegatb0': omegas[2], 'operationTime': x0[3], 'omegaTBTh': omegaTBDC})
+    result = sesolve(hamiltonian, initialState, timeStamps, [], options=options, args={'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBDC})
     states = result.states
 
     # Transform into the rotating frame.
@@ -301,8 +373,8 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     expectationValues = expect(projectionOperators, states)
     
     #Calculate gate fidelity for both iSWAP and CZ.
-    gateFidelity_iSWAP, timesiSWAP = getGateFidelity(x0,N=N,wantiSWAP=True)
-    gateFidelity_CZ, timesCZ = getGateFidelity(x0,N=N,wantCZ=True)
+    gateFidelity_iSWAP, timesiSWAP = getGateFidelity(x,N=N,wantiSWAP=True)
+    gateFidelity_CZ, timesCZ = getGateFidelity(x,N=N,wantCZ=True)
     
     # Print fidelity
     print(f'################################################\n\nGate fidelity for iSWAP: {gateFidelity_iSWAP}.\n\nGate fidelity for CZ: {gateFidelity_CZ}.\n\n################################################')
@@ -315,7 +387,7 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     
     for index, values in enumerate(expectationValues):
         plt.plot(timeStamps, values)
-        # eigenOrder = (findEigenIndex(x0, eigenStateIndex=index))[1]
+        # eigenOrder = (findEigenIndex(x, eigenStateIndex=index))[1]
         # labels.append(f'|{eigenOrder[0]}{eigenOrder[1]}{eigenOrder[2]}>')
     
     plt.grid()
@@ -334,9 +406,25 @@ def simulateHamiltonian(x0, sinStepHamiltonian=True, rotatingFrame=False, initia
     return gateFidelity_iSWAP, gateFidelity_CZ
 
 
-def plotFidelity(x, wantiSWAP=False, wantCZ=False):
-    indices = np.linspace(-116, -1, 116).astype(int)
-    F, times = getGateFidelity(x, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=indices)
+def plotFidelity(x=None, wantiSWAP=False, wantCZ=False, xName=None, saveResults=False):
+    if (xName is not None):
+        if (x is not None):
+            print("Warning: Ignoring manually supplied x")
+        solsDict = getjsonDict('solutions.json')
+        F = solsDict[xName]['fidelitiesAtTimes']
+        times = solsDict[xName]['times']
+        x = solsDict[xName]['x']
+        if (F is None) or (times is None):
+            indices = np.linspace(-116, -1, 116).astype(int)
+            F, times = getGateFidelity(x, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=indices)
+    else:
+        if (x is None):
+            print("Must supply either the name of an x stored in a json file or a list x manually (or both)")
+            return None
+        else:
+            indices = np.linspace(-116, -1, 116).astype(int)
+            F, times = getGateFidelity(x, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=indices)
+            
     plt.figure(figsize=(8,7))
     plt.plot(times, F)
     plt.plot([x[-1], x[-1]], [0, 1], 'r--')
@@ -351,6 +439,15 @@ def plotFidelity(x, wantiSWAP=False, wantCZ=False):
     plt.yticks(fontsize=16)
     plt.tight_layout()
     plt.show()
+
+    if (saveResults == True):
+        if (xName is None):
+            print("Warning: Couldn't save results. To save results, you need to specify a solution listed in solutions.json")
+        else:
+            solsDict[xName]['times'] = times
+            solsDict[xName]['fidelitiesAtTimes'] = F
+            solsDict[xName]['gateFidelity'] = F[-76]
+            dumpjsonDict(solsDict,'solutions.json')
 
 
 def deltaPulsePlot():
@@ -375,8 +472,8 @@ def deltaPulsePlot():
     plt.annotate("$t_{Fall}$", xy=(operationTime-10,0.53), fontsize=18)
     plt.show()
 
-# WIP:
-def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[3e-4, 1e-3, 2*np.pi * 2e-3, 4e0], saveResults=True):
+
+def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[3e-4, 1e-3, 2*np.pi * 2e-3, 4e0], saveResults=False):
     checkList = [checkTheta, checkDelta, checkOmegaPhi, checkOpTime]
     if (sum(checkList) < 1):
         print("You need to specify at least one parameter to check")
@@ -452,7 +549,7 @@ def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkD
                 for i, iDev in enumerate(iDeviations):
                     xDev[xIndices[0]] = x[xIndices[0]] + iDev
                     fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
-                    fidelities.append(np.abs(fidelity))
+                    fidelities.append(fidelity[0])
                     statusBar((j*nPointsList[0] + (i+1))*100/(nPointsList[0]*nPointsList[1]))
             fidelities2D = np.array(fidelities).reshape(nPointsList[1], nPointsList[0])
 
@@ -485,6 +582,7 @@ def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkD
             plt.axhline(y=(nPointsList[1]-1)/2, color='r')
             plt.legend([iLegendStr, jLegendStr], fontsize=19, loc="upper right")
             plt.show()
+
 
 def indexToString(indexTuple):
     return f'|{indexTuple[0]}{indexTuple[1]}{indexTuple[2]}>'
@@ -554,20 +652,20 @@ def plotEigenenergies(x, N=3, simPoints=200, numOfEnergyLevels=None):
     ############################
 
 
-def findEigenIndex(x0, eigenStateIndex=0, N=4, printResult=False):
+def findEigenIndex(x, eigenStateIndex=0, N=4, printResult=False):
 
     # Get eigenindices and dimension.
     eigIndices = getIndicesOld(N)
     D = N**3
 
     # Get the bare basis hamiltonian.
-    hamiltonianBareBasis = getHamiltonian(x0,N=N,getBBHamiltonianComps=True)
+    hamiltonianBareBasis = getHamiltonian(x,N=N,getBBHamiltonianComps=True)
 
     # Calculate the tunable bus frequency when Phi=0.
     omegaTBDC = coeffomegaTB(omegas[2],0)
 
     # Calculate eigenstates and eigenenergies of the hamiltonian in the bare basis when the flux is zero.
-    eigenStatesAndEnergies = getThetaEigenstates(x0, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
+    eigenStatesAndEnergies = getThetaEigenstates(x, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
     eigenState = eigenStatesAndEnergies[1][eigenStateIndex]
 
     cleanEigenState = [[0] for _ in range(D)]

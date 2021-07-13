@@ -260,7 +260,7 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
         sm1 = tensor(sm,I,I)
         sm2 = tensor(I,sm,I)
         smTB = tensor(I,I,sm)
-        
+
         # Get the 2 energy level hamltonian components.
         H0BB = (-omegas[0]/2)*sz1 + (-omegas[1]/2)*sz2
         HiBB = gs[0]*(sp1*smTB + sm1*spTB) + gs[1]*(sp2*smTB + sm2*spTB)
@@ -440,7 +440,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
 
         # Calculate gate fidelity
         dimComputationalSubspace = 4
-        fidelities.append((np.absolute(np.trace(M*U.H))**2 + np.trace(M.H*M))/(dimComputationalSubspace*(dimComputationalSubspace+1)))
+        fidelities.append((np.absolute(np.trace(M*U.H))**2 + np.trace(M.H*M)).real/(dimComputationalSubspace*(dimComputationalSubspace+1)))
         fidelityTimes.append(ts[timeIndex])
 
     #print(fidelities)
