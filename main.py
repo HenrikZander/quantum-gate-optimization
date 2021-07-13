@@ -89,7 +89,7 @@ x_210713_iSWAP_3_4lvl = [3.77667126e-01, 5.17617928e-02, 3.51608253e+00, 8.83255
 
 # Solution to use in simulations: 
 #xUsed = x_210713_iSWAP_1_4lvl
-xName = 'x_210713_iSWAP_3_4lvl' # Preferred if solution is listed in solutions.json
+xName = 'x_210714_iSWAP_1_4lvl' # Preferred if solution is listed in solutions.json
 #dateStr = "2021-07-13 15:12:18.004557"
 
 ######################################################################################################################################################################
@@ -101,7 +101,7 @@ def main():
 
     # for index in range(64):
     #     findEigenIndex(xUsed, eigenStateIndex=index, N=4, printResult=True)
-    # optimizeGate(iSWAP=True, energyLevels=4, maxAllowedGateTime=90, runDE=True, wantTradGate=True, wantCZ_20=False)
+    # optimizeGate(iSWAP=True, energyLevels=4, maxAllowedGateTime=100, runDE=True, wantTradGate=False, wantCZ_20=False)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=240, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=200, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
