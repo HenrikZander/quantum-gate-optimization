@@ -82,12 +82,15 @@ x_210706_iSWAP_4lvl = [-0.24300583, 0.18855054, 3.52505319, 139.68066173]
 x_210707_CZ_1_4lvl = [-3.66144215e-01, 7.76542110e-02, 5.31979461e+00, 1.35483199e+02]
 x_210707_CZ_2_4lvl = [-3.97197613e-01, 4.50017315e-02, 5.04744811e+00, 1.20619159e+02]
 x_210708_CZ_1_4lvl = [-3.87809473e-01, 4.70332021e-02, 2.01877517e+00, 1.37128800e+02]
-x_210710_iSWAP_4lvl = [3.91437575e-01, 6.30717089e-02, 3.54292316e+00, 9.99427537e+01]
+x_210710_iSWAP_1_4lvl = [3.91437575e-01, 6.30717089e-02, 3.54292316e+00, 9.99427537e+01]
+x_210713_iSWAP_1_4lvl = [4.03166181e-01, 2.16061627e-02, 3.50015579e+00, 7.98055976e+01] # Bad: fidelity only 0.98
+x_210713_iSWAP_2_4lvl = [-0.2452259, 0.19856197, 3.52316351, 62.77634052] # Terrible: fidelity only 0.85
+x_210713_iSWAP_3_4lvl = [3.77667126e-01, 5.17617928e-02, 3.51608253e+00, 8.83255578e+01] # Bad: fidelity only 0.987
 
 # Solution to use in simulations: 
-xUsed = x_210710_iSWAP_4lvl
-xName = 'x_210710_iSWAP_4lvl' # Preferred if solution is listed in solutions.json
-# dateStr = "2021-07-10 02:15:11.609120"
+#xUsed = x_210713_iSWAP_1_4lvl
+xName = 'x_210714_iSWAP_1_4lvl' # Preferred if solution is listed in solutions.json
+#dateStr = "2021-07-13 15:12:18.004557"
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -98,13 +101,13 @@ def main():
 
     # for index in range(64):
     #     findEigenIndex(xUsed, eigenStateIndex=index, N=4, printResult=True)
-    # optimizeGate(iSWAP=True, energyLevels=4, maxAllowedGateTime=100, runDE=True, wantTradGate=True, wantCZ_20=False)
+    # optimizeGate(iSWAP=True, energyLevels=4, maxAllowedGateTime=100, runDE=True, wantTradGate=False, wantCZ_20=False)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=240, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=200, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
     # simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4, highestProjectionIndex=12)
-    # plotFidelity(xName=xName, wantCZ=True, saveResults=True)
+    plotFidelity(xName=xName, wantiSWAP=True, saveResults=True)
     # deltaPulsePlot()
     # testPlotStates()
     # testEigenstateOrder()

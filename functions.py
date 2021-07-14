@@ -99,7 +99,7 @@ def callbackDE(x,convergence=None):
 
 def callbackDA(x, fun, context):
     """
-    Callback function for the Dual Anneling optimizer.
+    Callback function for the Dual Annealing optimizer.
     """
     global i
     global lastTime
@@ -115,7 +115,7 @@ def callbackDA(x, fun, context):
     
     bestResults = evaluateResult(x, fun, bestResults)
     print(f'Num of minima found: {i+1}')
-    print(f'The Dual Anneling algorithm gave a minimum of {fun} at the point {x}.')
+    print(f'The Dual Annealing algorithm gave a minimum of {fun} at the point {x}.')
     print(f'Total time passed: {passedTime} seconds.')
     print(f'Iteration time: {iterTime} seconds.\n')
     i += 1
@@ -123,7 +123,7 @@ def callbackDA(x, fun, context):
         result = []
         for i in range(len(bestResults[1])):
             result.append((bestResults[0][i],bestResults[1][i]))
-        saveResToFile(result, "Dual Anneling", i, passedTime)
+        saveResToFile(result, "Dual Annealing", i, passedTime)
         i = 0
         print("Optimization timeout triggered!")
         return True
@@ -224,8 +224,9 @@ def findMinimum(costFunction, bounds, runSHG=True, runDA=True, runDE=True):
     
     print("")        
     print(message + "##################################################")
-    saveAllFinalResults(result, algorithmsUsed, runtime)
-    return result
+    dateAndTime = datetime.today()
+    saveAllFinalResults(result, algorithmsUsed, runtime, dateAndTime=dateAndTime)
+    return result, dateAndTime
 
 ######################################################################################################################################################################
 # json helper functions
@@ -249,8 +250,7 @@ def getSolutionNameList():
 def createSolName(ymd,gateType,solNumberStr,usedNlvls):
     return "x_" + ymd + "_" + gateType + "_" + solNumberStr + "_" + usedNlvls
 
-
-def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today()):
+def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), fileName='solutions.json'):
     ymd = creationTime.strftime('%Y%m%d')[2:]
     creationTime = creationTime.strftime('%Y-%m-%d %H:%M:%S')
     usedNlvls = str(N) + "lvl"
@@ -258,8 +258,8 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today()):
 
     # print(solName)
 
-    solsDict = getjsonDict('solutions.json')
-    while True:
+    solsDict = getjsonDict(fileName)
+    while (solNumber < 1000):
         if solName not in solsDict:
             solsDict[solName] = {
                 "creationTime": creationTime,
@@ -269,7 +269,8 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today()):
                 'gateFidelity': None,
                 'times': None,
                 'fidelitiesAtTimes': None,
-                'fidelities1D_Dev': [[], [], [], []], # Listor med fideliten evaluerad runt korrekt Theta, delta, omegaPhi, opTime
+                'deviations': [[], [], [], []], # Listor med avvikelser från korrekt Theta, delta, omegaPhi, opTime
+                'fidelities1D_Dev': [[], [], [], []], # Listor med fideliten evaluerad vid dessa avvikelser
                 'fidelities2D_Theta_delta': None,
                 'fidelities2D_Theta_omegaPhi': None,
                 'fidelities2D_Theta_opTime': None,
@@ -278,7 +279,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today()):
                 'fidelities2D_omegaPhi_opTime': None
             }
 
-            dumpjsonDict(solsDict, 'solutions.json')
+            dumpjsonDict(solsDict, fileName)
             return None
         else:
             if (solsDict[solName]['creationTime'] == creationTime):
@@ -286,6 +287,11 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today()):
                 return None
             solNumber += 1
             solName = createSolName(ymd,gateType,str(solNumber),usedNlvls)
+
+def saveSolutionsTojson(results, gateType, N, fileName="solutions.json", dateAndTime=datetime.today()):
+    for i in range(len(results)):
+        x = results[i].x.tolist()
+        addNewSolution(x, gateType, N, fileName=fileName, creationTime=dateAndTime)
     
 ######################################################################################################################################################################
 # Simulation functions
@@ -777,22 +783,27 @@ def optimizeGate(iSWAP=False,CZ=False,energyLevels=2, timeoutAlgorithm=55000, ma
     else:
         # Decide which cost function to use.
         if iSWAP:
+            gateType = "iSWAP"
             if energyLevels==2:
                 cost = costiSWAP2
             elif energyLevels==3:
                 cost = costiSWAP3
             else:
                 cost = costiSWAP4
-        else:
+        elif CZ:
+            gateType = "CZ"
             if energyLevels==2:
                 cost = costCZ2
             elif energyLevels==3:
                 cost = costCZ3
             else:
                 cost = costCZ4
+        else:
+            pass
         
         # Optimize the fidelity for the choosen gate. 
-        findMinimum(cost, parameterBounds, runSHG=runSHG, runDA=runDA, runDE=runDE)
+        results, dateAndTime = findMinimum(cost, parameterBounds, runSHG=runSHG, runDA=runDA, runDE=runDE)
+        saveSolutionsTojson(results, gateType, energyLevels, fileName="solutions.json", dateAndTime=dateAndTime)
 
 
 ######################################################################################################################################################################
