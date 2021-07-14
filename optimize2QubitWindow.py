@@ -4,6 +4,7 @@ import tkinter.ttk as ttk
 import tkinter.font as tkFont
 import time
 from threading import Thread
+import numpy as np
 
 from main import *
 from functions import *
@@ -104,7 +105,7 @@ def optimizerDummy():
     while runOptimizer:
         time.sleep(0.1)
         # print(f' {id} is optimizing')
-        i = i + 1
+        i = i + 5
         setProgressValue(i)
         if i >= 100:
             break
@@ -133,13 +134,42 @@ def processFinished():
     progressValue.set(0)
 
 
+def identifyGate(userData):
+    try:
+        iSWAP = userData["iSWAP"]
+        SWAP = False
+        CZ = False
+    except:
+        iSWAP = False
+
+    try:
+        SWAP = userData["SWAP"]
+        CZ = False
+    except:
+        SWAP = False
+        CZ = True
+
+    return (iSWAP, SWAP, CZ)
+
+
+def callOptimizeGate():
+    dataFromUser = getAllVariablesForTheOptimizer()
+    iSWAP, SWAP, CZ = identifyGate(dataFromUser)
+
+    optimizeGate(iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, energyLevels=dataFromUser["energy-levels"], runSHG=dataFromUser["runSHG"],
+                 runDA=dataFromUser["runDA"], runDE=dataFromUser["runDE"],
+                 parameterBounds=(dataFromUser["theta"], dataFromUser["delta"],
+                                  dataFromUser["omega-phi"], dataFromUser["modulation-time"]),
+                 circuitData=(dataFromUser["frequencies"], dataFromUser["anharmonicities"], dataFromUser["couplings"], dataFromUser["rise-time"]))
+
+
 def scheduleOptimizingSessions():
     global process
     global progressValue
     global runOptimizer
     global numberOfConsecutiveSessions
     sessions = numberOfConsecutiveSessions.get()
-
+    print(getAllVariablesForTheOptimizer())
     for i in range(sessions):
         if not runOptimizer:
             break
@@ -160,7 +190,40 @@ def scheduleOptimizingSessions():
 
 
 def getAllVariablesForTheOptimizer():
-    pass
+    data = {}
+
+    data["frequencies"] = (2*np.pi*frequencyQ1.get(), 2 *
+                           np.pi*frequencyQ2.get(), 2*np.pi*frequencyCoupler.get())
+
+    data["anharmonicities"] = (2*np.pi*anharmonicityQ1.get(), 2 *
+                               np.pi*anharmonicityQ2.get(), 2*np.pi*anharmonicityCoupler.get())
+
+    data["couplings"] = (2*np.pi*couplingQ1.get(), 2*np.pi*couplingQ2.get())
+
+    data["save-folder"] = resultFolderPath.get()
+
+    data["runDE"] = runDifferentialEvolution.get()
+    data["runSHG"] = runSimplicalHomologyGlobal.get()
+    data["runDA"] = runDualAnneling.get()
+
+    data[selectedGate.get()] = True
+    data["energy-levels"] = energyLevels.get()
+
+    data["rise-time"] = riseTime.get()
+
+    data["theta"] = (thetaLower.get(), thetaUpper.get())
+    data["delta"] = (deltaLower.get(), deltaUpper.get())
+    data["omega-phi"] = (2*np.pi*omegaPhiLower.get(),
+                         2*np.pi*omegaPhiUpper.get())
+    data["modulation-time"] = (modulationTimeLower.get(),
+                               modulationTimeUpper.get())
+
+    return data
+
+
+def getRunOptimizer():
+    global runOptimizer
+    return runOptimizer.get()
 
 
 def setProgressValue(value):
