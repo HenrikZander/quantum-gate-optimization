@@ -15,8 +15,6 @@
 
 # Date created: 27 February 2021
 
-# Last modified: 29 April 2021
-
 # Copyright 2021, Henrik Zander and Emil Ingelsten, All rights reserved.
 
 ######################################################################################################################################################################

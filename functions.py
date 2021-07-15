@@ -15,8 +15,6 @@
 
 # Date created: 27 February 2021
 
-# Last modified: 22 May 2021
-
 # Copyright 2021, Henrik Zander and Emil Ingelsten, All rights reserved.
 
 ######################################################################################################################################################################
@@ -69,6 +67,7 @@ def evaluateResult(x, fun, resultList, N=5):
 ######################################################################################################################################################################
 # Callback functions
 
+
 def callbackDE(x, convergence=None):
     """
     Callback function for the Differential Evolution optimizer.
@@ -86,8 +85,7 @@ def callbackDE(x, convergence=None):
     lastTime = currentTime
 
     print(f'Num of iterations: {i+1}')
-    print(
-        f'The currently best minimum that the Differential Evolution algorithm has found has a convergence of {convergence} at the point {x}.')
+    print(f'The currently best minimum that the Differential Evolution algorithm has found has a convergence of {convergence} at the point {x}.')
     print(f'Total time passed: {passedTime} seconds.')
     print(f'Iteration time: {iterTime} seconds.\n')
     i += 1
@@ -96,6 +94,7 @@ def callbackDE(x, convergence=None):
 
     if convergence>1:
         gui.setStatus("Status: Finished! Polishing solution.")
+        gui.disableStartStopButtons()
     
     if gui.getRunOptimizer():
         return False
@@ -121,8 +120,7 @@ def callbackDA(x, fun, context):
 
     bestResults = evaluateResult(x, fun, bestResults)
     print(f'Num of minima found: {i+1}')
-    print(
-        f'The Dual Annealing algorithm gave a minimum of {fun} at the point {x}.')
+    print(f'The Dual Annealing algorithm gave a minimum of {fun} at the point {x}.')
     print(f'Total time passed: {passedTime} seconds.')
     print(f'Iteration time: {iterTime} seconds.\n')
     i += 1
@@ -155,8 +153,7 @@ def callbackSHG(x):
     lastTime = currentTime
 
     print(f'Num of iterations: {i+1}')
-    print(
-        f'The current point of examination by the Simplicial Homology Global algorithm is {x}.')
+    print(f'The current point of examination by the Simplicial Homology Global algorithm is {x}.')
     print(f'Total time passed: {passedTime} seconds.')
     print(f'Iteration time: {iterTime} seconds.\n')
     i += 1
@@ -190,7 +187,8 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
     """
 
     global startTime
-
+    global i
+    i = 0
     # Initial formatting tasks for the result that will be printed in the terminal.
     print("")
     message = "##################################################\n"
@@ -201,8 +199,7 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
     # Optimization using the Simplicial Homology Global algorithm.
     if runSHG:
         startTime = time.time()
-        resSHG = scipy.optimize.shgo(
-            costFunction, bounds, iters=4, callback=callbackSHG)
+        resSHG = scipy.optimize.shgo(costFunction, bounds, iters=4, callback=callbackSHG)
         timeSHG = time.time() - startTime
         message += f'The optimizaton using the \"Simplicial Homology Global\"-algorithm took {round(timeSHG,2)}s to execute and ended on a minimum of {resSHG.fun} at the point {resSHG.x}.\n'
         message += f'Function evaluations performed: {resSHG.nfev}\n'
@@ -210,11 +207,12 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
         algorithmsUsed.append("Simplicial Homology Global")
         runtime.append(timeSHG)
 
+    i = 0
+
     # Optimization using the Dual Annealing algorithm.
     if runDA:
         startTime = time.time()
-        resDA = scipy.optimize.dual_annealing(
-            costFunction, bounds, callback=callbackDA)
+        resDA = scipy.optimize.dual_annealing(costFunction, bounds, callback=callbackDA)
         timeDA = time.time() - startTime
         message += f'The optimizaton using the \"Dual Annealing\"-algorithm took {round(timeDA,2)}s to execute and ended on a minimum of {resDA.fun} at the point {resDA.x}.\n'
         message += f'Function evaluations performed: {resDA.nfev}\n'
@@ -222,22 +220,23 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
         algorithmsUsed.append("Dual Annealing")
         runtime.append(timeDA)
 
+    i = 0
+
     # Optimization using the Differential Evolution algorithm.
     if runDE:
         startTime = time.time()
-        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred', maxiter=3000, args=argumentsToOptimizer)
+        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred', maxiter=100000, args=argumentsToOptimizer)
         timeDE = time.time() - startTime
         message += f'The optimizaton using the \"Differential Evolution\"-algorithm took {round(timeDE,2)}s to execute and ended on a minimum of {resDE.fun} at the point {resDE.x}.\n'
         message += f'Function evaluations performed: {resDE.nfev}\n'
         result.append(resDE)
         algorithmsUsed.append("Differential Evolution")
         runtime.append(timeDE)
-
+    
     print("")
     print(message + "##################################################")
     dateAndTime = datetime.today()
-    saveAllFinalResults(result, algorithmsUsed, runtime,
-                        dateAndTime=dateAndTime)
+    saveAllFinalResults(result, algorithmsUsed, runtime, dateAndTime=dateAndTime)
     return result, dateAndTime
 
 ######################################################################################################################################################################
@@ -308,8 +307,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
 def saveSolutionsTojson(results, gateType, N, fileName="solutions.json", dateAndTime=datetime.today()):
     for i in range(len(results)):
         x = results[i].x.tolist()
-        addNewSolution(x, gateType, N, fileName=fileName,
-                       creationTime=dateAndTime)
+        addNewSolution(x, gateType, N, fileName=fileName, creationTime=dateAndTime)
 
 ######################################################################################################################################################################
 # Simulation functions
@@ -356,8 +354,7 @@ def simulateHamiltonian(x=None, sinStepHamiltonian=True, rotatingFrame=False, in
     omegaTBDC = coeffomegaTB(omegas[2], x[0])
 
     # Calculate eigenstates and eigenenergies of the hamiltonian in the bare basis when the flux only has it's DC part.
-    eigenStatesAndEnergies = getThetaEigenstates(
-        x, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
+    eigenStatesAndEnergies = getThetaEigenstates(x, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
 
     # Get eigenindices.
     eigIndices = getIndices(N, eigenStatesAndEnergies[1])
@@ -366,8 +363,7 @@ def simulateHamiltonian(x=None, sinStepHamiltonian=True, rotatingFrame=False, in
     eigenBasisUnitary = getEBUnitary(x, eigenStatesAndEnergies, N, D)
 
     # Get the hamiltonian that has a sinusodially modulated AC flux and also is in the eigen basis.
-    hamiltonian = getHamiltonian(
-        x, N=N, eigEs=eigenStatesAndEnergies[0], U_e=eigenBasisUnitary, sinStepHamiltonian=sinStepHamiltonian)
+    hamiltonian = getHamiltonian(x, N=N, eigEs=eigenStatesAndEnergies[0], U_e=eigenBasisUnitary, sinStepHamiltonian=sinStepHamiltonian)
 
     # Change the simulation settings and create the timestamps for where the evolution is to be evaluated.
     options = solver.Options()
@@ -375,19 +371,15 @@ def simulateHamiltonian(x=None, sinStepHamiltonian=True, rotatingFrame=False, in
     timeStamps = np.linspace(0, simulationTime, simulationTime*5)
 
     # Create the initial state.
-    initialState = Qobj(basis(D, initialStateIndex),
-                        dims=[[N, N, N], [1, 1, 1]])
+    initialState = Qobj(basis(D, initialStateIndex), dims=[[N, N, N], [1, 1, 1]])
 
     # Time evolve the initial state.
-    result = sesolve(hamiltonian, initialState, timeStamps, [], options=options, args={
-                     'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBDC})
+    result = sesolve(hamiltonian, initialState, timeStamps, [], options=options, args={'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBDC})
     states = result.states
 
     # Transform into the rotating frame.
     Hrot = np.array(hamiltonian[0])
-    Hrot[eigIndices[-1], eigIndices[-1]] = Hrot[eigIndices[-2], eigIndices[-2]] + \
-        Hrot[eigIndices[-3], eigIndices[-3]] - \
-        Hrot[eigIndices[0], eigIndices[0]]
+    Hrot[eigIndices[-1], eigIndices[-1]] = Hrot[eigIndices[-2], eigIndices[-2]] + Hrot[eigIndices[-3], eigIndices[-3]] - Hrot[eigIndices[0], eigIndices[0]]
     Hrot = Qobj(Hrot, dims=[[N, N, N], [N, N, N]])
 
     if rotatingFrame:
@@ -400,8 +392,7 @@ def simulateHamiltonian(x=None, sinStepHamiltonian=True, rotatingFrame=False, in
     #pIndexes = [0,1,2,5,highestProjectionIndex]
 
     for index in range(highestProjectionIndex+1):
-        operator = Qobj(basis(D, index), dims=[[N, N, N], [
-                        1, 1, 1]]) * Qobj(basis(D, index), dims=[[N, N, N], [1, 1, 1]]).dag()
+        operator = Qobj(basis(D, index), dims=[[N, N, N], [1, 1, 1]]) * Qobj(basis(D, index), dims=[[N, N, N], [1, 1, 1]]).dag()
         projectionOperators.append(operator)
 
     expectationValues = expect(projectionOperators, states)
@@ -411,15 +402,13 @@ def simulateHamiltonian(x=None, sinStepHamiltonian=True, rotatingFrame=False, in
     gateFidelity_CZ, timesCZ = getGateFidelity(x, N=N, wantCZ=True)
 
     # Print fidelity
-    print(
-        f'################################################\n\nGate fidelity for iSWAP: {gateFidelity_iSWAP}.\n\nGate fidelity for CZ: {gateFidelity_CZ}.\n\n################################################')
+    print(f'################################################\n\nGate fidelity for iSWAP: {gateFidelity_iSWAP}.\n\nGate fidelity for CZ: {gateFidelity_CZ}.\n\n################################################')
 
     # Plot the expectation values.
     plt.figure(figsize=(8, 7))
     #labels = ["|000>", "|010>", "|100>", "|001>", "|020>", "|110>", "|011>", "|200>", "|101>"]
     # labels = []
-    labels = ['|000>', '|010>', '|100>', '|001>', '|020>', '|110>',
-              '|200>', '|011>', '|101>', '|002>', '|003>', '|120>']
+    labels = ['|000>', '|010>', '|100>', '|001>', '|020>', '|110>','|200>', '|011>', '|101>', '|002>', '|003>', '|120>']
 
     for index, values in enumerate(expectationValues):
         plt.plot(timeStamps, values)
@@ -452,17 +441,14 @@ def plotFidelity(x=None, wantiSWAP=False, wantCZ=False, xName=None, saveResults=
         x = solsDict[xName]['x']
         if (F is None) or (times is None):
             indices = np.linspace(-116, -1, 116).astype(int)
-            F, times = getGateFidelity(
-                x, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=indices)
+            F, times = getGateFidelity(x, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=indices)
     else:
         if (x is None):
-            print(
-                "Must supply either the name of an x stored in a json file or a list x manually (or both)")
+            print("Must supply either the name of an x stored in a json file or a list x manually (or both)")
             return None
         else:
             indices = np.linspace(-116, -1, 116).astype(int)
-            F, times = getGateFidelity(
-                x, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=indices)
+            F, times = getGateFidelity(x, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=indices)
 
     plt.figure(figsize=(8, 7))
     plt.plot(times, F)
@@ -498,19 +484,16 @@ def deltaPulsePlot():
         y.append(sinBox(time, operationTime))
 
     plt.plot(x, y)
-    plt.plot([25, 25], [0, 1.1], 'r--', [operationTime -
-                                         25, operationTime-25], [0, 1.1], 'r--')
+    plt.plot([25, 25], [0, 1.1], 'r--', [operationTime-25, operationTime-25], [0, 1.1], 'r--')
     plt.xlabel('Tid [ns]', fontsize=16)
     plt.ylabel('Del av full amplitud, $\delta(t) / \delta_0$', fontsize=16)
     plt.xlim([0, operationTime])
     plt.ylim([0, 1.1])
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
-    plt.annotate('', xy=(0, 0.5), xytext=(25, 0.5),
-                 arrowprops=dict(arrowstyle='<->'))
+    plt.annotate('', xy=(0, 0.5), xytext=(25, 0.5), arrowprops=dict(arrowstyle='<->'))
     plt.annotate("$t_{Stig}$", xy=(6, 0.53), fontsize=18)
-    plt.annotate('', xy=(operationTime-25, 0.5),
-                 xytext=(operationTime, 0.5), arrowprops=dict(arrowstyle='<->'))
+    plt.annotate('', xy=(operationTime-25, 0.5), xytext=(operationTime, 0.5), arrowprops=dict(arrowstyle='<->'))
     plt.annotate("$t_{Fall}$", xy=(operationTime-10, 0.53), fontsize=18)
     plt.show()
 
@@ -531,10 +514,8 @@ def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkD
         plt.xticks(fontsize=16)
         plt.yticks(fontsize=16)
 
-        axlabels = ["Avvikelse från hittat $\Theta$ [$\Phi_0$]", "Avvikelse från hittat $\delta$ [$\Phi_0$]",
-                    "Avvikelse från hittat $\omega_\Phi$ [MHz]", "Avvikelse från hittat $t_{MOD}$ [ns]"]
-        legendStrs = ["$\Theta = %.4f$" % x[0], "$\delta = %.4f$" % x[1],
-                      "$\omega_\Phi = %.1f$" % (x[2]/(2*np.pi)*1000), "$t_{MOD} = %.1f$" % x[3]]
+        axlabels = ["Avvikelse från hittat $\Theta$ [$\Phi_0$]", "Avvikelse från hittat $\delta$ [$\Phi_0$]", "Avvikelse från hittat $\omega_\Phi$ [MHz]", "Avvikelse från hittat $t_{MOD}$ [ns]"]
+        legendStrs = ["$\Theta = %.4f$" % x[0], "$\delta = %.4f$" % x[1], "$\omega_\Phi = %.1f$" % (x[2]/(2*np.pi)*1000), "$t_{MOD} = %.1f$" % x[3]]
         # maxDevs = [3e-4, 1e-3, 2*np.pi * 8e-3, 40e0] # Testing extended bounds, looking for chevrons
 
         xIndices = []
@@ -549,8 +530,7 @@ def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkD
 
         if (sum(checkList) == 1):
             xIndex = xIndices[0]
-            deviations = np.linspace(-maxDevs[xIndex],
-                                     maxDevs[xIndex], nPointsList[0])
+            deviations = np.linspace(-maxDevs[xIndex], maxDevs[xIndex], nPointsList[0])
 
             if (xIndex == 2):
                 # Re-scale x-axis to MHz
@@ -563,15 +543,13 @@ def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkD
             fidelities = []
             for i, d in enumerate(deviations):
                 xDev[xIndex] = x[xIndex] + d
-                fidelity, _ = getGateFidelity(
-                    xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
+                fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
                 fidelities.append(fidelity)
                 statusBar((i+1)*100/nPointsList[0])
 
             plt.plot(deviations, fidelities, 'b-')
             plt.plot([0, 0], [0, 1], 'r--')
-            plt.legend(["Fidelitet", legendStrs[xIndex]],
-                       fontsize=19, loc="upper right")
+            plt.legend(["Fidelitet", legendStrs[xIndex]], fontsize=19, loc="upper right")
             plt.grid()
             plt.xlabel(axlabels[xIndex], fontsize=26)
             plt.ylabel("Fidelitet", fontsize=26)
@@ -583,10 +561,8 @@ def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkD
             if (len(nPointsList) == 1):
                 nPointsList.append(nPointsList[0])
 
-            iDeviations = np.linspace(-maxDevs[xIndices[0]],
-                                      maxDevs[xIndices[0]], nPointsList[0])
-            jDeviations = np.linspace(-maxDevs[xIndices[1]],
-                                      maxDevs[xIndices[1]], nPointsList[1])
+            iDeviations = np.linspace(-maxDevs[xIndices[0]], maxDevs[xIndices[0]], nPointsList[0])
+            jDeviations = np.linspace(-maxDevs[xIndices[1]], maxDevs[xIndices[1]], nPointsList[1])
             plt.xlabel(axlabels[xIndices[0]], fontsize=26)
             plt.ylabel(axlabels[xIndices[1]], fontsize=26)
             iLegendStr = legendStrs[xIndices[0]]
@@ -597,23 +573,18 @@ def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkD
                 xDev[xIndices[1]] = x[xIndices[1]] + jDev
                 for i, iDev in enumerate(iDeviations):
                     xDev[xIndices[0]] = x[xIndices[0]] + iDev
-                    fidelity, _ = getGateFidelity(
-                        xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
+                    fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
                     fidelities.append(fidelity[0])
-                    statusBar((j*nPointsList[0] + (i+1))
-                              * 100/(nPointsList[0]*nPointsList[1]))
-            fidelities2D = np.array(fidelities).reshape(
-                nPointsList[1], nPointsList[0])
+                    statusBar((j*nPointsList[0] + (i+1)) * 100/(nPointsList[0]*nPointsList[1]))
+            fidelities2D = np.array(fidelities).reshape(nPointsList[1], nPointsList[0])
 
             nyTicks = nxTicks = 9
 
             xlocs = np.linspace(0, nPointsList[0]-1, nxTicks)
-            xticks = np.linspace(-maxDevs[xIndices[0]],
-                                 maxDevs[xIndices[0]], nxTicks)
+            xticks = np.linspace(-maxDevs[xIndices[0]], maxDevs[xIndices[0]], nxTicks)
             plt.xticks(xlocs, xticks)
             ylocs = np.linspace(0, nPointsList[1]-1, nyTicks)
-            yticks = np.linspace(-maxDevs[xIndices[1]],
-                                 maxDevs[xIndices[1]], nyTicks)
+            yticks = np.linspace(-maxDevs[xIndices[1]], maxDevs[xIndices[1]], nyTicks)
             plt.yticks(ylocs, yticks)
 
             if (xIndices[0] == 2):
@@ -634,8 +605,7 @@ def getRobustnessPlot(x, wantiSWAP=False, wantCZ=False, checkTheta=False, checkD
 
             plt.axvline(x=(nPointsList[0]-1)/2, color='k')
             plt.axhline(y=(nPointsList[1]-1)/2, color='r')
-            plt.legend([iLegendStr, jLegendStr],
-                       fontsize=19, loc="upper right")
+            plt.legend([iLegendStr, jLegendStr], fontsize=19, loc="upper right")
             plt.show()
 
 
@@ -669,11 +639,9 @@ def plotEigenenergies(x, N=3, simPoints=200, numOfEnergyLevels=None):
 
     for i, theta in enumerate(thetas):
         omegaTBTh = coeffomegaTB(omegas[2], theta)
-        eigenStatesAndEnergiesBareBasis = getThetaEigenstates(
-            x, HBareBasisComponents[0]+HBareBasisComponents[1], HBareBasisComponents[2], omegaTBTh)
+        eigenStatesAndEnergiesBareBasis = getThetaEigenstates(x, HBareBasisComponents[0]+HBareBasisComponents[1], HBareBasisComponents[2], omegaTBTh)
         # eigenStatesAndEnergiesBareBasis[0][0:numOfEnergyLevels],
-        order = eigenstateOrder(
-            eigenStatesAndEnergiesBareBasis[1][0:numOfEnergyLevels], N)
+        order = eigenstateOrder(eigenStatesAndEnergiesBareBasis[1][0:numOfEnergyLevels], N)
 
         for entry in order:
             _, state, energyIndex = entry
@@ -703,8 +671,7 @@ def plotEigenenergies(x, N=3, simPoints=200, numOfEnergyLevels=None):
     plt.ylim([-1, 100])
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
-    leg = plt.legend(labels, bbox_to_anchor=(1.1, 1),
-                     fontsize=10, loc="upper right")
+    leg = plt.legend(labels, bbox_to_anchor=(1.1, 1), fontsize=10, loc="upper right")
     for legobj in leg.legendHandles:
         legobj.set_linewidth(2.0)
     plt.show()
@@ -724,28 +691,24 @@ def findEigenIndex(x, eigenStateIndex=0, N=4, printResult=False):
     omegaTBDC = coeffomegaTB(omegas[2], 0)
 
     # Calculate eigenstates and eigenenergies of the hamiltonian in the bare basis when the flux is zero.
-    eigenStatesAndEnergies = getThetaEigenstates(
-        x, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
+    eigenStatesAndEnergies = getThetaEigenstates(x, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
     eigenState = eigenStatesAndEnergies[1][eigenStateIndex]
 
     cleanEigenState = [[0] for _ in range(D)]
     for i, val in enumerate(cleanEigenState):
         cleanEigenState[i][0] = np.abs(eigenState[i].item(0))
 
-    eigenState = Qobj(cleanEigenState, dims=[
-                      [N, N, N], [1, 1, 1]], shape=(D, 1))
+    eigenState = Qobj(cleanEigenState, dims=[[N, N, N], [1, 1, 1]], shape=(D, 1))
     result = [100, [-1, -1, -1]]
     for q1 in range(N):
         for q2 in range(N):
             for qTB in range(N):
-                diff = (Qobj(tensor(basis(N, q1), basis(N, q2), basis(N, qTB)), dims=[
-                        [N, N, N], [1, 1, 1]]) - eigenState).norm()
+                diff = (Qobj(tensor(basis(N, q1), basis(N, q2), basis(N, qTB)), dims=[[N, N, N], [1, 1, 1]]) - eigenState).norm()
                 if diff < result[0]:
                     result[0] = diff
                     result[1] = [q1, q2, qTB]
     if printResult:
-        print(
-            f'The eigenstate with eigen index {eigenStateIndex} is the |{result[1][0]}{result[1][1]}{result[1][2]}> state. The norm difference is {result[0]}.')
+        print(f'The eigenstate with eigen index {eigenStateIndex} is the |{result[1][0]}{result[1][1]}{result[1][2]}> state. The norm difference is {result[0]}.')
 
     return result
 
@@ -761,7 +724,8 @@ def averageFidelity(F, gateTimeWeight=2):
 
 def cost(x, N, iSWAP, SWAP, CZ):
     # F, _ = getGateFidelity(x, N=N, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ)
-    return random.random() #averageFidelity(F)
+    time.sleep(0.1)
+    return scipy.optimize.rosen(x) #averageFidelity(F)
 
 ######################################################################################################################################################################
 # Optimize gate function
@@ -795,6 +759,7 @@ def optimizeGate(iSWAP=False, SWAP=False, CZ=False, energyLevels=3, runSHG=False
     """
     setCircuitParameters(circuitData)
     findMinimum(cost, parameterBounds, argumentsToOptimizer=(energyLevels, iSWAP, SWAP, CZ), runSHG=runSHG, runDA=runDA, runDE=runDE)
+    gui.enableStopButton()
     if gui.getRunOptimizer():
         gui.processFinished()
     else:

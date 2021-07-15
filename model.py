@@ -28,10 +28,6 @@ from numba import njit
 ######################################################################################################################################################################
 # Global variables.
 
-omegas = 0
-alphas = 0
-gs = 0
-
 
 def setCircuitParameters(circuitData):
     global omegas
@@ -43,7 +39,6 @@ def setCircuitParameters(circuitData):
     alphas = circuitData["anharmonicities"]
     gs = circuitData["couplings"]
     riseTime = circuitData["rise-time"]
-    print(f'Rise time: {riseTime} s.')
 
 ######################################################################################################################################################################
 # Parameter function.
@@ -245,10 +240,8 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
         ad_TB = tensor(I, I, ad)
 
         # Get the 4 energy level hamltonian components.
-        H0BB = omegas[0]*ad_1*a_1 - (alphas[0]/2.0)*(1-ad_1*a_1)*ad_1*a_1 + omegas[1]*ad_2*a_2 - (
-            alphas[1]/2.0)*(1-ad_2*a_2)*ad_2*a_2 - (alphas[2]/2.0)*(1-ad_TB*a_TB)*ad_TB*a_TB
-        HiBB = gs[0]*(ad_1 + a_1)*(ad_TB + a_TB) + \
-            gs[1]*(ad_2 + a_2)*(ad_TB + a_TB)
+        H0BB = omegas[0]*ad_1*a_1 - (alphas[0]/2.0)*(1-ad_1*a_1)*ad_1*a_1 + omegas[1]*ad_2*a_2 - (alphas[1]/2.0)*(1-ad_2*a_2)*ad_2*a_2 - (alphas[2]/2.0)*(1-ad_TB*a_TB)*ad_TB*a_TB
+        HiBB = gs[0]*(ad_1 + a_1)*(ad_TB + a_TB) + gs[1]*(ad_2 + a_2)*(ad_TB + a_TB)
         H1BB = ad_TB*a_TB
     else:
         # Definition of basic operators for a two-level system
@@ -295,12 +288,12 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
 
         # Get the hamiltonian in the bare basis, where the time dependent coefficient is constant with a flux phi that is equal to the current theta parameter in x.
         # This hamiltonian is used to calculate the relevant eigenstates.
-        return H0BB + HiBB + coeffomegaTB(omegas[2], x[0])*H1BB
+        return H0BB + HiBB + coeffomegaTB(omegas[2], x[0]) * H1BB
     elif getEigenEnergies:
 
         # Get the hamiltonian in the bare basis, that will be specified as a function so that the hamiltonian can be calculated for a dynamic constant flux phi.
         def hamiltonian(currentPhi):
-            return H0BB + HiBB + coeffomegaTB(omegas[2], currentPhi)*H1BB
+            return H0BB + HiBB + coeffomegaTB(omegas[2], currentPhi) * H1BB
         return hamiltonian
     else:
 
@@ -338,8 +331,7 @@ def getEBUnitary(x, eigStsBB, nLevels, Dimension):
     # Construct U_e
     U_e = Qobj()
     for i in range(Dimension):
-        U_e += Qobj(basis(Dimension, i),
-                    dims=[[nLevels, nLevels, nLevels], [1, 1, 1]]) * eigStsBB[1][i].dag()
+        U_e += Qobj(basis(Dimension, i), dims=[[nLevels, nLevels, nLevels], [1, 1, 1]]) * eigStsBB[1][i].dag()
     # NB: U_e is ordered based on eigenenergies
     return U_e
 
@@ -353,14 +345,14 @@ def getRFUnitary(Hrot, t):
     return U_rf
 
 
-def getIndicesOld(N):
-    if N == 4:
-        eigIndices = [0, 1, 2, 5]
-    elif N == 3:
-        eigIndices = [0, 1, 2, 5]
-    else:
-        eigIndices = [0, 1, 2, 4]
-    return eigIndices
+# def getIndicesOld(N):
+#     if N == 4:
+#         eigIndices = [0, 1, 2, 5]
+#     elif N == 3:
+#         eigIndices = [0, 1, 2, 5]
+#     else:
+#         eigIndices = [0, 1, 2, 4]
+#     return eigIndices
 
 
 def getIndices(N, eigenstates):
@@ -371,8 +363,7 @@ def getIndices(N, eigenstates):
             eigIndMaxOverlap = 0
             maxOverlap = 0
             for eigenstateIndex in range(len(eigenstates)):
-                currentOverlap = Qobj(tensor(basis(N, q1), basis(N, q2), basis(N, qTB)), dims=[
-                                      [N, N, N], [1, 1, 1]]).overlap(eigenstates[eigenstateIndex])
+                currentOverlap = Qobj(tensor(basis(N, q1), basis(N, q2), basis(N, qTB)), dims=[[N, N, N], [1, 1, 1]]).overlap(eigenstates[eigenstateIndex])
                 if np.abs(currentOverlap) > np.abs(maxOverlap):
                     eigIndMaxOverlap = eigenstateIndex
                     maxOverlap = currentOverlap
@@ -380,8 +371,7 @@ def getIndices(N, eigenstates):
             if (np.abs(maxOverlap) > 0.9):
                 eigenIndices.append(eigIndMaxOverlap)
             else:
-                print(
-                    'Bad Theta: At least one state in the computational subspace had a maximum eigenstate overlap below 0.9')
+                print('Bad Theta: At least one state in the computational subspace had a maximum eigenstate overlap below 0.9')
                 return None
     if len(eigenIndices) > len(set(eigenIndices)):
         print('Bad Theta: At least two states in the computational subspace got the same eigenindex')
@@ -399,12 +389,9 @@ def eigenstateOrder(eigenstates, N):
             for qTB in range(N):
                 maxOverlap = (0, 0, 0)
                 for eigenstateIndex in range(len(eigenstates)):
-                    currentOverlap = Qobj(tensor(basis(N, q1), basis(N, q2), basis(N, qTB)), dims=[
-                                          [N, N, N], [1, 1, 1]]).overlap(eigenstates[eigenstateIndex])
+                    currentOverlap = Qobj(tensor(basis(N, q1), basis(N, q2), basis(N, qTB)), dims=[[N, N, N], [1, 1, 1]]).overlap(eigenstates[eigenstateIndex])
                     if np.abs(currentOverlap) > np.abs(maxOverlap[0]):
-                        maxOverlap = (currentOverlap,
-                                      (q1, q2, qTB), eigenstateIndex)
-
+                        maxOverlap = (currentOverlap, (q1, q2, qTB), eigenstateIndex)
                 # (not {maxOverlap[2]}.issubset(assignedEigenstates)) and
                 if (np.abs(maxOverlap[0]) > 0.95):
                     # assignedEigenstates.add(maxOverlap[2])
@@ -442,8 +429,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
             theta2 = np.angle(M[2][1]) + np.pi/2 - phi
 
             # Ideal iSWAP gate matrix (with phases):
-            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, 0, np.exp(1j*(-np.pi/2 + theta1 + phi)), 0], [
-                          0, np.exp(1j*(-np.pi/2 + theta2 + phi)), 0, 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
+            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, 0, np.exp(1j*(-np.pi/2 + theta1 + phi)), 0], [0, np.exp(1j*(-np.pi/2 + theta2 + phi)), 0, 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
         elif wantCZ:
             # Calculate phases (CZ):
             phi = np.angle(M[0][0])
@@ -451,8 +437,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
             theta2 = np.angle(M[2][2]) - phi
 
             # Ideal CZ gate matrix (with phases):
-            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0,
-                                                                                             np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(np.pi + theta1 + theta2 + phi))]])
+            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(np.pi + theta1 + theta2 + phi))]])
         elif wantI:
             # Calculate phases (I):
             phi = np.angle(M[0][0])
@@ -460,8 +445,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
             theta2 = np.angle(M[2][2]) - phi
 
             # Ideal I gate matrix (with phases):
-            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [
-                          0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
+            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
 
         # Change M's type to matrix to simplify calculating fidelity
         M = np.matrix(M)
@@ -470,8 +454,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
 
         # Calculate gate fidelity
         dimComputationalSubspace = 4
-        fidelities.append((np.absolute(np.trace(M*U.H))**2 + np.trace(M.H*M)
-                           ).real/(dimComputationalSubspace*(dimComputationalSubspace+1)))
+        fidelities.append((np.absolute(np.trace(M*U.H))**2 + np.trace(M.H*M)).real/(dimComputationalSubspace*(dimComputationalSubspace+1)))
         fidelityTimes.append(ts[timeIndex])
 
     # print(fidelities)
@@ -518,8 +501,7 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tInd
     omegaTBTh = coeffomegaTB(omegas[2], x[0])
 
     # Calculate eigenstates and eigenenergies in the bare basis at Phi = Theta
-    eigStsBB = getThetaEigenstates(
-        x, HBBComps[0]+HBBComps[1], HBBComps[2], omegaTBTh)
+    eigStsBB = getThetaEigenstates(x, HBBComps[0]+HBBComps[1], HBBComps[2], omegaTBTh)
 
     # We are especially interested in |000>, |010>, |100> and |110> since these make up the computational basis.
     # These states correspond (most closely) to the eigenstates with the following eigenindices:
@@ -559,8 +541,7 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tInd
         return fidelities, fidelityTimes
 
     # Calculate the eigenbasis hamiltonian
-    HEB = getHamiltonian(
-        x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinStepHamiltonian=True)
+    HEB = getHamiltonian(x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinStepHamiltonian=True)
 
     # Initialise a list c of the time-evolved eigenstates
     c = [stateToBeEvolved for stateToBeEvolved in r]
@@ -573,9 +554,7 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tInd
 
     # Pick out the rotating hamiltonian
     Hrot = np.array(HEB[0])
-    Hrot[eigIndices[-1], eigIndices[-1]] = Hrot[eigIndices[-2], eigIndices[-2]] + \
-        Hrot[eigIndices[-3], eigIndices[-3]] - \
-        Hrot[eigIndices[0], eigIndices[0]]
+    Hrot[eigIndices[-1], eigIndices[-1]] = Hrot[eigIndices[-2], eigIndices[-2]] + Hrot[eigIndices[-3], eigIndices[-3]] - Hrot[eigIndices[0], eigIndices[0]]
     Hrot = Qobj(Hrot, dims=[[N, N, N], [N, N, N]])
 
     return fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, CZ, wantI)
