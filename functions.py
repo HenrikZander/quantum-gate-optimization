@@ -450,15 +450,16 @@ def simulateHamiltonian(x=None, xName=None, sinStepHamiltonian=True, rotatingFra
     return gateFidelity_iSWAP, gateFidelity_CZ
 
 
-def plotFidelity(x=None, wantiSWAP=False, wantCZ=False, xName=None, saveResults=False):
+def plotFidelity(x=None, wantiSWAP=False, wantCZ=False, xName=None, useSavedPlot=False, saveTojson=False):
     if (xName is not None):
         if (x is not None):
             print("Warning: Ignoring manually supplied x")
         solsDict = getFromjson('solutions.json')
-        F = solsDict[xName]['fidelitiesAtTimes']
-        times = solsDict[xName]['times']
         x = solsDict[xName]['x']
-        if (F is None) or (times is None):
+        if useSavedPlot:
+            F = solsDict[xName]['fidelitiesAtTimes']
+            times = solsDict[xName]['times']
+        else:
             indices = np.linspace(-116, -1, 116).astype(int)
             F, times = getGateFidelity(x, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=indices)
     else:
@@ -484,7 +485,7 @@ def plotFidelity(x=None, wantiSWAP=False, wantCZ=False, xName=None, saveResults=
     plt.tight_layout()
     plt.show()
 
-    if (saveResults == True):
+    if (saveTojson == True):
         if (xName is None):
             print("Warning: Couldn't save results. To save results, you need to specify a solution listed in solutions.json")
         else:

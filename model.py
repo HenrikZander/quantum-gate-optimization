@@ -341,7 +341,7 @@ def getIndicesOld(N):
         eigIndices = [0, 1, 2, 4]
     return eigIndices
 
-def getIndices(N, eigenstates):
+def getIndices(N, eigenstates, lowestOverlapAllowed=0.7):
     eigenIndices = []
     for q1 in range(2):
         for q2 in range(2):
@@ -354,10 +354,10 @@ def getIndices(N, eigenstates):
                     eigIndMaxOverlap = eigenstateIndex
                     maxOverlap = currentOverlap
 
-            if (np.abs(maxOverlap) > 0.9):
+            if (np.abs(maxOverlap) > lowestOverlapAllowed):
                 eigenIndices.append(eigIndMaxOverlap)
             else:
-                print('Bad Theta: At least one state in the computational subspace had a maximum eigenstate overlap below 0.9')
+                print(f'Bad Theta: At least one state in the computational subspace had a maximum eigenstate overlap below {lowestOverlapAllowed}')
                 return None
     if len(eigenIndices) > len(set(eigenIndices)):
         print('Bad Theta: At least two states in the computational subspace got the same eigenindex')
