@@ -25,12 +25,13 @@ from qutip import *
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+import random
 import scipy
 from numba import njit
 
 from plotting import *
 from model import *
-from variables import *
+# from variables import *
 
 import json
 from datetime import datetime
@@ -92,20 +93,14 @@ def callbackDE(x, convergence=None):
     i += 1
 
     gui.setProgressValue(convergence)
-    if gui.getRunOptimizer():
-        pass
-    else:
-        pass
 
-    # if passedTime > maxRuntime:
-    #     result = [(x, convergence)]
-    #     saveResToFile(result, "Differential Evolution",
-    #                   i, passedTime, algorithmDE=True)
-    #     i = 0
-    #     print("Optimization timeout triggered!")
-    #     return True
-    # else:
-    #     return False
+    if convergence>1:
+        gui.setStatus("Status: Finished! Polishing solution.")
+    
+    if gui.getRunOptimizer():
+        return False
+    else:
+        return True
 
 
 def callbackDA(x, fun, context):
@@ -175,7 +170,7 @@ def callbackSHG(x):
 ######################################################################################################################################################################
 
 
-def findMinimum(costFunction, bounds, runSHG=False, runDA=False, runDE=True):
+def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=False, runDE=True):
     """
     This function aims to find the global minimum of the specified cost 
     function, within the parameter bounds that has been specified. A 
@@ -230,8 +225,7 @@ def findMinimum(costFunction, bounds, runSHG=False, runDA=False, runDE=True):
     # Optimization using the Differential Evolution algorithm.
     if runDE:
         startTime = time.time()
-        resDE = scipy.optimize.differential_evolution(
-            costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred', maxiter=3000)
+        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred', maxiter=3000, args=argumentsToOptimizer)
         timeDE = time.time() - startTime
         message += f'The optimizaton using the \"Differential Evolution\"-algorithm took {round(timeDE,2)}s to execute and ended on a minimum of {resDE.fun} at the point {resDE.x}.\n'
         message += f'Function evaluations performed: {resDE.nfev}\n'
@@ -766,8 +760,8 @@ def averageFidelity(F, gateTimeWeight=2):
 
 
 def cost(x, N, iSWAP, SWAP, CZ):
-    F, _ = getGateFidelity(x, N=N, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ)
-    return -averageFidelity(F)
+    # F, _ = getGateFidelity(x, N=N, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ)
+    return random.random() #averageFidelity(F)
 
 ######################################################################################################################################################################
 # Optimize gate function
@@ -799,8 +793,12 @@ def optimizeGate(iSWAP=False, SWAP=False, CZ=False, energyLevels=3, runSHG=False
             No output.
     ---------------------------------------------------------
     """
-
-    findMinimum(cost, parameterBounds, runSHG=runSHG, runDA=runDA, runDE=runDE)
+    setCircuitParameters(circuitData)
+    findMinimum(cost, parameterBounds, argumentsToOptimizer=(energyLevels, iSWAP, SWAP, CZ), runSHG=runSHG, runDA=runDA, runDE=runDE)
+    if gui.getRunOptimizer():
+        gui.processFinished()
+    else:
+        gui.processStopped()
 
 
 ######################################################################################################################################################################

@@ -15,8 +15,6 @@
 
 # Date created: 29 April 2021
 
-# Last modified: 22 May 2021
-
 # Copyright 2021, Henrik Zander and Emil Ingelsten, All rights reserved.
 
 ######################################################################################################################################################################
@@ -24,55 +22,74 @@
 from numpy.core.numeric import False_
 from qutip import *
 import numpy as np
-from variables import *
+# from variables import *
 from numba import njit
+
+######################################################################################################################################################################
+# Global variables.
+
+omegas = 0
+alphas = 0
+gs = 0
+
+
+def setCircuitParameters(circuitData):
+    global omegas
+    global alphas
+    global gs
+    global riseTime
+    
+    omegas = circuitData["frequencies"]
+    alphas = circuitData["anharmonicities"]
+    gs = circuitData["couplings"]
+    riseTime = circuitData["rise-time"]
+    print(f'Rise time: {riseTime} s.')
 
 ######################################################################################################################################################################
 # Parameter function.
 
+# def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=False, wantCZ_20=False):
+#     """
+#     This function gets the bounds for the different
+#     parameters that the optimizer can change in the
+#     simulation. The function assumes the associated parameters
+#     to have the shape: x = [Theta, delta, omegaPhi, modulationTime].
+#     ---------------------------------------------------------
+#     INPUT:
+#             maxAllowedGateTime (int) {Optional}: The maximum gate time that
+#                 will be allowed as a solution from the optimizer.
+#             wantTradCZ (boolean) {Optional}: If true, the parameter bounds
+#                 are constricted so that |Theta| < phi_crossing,
+#                 omegaPhi > 0.9 * min(omega_11<->20, omega_11<->02) and
+#                 omegaPhi < 1.1 * max(omega_11<->20, omega_11<->02).
+#                 Defaults to False.
+#             wantTradiSWAP (boolean) {Optional}: If true, the parameter bounds
+#                 are constricted so that |Theta| < phi_crossing and
+#                 so that omegaPhi is within 10% of omega_10<->01.
+#                 Defaults to False.
+#     ---------------------------------------------------------
+#     OUTPUT:
+#             parameterBounds (array(tuples(int))): Array of tuples that each
+#                 contain the associated upper and lower bounds for that parameter.
+#     ---------------------------------------------------------
+#     """
+#     if (wantTradCZ):
+#         if (wantCZ_20):
+#             omegaPhiMin = omegaPhi_CZ_20 - 0.15
+#             omegaPhiMax = omegaPhi_CZ_20 + 0.15
+#         else:
+#             omegaPhiMin = omegaPhi_CZ_02 - 0.15
+#             omegaPhiMax = omegaPhi_CZ_02 + 0.15
 
-def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=False, wantCZ_20=False):
-    """
-    This function gets the bounds for the different
-    parameters that the optimizer can change in the
-    simulation. The function assumes the associated parameters
-    to have the shape: x = [Theta, delta, omegaPhi, modulationTime].
-    ---------------------------------------------------------
-    INPUT:
-            maxAllowedGateTime (int) {Optional}: The maximum gate time that
-                will be allowed as a solution from the optimizer.
-            wantTradCZ (boolean) {Optional}: If true, the parameter bounds
-                are constricted so that |Theta| < phi_crossing,
-                omegaPhi > 0.9 * min(omega_11<->20, omega_11<->02) and
-                omegaPhi < 1.1 * max(omega_11<->20, omega_11<->02).
-                Defaults to False.
-            wantTradiSWAP (boolean) {Optional}: If true, the parameter bounds
-                are constricted so that |Theta| < phi_crossing and
-                so that omegaPhi is within 10% of omega_10<->01.
-                Defaults to False.
-    ---------------------------------------------------------
-    OUTPUT:
-            parameterBounds (array(tuples(int))): Array of tuples that each
-                contain the associated upper and lower bounds for that parameter.
-    ---------------------------------------------------------
-    """
-    if (wantTradCZ):
-        if (wantCZ_20):
-            omegaPhiMin = omegaPhi_CZ_20 - 0.15
-            omegaPhiMax = omegaPhi_CZ_20 + 0.15
-        else:
-            omegaPhiMin = omegaPhi_CZ_02 - 0.15
-            omegaPhiMax = omegaPhi_CZ_02 + 0.15
+#         return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
+#     elif (wantTradiSWAP):
 
-        return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
-    elif (wantTradiSWAP):
+#         omegaPhiMin = omegaPhi_iSWAP - 0.15
+#         omegaPhiMax = omegaPhi_iSWAP + 0.15
 
-        omegaPhiMin = omegaPhi_iSWAP - 0.15
-        omegaPhiMax = omegaPhi_iSWAP + 0.15
-
-        return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
-    else:
-        return [(-0.5, 0.5), (0, 0.25), (0, 8), (50, maxAllowedGateTime)]
+#         return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
+#     else:
+#         return [(-0.5, 0.5), (0, 0.25), (0, 8), (50, maxAllowedGateTime)]
 
 
 ######################################################################################################################################################################
@@ -94,8 +111,7 @@ def tunableBus(t, theta, delta, omegaphi, omegatb0):
     This function calculates the frequency for the tunable bus, for the case
     when the AC part of the flux has a constant amplitude.
     """
-    oTB = omegatb0 * \
-        np.sqrt(np.abs(np.cos(np.pi*Phi(t, theta, delta, omegaphi))))
+    oTB = omegatb0 * np.sqrt(np.abs(np.cos(np.pi*Phi(t, theta, delta, omegaphi))))
     return oTB
 
 
@@ -126,13 +142,12 @@ def sinstep(x, x_min, x_max):
     return result
 
 
-def sinBox(t, operationTime):
+def sinBox(t, operationTime, tRise):
     """
     This function calculates the value of a box function with a sinusoidal rise
     and fall, with a total length of operationTime, at the time t.
     A rise time of 25 ns is used.
     """
-    tRise = 25
     tWait = operationTime - 2*tRise
     funVal = sinstep(t, 0, tRise) - sinstep(t, tWait + tRise, tWait + 2*tRise)
     return funVal
@@ -154,8 +169,7 @@ def tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal):
     This function calculates the frequency for the tunable bus, in the case
     where the AC part of the flux has a sinusoidal box envelope.
     """
-    oTB = omegatb0 * \
-        np.sqrt(np.abs(np.cos(np.pi*PhiSinStep(t, theta, delta, omegaphi, sinBoxVal))))
+    oTB = omegatb0 * np.sqrt(np.abs(np.cos(np.pi*PhiSinStep(t, theta, delta, omegaphi, sinBoxVal))))
     return oTB
 
 
@@ -169,7 +183,8 @@ def omegaTBSinStep(t, args):
     omegatb0 = args['omegatb0']
     operationTime = args['operationTime']
     omegaTBTh = args['omegaTBTh']
-    sinBoxVal = sinBox(t, operationTime)
+    tRise = args['rise-time']
+    sinBoxVal = sinBox(t, operationTime, tRise)
     return tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal) - omegaTBTh
 
 
@@ -529,8 +544,7 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tInd
     nExtraSteps = 75
 
     ts1, stepSize = np.linspace(0, opTime, 3*int(opTime), retstep=True)
-    ts2 = np.linspace(opTime+stepSize, opTime +
-                      nExtraSteps*stepSize, nExtraSteps)
+    ts2 = np.linspace(opTime+stepSize, opTime + nExtraSteps*stepSize, nExtraSteps)
     ts = np.append(ts1, ts2)
 
     # If eigenindices couldn't be generated, the function returns fidelity 0.2 at all examined timestamps.
@@ -551,8 +565,7 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tInd
     # Initialise a list c of the time-evolved eigenstates
     c = [stateToBeEvolved for stateToBeEvolved in r]
     # Calculate final states and store them in c
-    args = {'theta': x[0], 'delta': x[1], 'omegaphi': x[2],
-            'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBTh}
+    args = {'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBTh, 'rise-time': riseTime}
     for i in range(len(c)):
         output = sesolve(HEB, c[i], ts, args=args)
         c[i] = output.states
@@ -565,7 +578,7 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tInd
         Hrot[eigIndices[0], eigIndices[0]]
     Hrot = Qobj(Hrot, dims=[[N, N, N], [N, N, N]])
 
-    return fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wantI)
+    return fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, CZ, wantI)
 
 
 ######################################################################################################################################################################

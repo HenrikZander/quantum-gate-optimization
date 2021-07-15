@@ -4372,3 +4372,99 @@ Total runtime: 6594.901270389557 seconds
  success: True
        x: array([4.38251422e-01, 4.43982477e-02, 3.55739298e+00, 8.74775306e+01])
 ##################################################
+##################################################
+Result (full) from: 2021-07-15 15:50:15.090307
+Algorithm: Differential Evolution
+Total runtime: 29.91333532333374 seconds
+##################################################
+     fun: 3.36608822604223e-06
+ message: 'Maximum number of iterations has been exceeded.'
+    nfev: 180165
+     nit: 3000
+ success: False
+       x: array([-2.41322050e-01,  2.67957091e-04,  3.53966369e+00,  1.71850044e+02])
+##################################################
+##################################################
+Result (full) from: 2021-07-15 15:55:28.083099
+Algorithm: Differential Evolution
+Total runtime: 30.52456307411194 seconds
+##################################################
+     fun: 1.5963920141359722e-06
+ message: 'Maximum number of iterations has been exceeded.'
+    nfev: 180165
+     nit: 3000
+ success: False
+       x: array([-9.72612777e-02,  7.16101524e-02,  5.81098718e+00,  1.40995047e+02])
+##################################################
+##################################################
+Result (full) from: 2021-07-15 15:56:00.061975
+Algorithm: Differential Evolution
+Total runtime: 7.919154405593872 seconds
+##################################################
+     fun: 0.00030817925725168394
+ message: 'callback function requested stop early by returning True'
+    nfev: 17750
+     nit: 292
+ success: False
+       x: array([-4.46573609e-01,  1.77257566e-01,  1.04909839e-01,  2.37101718e+02])
+##################################################
+##################################################
+Result (full) from: 2021-07-15 15:56:44.001023
+Algorithm: Differential Evolution
+Total runtime: 29.642069339752197 seconds
+##################################################
+     fun: 3.1837868866846364e-06
+ message: 'Maximum number of iterations has been exceeded.'
+    nfev: 180155
+     nit: 3000
+ success: False
+       x: array([3.82110317e-01, 1.98327030e-01, 2.73326696e+00, 2.20818563e+02])
+##################################################
+##################################################
+Result (full) from: 2021-07-15 15:56:56.358455
+Algorithm: Differential Evolution
+Total runtime: 12.348457098007202 seconds
+##################################################
+     fun: 1.651673310554269e-05
+ message: 'callback function requested stop early by returning True'
+    nfev: 51855
+     nit: 861
+ success: False
+       x: array([6.03051386e-02, 1.07478058e-01, 2.80821304e+00, 1.93927032e+02])
+##################################################
+##################################################
+Result (full) from: 2021-07-15 15:57:27.837502
+Algorithm: Differential Evolution
+Total runtime: 29.071609497070312 seconds
+##################################################
+     fun: 3.214257944250676e-07
+ message: 'Maximum number of iterations has been exceeded.'
+    nfev: 180180
+     nit: 3000
+ success: False
+       x: array([ 0.41807553,  0.06442626,  7.03654243, 61.42153242])
+##################################################
+##################################################
+Result (full) from: 2021-07-15 15:57:48.290044
+Algorithm: Differential Evolution
+Total runtime: 20.44755506515503 seconds
+##################################################
+     fun: 1.0734338839801794e-05
+ message: 'callback function requested stop early by returning True'
+    nfev: 112725
+     nit: 1875
+ success: False
+       x: array([-2.93333517e-02,  2.16963872e-01,  3.91646194e+00,  2.14745749e+02])
+##################################################
+##################################################
+Result (full) from: 2021-07-15 16:00:22.566193
+Algorithm: Differential Evolution
+Total runtime: 8.70605731010437 seconds
+##################################################
+     fun: 1.6922324198809235e-05
+ message: 'callback function requested stop early by returning True'
+    nfev: 26030
+     nit: 430
+ success: False
+       x: array([ 0.31371502,  0.17650854,  0.63095402, 59.68821006])
+##################################################

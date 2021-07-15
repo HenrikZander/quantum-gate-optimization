@@ -7,7 +7,8 @@ from threading import Thread
 import numpy as np
 
 from main import *
-from functions import *
+import functions
+import model
 
 ######################################################################################################################################################################
 # Global variables and function to initiate global variables
@@ -98,38 +99,18 @@ def initiateGlobalVariables(root, givenHeight):
 # High level functions that interact with other modules.
 
 
-def optimizerDummy():
-    global runOptimizer
-    i = 0
-
-    while runOptimizer:
-        time.sleep(0.1)
-        # print(f' {id} is optimizing')
-        i = i + 5
-        setProgressValue(i)
-        if i >= 100:
-            break
-
-    if runOptimizer:
-        processFinished()
-    else:
-        processStopped()
-
-
 def resetStartStopButtons():
     startOptimizeButton.config(background="green", command=startOptimizing)
     stopOptimizeButton.config(background="grey", command=NONE)
 
 
 def processStopped():
-    time.sleep(2)
     statusString.set("Status: Optimization stopped. Ready to optimize.")
     progressValue.set(0)
     resetStartStopButtons()
 
 
 def processFinished():
-    time.sleep(2)
     statusString.set("Status: Optimization finished. Ready to optimize.")
     progressValue.set(0)
 
@@ -156,11 +137,7 @@ def callOptimizeGate():
     dataFromUser = getAllVariablesForTheOptimizer()
     iSWAP, SWAP, CZ = identifyGate(dataFromUser)
 
-    optimizeGate(iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, energyLevels=dataFromUser["energy-levels"], runSHG=dataFromUser["runSHG"],
-                 runDA=dataFromUser["runDA"], runDE=dataFromUser["runDE"],
-                 parameterBounds=(dataFromUser["theta"], dataFromUser["delta"],
-                                  dataFromUser["omega-phi"], dataFromUser["modulation-time"]),
-                 circuitData=(dataFromUser["frequencies"], dataFromUser["anharmonicities"], dataFromUser["couplings"], dataFromUser["rise-time"]))
+    functions.optimizeGate(iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, energyLevels=dataFromUser["energy-levels"], runSHG=dataFromUser["runSHG"], runDA=dataFromUser["runDA"], runDE=dataFromUser["runDE"], parameterBounds=(dataFromUser["theta"], dataFromUser["delta"], dataFromUser["omega-phi"], dataFromUser["modulation-time"]), circuitData=dataFromUser)
 
 
 def scheduleOptimizingSessions():
@@ -169,7 +146,7 @@ def scheduleOptimizingSessions():
     global runOptimizer
     global numberOfConsecutiveSessions
     sessions = numberOfConsecutiveSessions.get()
-    print(getAllVariablesForTheOptimizer())
+    
     for i in range(sessions):
         if not runOptimizer:
             break
@@ -178,7 +155,7 @@ def scheduleOptimizingSessions():
             f'Status: Optimization ({i+1}/{sessions}) running, please wait.')
         ##########################################
         # This decides which function to run
-        process = Thread(target=optimizerDummy)
+        process = Thread(target=callOptimizeGate)
         process.start()
         process.join()
         ##########################################
@@ -223,15 +200,19 @@ def getAllVariablesForTheOptimizer():
 
 def getRunOptimizer():
     global runOptimizer
-    return runOptimizer.get()
+    return runOptimizer
 
 
 def setProgressValue(value):
     progressValue.set(value)
 
+def setStatus(currentStatus):
+    global statusString
+    statusString.set(currentStatus)
 
+    
 def setDefaultBoundaryValues():
-    data = getjsonDict("config.json")
+    data = functions.getjsonDict("config.json")
 
     thetaLower.set(data["theta"][0])
     thetaUpper.set(data["theta"][1])
@@ -326,7 +307,7 @@ def changeDefaultCircuit():
 
 
 def useDefaultCircuit():
-    configData = getjsonDict("config.json")
+    configData = functions.getjsonDict("config.json")
     setCircuitVariables(configData)
 
 
@@ -367,7 +348,7 @@ def optimizeStatusFrame(bottomFrame):
 
     global progress
     progress = ttk.Progressbar(bottomFrame, length=width*0.67, orient=HORIZONTAL,
-                               mode='determinate', value=0, variable=progressValue)
+                               mode='determinate', value=0, variable=progressValue, maximum=1)
     progress.place(relx=0.05, rely=0.5, anchor='nw')
 
 ##################################################################################
