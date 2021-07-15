@@ -34,6 +34,7 @@ from variables import *
 
 import json
 from datetime import datetime
+import math
 
 ######################################################################################################################################################################
 # Global variables
@@ -231,19 +232,19 @@ def findMinimum(costFunction, bounds, runSHG=True, runDA=True, runDE=True):
 ######################################################################################################################################################################
 # json helper functions
 
-def getjsonDict(fileName):
+def getFromjson(fileName):
     with open(fileName, 'r') as jsonFile:
         jsonDict = json.load(jsonFile)
     return jsonDict
 
 
-def dumpjsonDict(data, fileName):
+def dumpTojson(data, fileName):
     with open(fileName, 'w') as jsonFile:
         json.dump(data, jsonFile, ensure_ascii=False, indent=4)
 
 
 def getSolutionNameList():
-    solsDict = getjsonDict('solutions.json')
+    solsDict = getFromjson('solutions.json')
     return [xName for xName in solsDict]
 
 
@@ -258,7 +259,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
 
     # print(solName)
 
-    solsDict = getjsonDict(fileName)
+    solsDict = getFromjson(fileName)
     while (solNumber < 1000):
         if solName not in solsDict:
             solsDict[solName] = {
@@ -279,7 +280,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
                 'fidelities2D_omegaPhi_opTime': None
             }
 
-            dumpjsonDict(solsDict, fileName)
+            dumpTojson(solsDict, fileName)
             return None
         else:
             if (solsDict[solName]['creationTime'] == creationTime):
@@ -296,7 +297,36 @@ def saveSolutionsTojson(results, gateType, N, fileName="solutions.json", dateAnd
 ######################################################################################################################################################################
 # Simulation functions
 
-def simulateHamiltonian(x=None, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, highestProjectionIndex=8, N=4, xName=None, saveFidelity=False):
+def getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex):
+    theta = -abs(theta)
+    labelsList = []
+    eigenIndices = []
+    for label in eigenEnergyDict:
+        knownThetas = eigenEnergyDict[label][0]
+        knownEigInds = eigenEnergyDict[label][3]
+        for i, kTh in enumerate(knownThetas):
+            if (kTh > theta):
+                iAfter = i
+                iBefore = i-1
+                break
+        if (knownEigInds[iBefore] == knownEigInds[iAfter]):
+            eigenIndices.append(knownEigInds[iAfter])
+        else:
+            eigenIndices.append(-knownEigInds[iAfter])
+        labelsList.append(label)
+    usedLabels = ["" for _ in range(maxUsedIndex+1)]
+    #print(eigenIndices)
+    for i, ei in enumerate(eigenIndices):
+        if abs(ei) > maxUsedIndex:
+            pass
+        elif ei >= 0:
+            usedLabels[ei] = labelsList[i]
+        else:
+            usedLabels[abs(ei)] = "|???>"
+    return usedLabels
+
+
+def simulateHamiltonian(x=None, xName=None, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, highestProjectionIndex=8, N=4):
     """
     This function simulates the population transfers between 
     different eigenstates of the 4-level hamiltonian from 
@@ -316,16 +346,16 @@ def simulateHamiltonian(x=None, sinStepHamiltonian=True, rotatingFrame=False, in
             gateFidelity_iSWAP, gateFidelity_CZ (float, float): The gate fidelity for both the iSWAP and CZ gate.
     ---------------------------------------------------------
     """
-    
-    if (xName is not None):
+
+    if (xName is None):
+        if (x is None):
+            print("Must supply either the name of an x stored in a json file or a list x manually (or both)")
+            return None
+    else:
         if (x is not None):
             print("Warning: Ignoring manually supplied x")
-        solsDict = getjsonDict('solutions.json')
+        solsDict = getFromjson('solutions.json')
         x = solsDict[xName]['x']
-    elif (x is None):
-        print("At least one of the x and xName input fields needs to not be None!")
-        return None
-
 
     # Calculate the dimension of the tensor states and set the simulation time.
     D = N**3
@@ -392,10 +422,15 @@ def simulateHamiltonian(x=None, sinStepHamiltonian=True, rotatingFrame=False, in
     plt.figure(figsize=(8,7))
     #labels = ["|000>", "|010>", "|100>", "|001>", "|020>", "|110>", "|011>", "|200>", "|101>"]
     # labels = []
-    labels = ['|000>','|010>','|100>','|001>','|020>','|110>','|200>','|011>','|101>','|002>','|003>','|120>']
-    
+    #labels = ['|000>','|010>','|100>','|001>','|020>','|110>','|200>','|011>','|101>','|002>','|003>','|120>']
+    eigenEnergyDict = getFromjson('eigenenergies.json')
+    theta = x[0]
+    maxUsedIndex = highestProjectionIndex
+    labels = getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex)
+
+    linestyle = ['-', '--', '-.', ':']
     for index, values in enumerate(expectationValues):
-        plt.plot(timeStamps, values)
+        plt.plot(timeStamps, values, ls=linestyle[math.floor(index / 10) % 4])
         # eigenOrder = (findEigenIndex(x, eigenStateIndex=index))[1]
         # labels.append(f'|{eigenOrder[0]}{eigenOrder[1]}{eigenOrder[2]}>')
     
@@ -419,7 +454,7 @@ def plotFidelity(x=None, wantiSWAP=False, wantCZ=False, xName=None, saveResults=
     if (xName is not None):
         if (x is not None):
             print("Warning: Ignoring manually supplied x")
-        solsDict = getjsonDict('solutions.json')
+        solsDict = getFromjson('solutions.json')
         F = solsDict[xName]['fidelitiesAtTimes']
         times = solsDict[xName]['times']
         x = solsDict[xName]['x']
@@ -456,7 +491,7 @@ def plotFidelity(x=None, wantiSWAP=False, wantCZ=False, xName=None, saveResults=
             solsDict[xName]['times'] = times
             solsDict[xName]['fidelitiesAtTimes'] = F
             solsDict[xName]['gateFidelity'] = F[-76]
-            dumpjsonDict(solsDict,'solutions.json')
+            dumpTojson(solsDict,'solutions.json')
 
 
 def deltaPulsePlot():
@@ -482,7 +517,7 @@ def deltaPulsePlot():
     plt.show()
 
 
-def getRobustnessPlot(x=None, xName=None, wantiSWAP=False, wantCZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[3e-4, 1e-3, 2*np.pi * 2e-3, 4e0], useSavedPlot=False, saveTojson=False):
+def getRobustnessPlot(x=None, xName=None, wantiSWAP=False, wantCZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[5e-4, 1e-3, 2*np.pi * 2e-3, 4e0], useSavedPlot=False, saveTojson=False):
     if (xName is None):
         if (x is None):
             print("Must supply either the name of an x stored in a json file or a list x manually (or both)")
@@ -490,7 +525,7 @@ def getRobustnessPlot(x=None, xName=None, wantiSWAP=False, wantCZ=False, checkTh
     else:
         if (x is not None):
             print("Warning: Ignoring manually supplied x")
-        solsDict = getjsonDict('solutions.json')
+        solsDict = getFromjson('solutions.json')
         x = solsDict[xName]['x']
     
     if (useSavedPlot and saveTojson):
@@ -529,7 +564,7 @@ def getRobustnessPlot(x=None, xName=None, wantiSWAP=False, wantCZ=False, checkTh
         if (sum(checkList) == 1):
             xIndex = xIndices[0]
             if (useSavedPlot):
-                deviations = solsDict[xName]['deviations'][xIndex]
+                deviations = np.array(solsDict[xName]['deviations'][xIndex])
                 fidelities = solsDict[xName]['fidelities1D_Dev'][xIndex]
             else:
                 deviations = np.linspace(-maxDevs[xIndex], maxDevs[xIndex], nPointsList[0])
@@ -537,7 +572,7 @@ def getRobustnessPlot(x=None, xName=None, wantiSWAP=False, wantCZ=False, checkTh
                 for i, d in enumerate(deviations):
                     xDev[xIndex] = x[xIndex] + d
                     fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
-                    fidelities.append(fidelity)
+                    fidelities.append(fidelity[0])
                     statusBar((i+1)*100/nPointsList[0])
 
             if (xIndex == 2):
@@ -560,9 +595,9 @@ def getRobustnessPlot(x=None, xName=None, wantiSWAP=False, wantCZ=False, checkTh
             plt.show()
 
             if (saveTojson):
-                solsDict[xName]['deviations'][xIndex] = deviations
+                solsDict[xName]['deviations'][xIndex] = deviations.tolist()
                 solsDict[xName]['fidelities1D_Dev'][xIndex] = fidelities
-                dumpjsonDict(solsDict, 'solutions.json')
+                dumpTojson(solsDict, 'solutions.json')
         elif (sum(checkList) == 2):
             if (len(nPointsList) == 1):
                 nPointsList.append(nPointsList[0])
@@ -572,22 +607,23 @@ def getRobustnessPlot(x=None, xName=None, wantiSWAP=False, wantCZ=False, checkTh
             iLegendStr = legendStrs[xIndices[0]]
             jLegendStr = legendStrs[xIndices[1]]
 
+            if (xIndices == [0,1]):
+                listName = "fidelities2D_Theta_delta"
+            elif (xIndices == [0,2]):
+                listName = "fidelities2D_Theta_omegaPhi"
+            elif (xIndices == [0,3]):
+                listName = "fidelities2D_Theta_opTime"
+            elif (xIndices == [1,2]):
+                listName = "fidelities2D_delta_omegaPhi"
+            elif (xIndices == [1,3]):
+                listName = "fidelities2D_delta_opTime"
+            elif (xIndices == [2,3]):
+                listName = "fidelities2D_omegaPhi_opTime"
+            else:
+                print("Error: If you see this, something went wrong")
+                return None
+
             if (useSavedPlot):
-                if (xIndices == [0,1]):
-                    listName = "fidelities2D_Theta_delta"
-                elif (xIndices == [0,2]):
-                    listName = "fidelities2D_Theta_omegaPhi"
-                elif (xIndices == [0,3]):
-                    listName = "fidelities2D_Theta_opTime"
-                elif (xIndices == [1,2]):
-                    listName = "fidelities2D_delta_omegaPhi"
-                elif (xIndices == [1,3]):
-                    listName = "fidelities2D_delta_opTime"
-                elif (xIndices == [2,3]):
-                    listName = "fidelities2D_omegaPhi_opTime"
-                else:
-                    print("Error: If you see this, something went wrong")
-                    return None
                 fidelities2D = np.array(solsDict[xName][listName][0])
                 iDeviations = np.array(solsDict[xName][listName][1])
                 jDeviations = np.array(solsDict[xName][listName][2])
@@ -636,64 +672,87 @@ def getRobustnessPlot(x=None, xName=None, wantiSWAP=False, wantCZ=False, checkTh
             plt.show()
 
             if (saveTojson):
+                solsDict[xName][listName] = [[],[],[]]
                 solsDict[xName][listName][0] = fidelities2D.tolist()
                 solsDict[xName][listName][1] = iDeviations.tolist()
                 solsDict[xName][listName][2] = jDeviations.tolist()
-                dumpjsonDict(solsDict, 'solutions.json')
+                dumpTojson(solsDict, 'solutions.json')
 
 
 def indexToString(indexTuple):
     return f'|{indexTuple[0]}{indexTuple[1]}{indexTuple[2]}>'
 
 
-def saveEnergyAndFlux(itemList, state, flux, energy):
+def saveEnergyAndFlux(itemList, state, flux, energy, energyIndex):
     for item in itemList:
         if item[2] == state:
             item[0].append(flux)
             item[1].append(energy)
+            item[3].append(energyIndex)
             break
 
 
-def plotEigenenergies(x, N=3, simPoints=200, numOfEnergyLevels=None):
-    if numOfEnergyLevels is None:
-        numOfEnergyLevels = N**3
-    
-    energyOfEigenstate = [ [ [],[],(x, x, x) ] for x in range(N**3)]
+def plotEigenenergies(x=None, xName=None, N=3, simPoints=200, numOfEnergyLevels=None, useSavedPlot=False, saveTojson=False):
+    if (xName is None):
+        if (x is None):
+            print("Must supply either the name of an x stored in a json file or a list x manually (or both)")
+            return None
+    else:
+        if (x is not None):
+            print("Warning: Ignoring manually supplied x")
+        solsDict = getFromjson('solutions.json')
+        x = solsDict[xName]['x']
 
-    i = 0
-    for q1 in range(N):
-        for q2 in range(N):
-            for qTB in range(N):
-                energyOfEigenstate[i][2] = (q1,q2,qTB)
-                i = i + 1
+    x[0] = - abs(x[0])
 
-    HBareBasisComponents = getHamiltonian(x, N=N, getBBHamiltonianComps=True)
-    thetas = np.linspace(-0.5, 0, simPoints)
-    
-    for i, theta in enumerate(thetas):
-        omegaTBTh = coeffomegaTB(omegas[2], theta)
-        eigenStatesAndEnergiesBareBasis = getThetaEigenstates(x, HBareBasisComponents[0]+HBareBasisComponents[1], HBareBasisComponents[2], omegaTBTh)
-        order = eigenstateOrder(eigenStatesAndEnergiesBareBasis[1][0:numOfEnergyLevels], N) # eigenStatesAndEnergiesBareBasis[0][0:numOfEnergyLevels],
+    if (useSavedPlot and saveTojson):
+        print("Re-saving something in a json file that's already saved there is rather pointless, don't ya think?")
+        saveTojson = False
 
-        for entry in order:
-            _, state, energyIndex = entry
-            energy = eigenStatesAndEnergiesBareBasis[0][energyIndex]
+    if (useSavedPlot):
+        eigenEnergyDict = getFromjson('eigenenergies.json')
+        energyOfEigenstate = [eigenEnergyDict[key] for key in eigenEnergyDict]
+    else:
+        if numOfEnergyLevels is None:
+            numOfEnergyLevels = N**3
+        
+        energyOfEigenstate = [ [ [], [], (x, x, x), [] ] for x in range(N**3)]
 
-            saveEnergyAndFlux(energyOfEigenstate, state, theta, energy)
+        i = 0
+        for q1 in range(N):
+            for q2 in range(N):
+                for qTB in range(N):
+                    energyOfEigenstate[i][2] = (q1,q2,qTB)
+                    i = i + 1
 
-        statusBar((i+1)*100/simPoints)
+        HBareBasisComponents = getHamiltonian(x, N=N, getBBHamiltonianComps=True)
+        thetas = np.linspace(-0.5, 0, simPoints)
+        
+        for i, theta in enumerate(thetas):
+            omegaTBTh = coeffomegaTB(omegas[2], theta)
+            eigenStatesAndEnergiesBareBasis = getThetaEigenstates(x, HBareBasisComponents[0]+HBareBasisComponents[1], HBareBasisComponents[2], omegaTBTh)
+            order = eigenstateOrder(eigenStatesAndEnergiesBareBasis[1][0:numOfEnergyLevels], N) # eigenStatesAndEnergiesBareBasis[0][0:numOfEnergyLevels],
+
+            for entry in order:
+                _, state, energyIndex = entry
+                energy = eigenStatesAndEnergiesBareBasis[0][energyIndex]
+
+                saveEnergyAndFlux(energyOfEigenstate, state, theta, energy, energyIndex)
+
+            statusBar((i+1)*100/simPoints)
+
 
     ############################
     #Plot energies!
     print("Plotting!")
-    linestyle = [':', '--', '-.']
+    linestyle = ['-', '--', '-.', ':']
     labels = []
     plt.figure(figsize=(8,7))
 
     for index, item in enumerate(energyOfEigenstate):
-        flux, energy, state = item
+        flux, energy, state, _ = item
         if not (len(flux) == 0):
-            plt.plot(flux, energy, ls=linestyle[index % 3])
+            plt.plot(flux, energy, ls=linestyle[math.floor(index / 10) % 4])
             labels.append(indexToString(state))
     
     plt.plot([x[0], x[0]], [-200, 200], 'r--')
@@ -708,6 +767,9 @@ def plotEigenenergies(x, N=3, simPoints=200, numOfEnergyLevels=None):
         legobj.set_linewidth(2.0)
     plt.show()
     ############################
+    if (saveTojson):
+        eigenEnergyDict = {labels[i]: item for i, item in enumerate(energyOfEigenstate)}
+        dumpTojson(eigenEnergyDict, 'eigenenergies.json')
 
 
 def findEigenIndex(x, eigenStateIndex=0, N=4, printResult=False):

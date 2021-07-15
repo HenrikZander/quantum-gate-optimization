@@ -379,9 +379,10 @@ def eigenstateOrder(eigenstates, N):
                     if np.abs(currentOverlap) > np.abs(maxOverlap[0]):
                         maxOverlap = (currentOverlap, (q1, q2, qTB), eigenstateIndex)
 
-                if (np.abs(maxOverlap[0]) > 0.95): # (not {maxOverlap[2]}.issubset(assignedEigenstates)) and
+                #if (np.abs(maxOverlap[0]) > 0.9): # (not {maxOverlap[2]}.issubset(assignedEigenstates)) and
                     # assignedEigenstates.add(maxOverlap[2])
-                    order.append(maxOverlap)
+                #if len(eigenIndices) > len(set(eigenIndices)):
+                order.append(maxOverlap)
     return order
 
 
