@@ -101,13 +101,13 @@ def main():
 
     # for index in range(64):
     #     findEigenIndex(xUsed, eigenStateIndex=index, N=4, printResult=True)
-    optimizeGate(iSWAP=True, energyLevels=4, maxAllowedGateTime=100, runDE=True, wantTradGate=False, wantCZ_20=False)
+    optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=120, runDE=True, wantTradGate=False, wantCZ_20=False)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=240, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=200, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
     # simulateHamiltonian(xName=xName, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=3, N=4, highestProjectionIndex=12)
-    # plotFidelity(xName=xName, wantiSWAP=True, saveTojson=True)
+    # plotFidelity(xName=xName, wantCZ=True, useSavedPlot=False, saveTojson=True)
     # deltaPulsePlot()
     # testPlotStates()
     # testEigenstateOrder()
@@ -117,6 +117,8 @@ def main():
     # print(getFromjson('solutions.json'))
     # print(getSolutionNameList())
     # addNewSolution(xUsed, gateType="iSWAP", N=4, creationTime=datetime.fromisoformat(dateStr))
+    # solsDict = getFromjson('solutions.json')
+    # print(solsDict[xName]['fidelitiesAtTimes'][-45])
 
     print(f'Total running time: {time.time() - start} seconds.')
 

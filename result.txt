@@ -4373,6 +4373,7 @@ Total runtime: 6594.901270389557 seconds
        x: array([4.38251422e-01, 4.43982477e-02, 3.55739298e+00, 8.74775306e+01])
 ##################################################
 ##################################################
+<<<<<<< HEAD
 Result (full) from: 2021-07-15 17:05:12.525550
 Algorithm: Differential Evolution
 Total runtime: 13531.552882194519 seconds
@@ -4407,4 +4408,28 @@ Total runtime: 12512.332355260849 seconds
      nit: 111
  success: True
        x: array([4.38257820e-01, 4.35537745e-02, 3.55844233e+00, 9.06818174e+01])
+=======
+Result (full) from: 2021-07-15 19:34:11.700553
+Algorithm: Differential Evolution
+Total runtime: 9674.335086107254 seconds
+##################################################
+     fun: -0.9968753175095554
+ message: 'Optimization terminated successfully.'
+    nfev: 6320
+     nit: 99
+ success: True
+       x: array([4.28265258e-01, 2.28050495e-02, 4.28583819e+00, 1.15226156e+02])
+##################################################
+##################################################
+Result (full) from: 2021-07-16 00:25:16.669058
+Algorithm: Differential Evolution
+Total runtime: 11594.892457485199 seconds
+##################################################
+     fun: -0.9990983129882064
+ message: 'Optimization terminated successfully.'
+    nfev: 10120
+     nit: 163
+ success: True
+       x: array([-4.34197014e-01,  2.23010101e-02,  4.79967190e+00,  9.61616737e+01])
+>>>>>>> 9fc24d4efa77d8cd64fdad44877a4d4d5a402376
 ##################################################
