@@ -41,14 +41,17 @@ def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=F
             maxAllowedGateTime (int) {Optional}: The maximum gate time that
                 will be allowed as a solution from the optimizer.
             wantTradCZ (boolean) {Optional}: If true, the parameter bounds
-                are constricted so that |Theta| < phi_crossing,
-                omegaPhi > 0.9 * min(omega_11<->20, omega_11<->02) and
-                omegaPhi < 1.1 * max(omega_11<->20, omega_11<->02).
+                are constricted so that |Theta| < phi_crossing and
+                omegaPhi = omega_11<->20 ± 0.15 Grad/s (if wantCZ_20 is True), or
+                omegaPhi = omega_11<->02 ± 0.15 Grad/s (if wantCZ_20 is False).
                 Defaults to False.
             wantTradiSWAP (boolean) {Optional}: If true, the parameter bounds
                 are constricted so that |Theta| < phi_crossing and
                 so that omegaPhi is within 10% of omega_10<->01.
                 Defaults to False.
+            wantCZ_20 (boolean) {Optional}: If wantTradCZ, the value of this
+                boolean determines which type of “traditional” CZ to search for
+                (see wantTradCZ above). Defaults to False.
     ---------------------------------------------------------
     OUTPUT:
             parameterBounds (array(tuples(int))): Array of tuples that each
