@@ -722,10 +722,9 @@ def averageFidelity(F, gateTimeWeight=2):
     return np.sum(F)/(len(F)+gateTimeWeight-1)
 
 
-def cost(x, N, iSWAP, SWAP, CZ):
-    # F, _ = getGateFidelity(x, N=N, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ)
-    time.sleep(0.1)
-    return scipy.optimize.rosen(x) #averageFidelity(F)
+def cost(x, N, iSWAP, SWAP, CZ, circuitData):
+    F, _ = getGateFidelity(x, N=N, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, circuitData=circuitData)
+    return averageFidelity(F)
 
 ######################################################################################################################################################################
 # Optimize gate function
@@ -757,8 +756,7 @@ def optimizeGate(iSWAP=False, SWAP=False, CZ=False, energyLevels=3, runSHG=False
             No output.
     ---------------------------------------------------------
     """
-    setCircuitParameters(circuitData)
-    findMinimum(cost, parameterBounds, argumentsToOptimizer=(energyLevels, iSWAP, SWAP, CZ), runSHG=runSHG, runDA=runDA, runDE=runDE)
+    findMinimum(cost, parameterBounds, argumentsToOptimizer=(energyLevels, iSWAP, SWAP, CZ, circuitData), runSHG=runSHG, runDA=runDA, runDE=runDE)
     gui.enableStopButton()
     if gui.getRunOptimizer():
         gui.processFinished()

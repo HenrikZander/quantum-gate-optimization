@@ -26,19 +26,16 @@ import numpy as np
 from numba import njit
 
 ######################################################################################################################################################################
-# Global variables.
+# Function for unpacking circuit parameters.
 
 
-def setCircuitParameters(circuitData):
-    global omegas
-    global alphas
-    global gs
-    global riseTime
-    
-    omegas = circuitData["frequencies"]
-    alphas = circuitData["anharmonicities"]
-    gs = circuitData["couplings"]
+def unpackCircuitParameters(circuitData):
+    frequencies = circuitData["frequencies"]
+    anharmonicities = circuitData["anharmonicities"]
+    couplings = circuitData["couplings"]
     riseTime = circuitData["rise-time"]
+
+    return frequencies, anharmonicities, couplings, riseTime
 
 ######################################################################################################################################################################
 # Parameter function.
@@ -195,7 +192,7 @@ def coeffomegaTB(omegaTB0, Phi):
 # Hamiltomnian function.
 
 
-def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB=False, getEigenEnergies=False, sinStepHamiltonian=False):
+def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB=False, getEigenEnergies=False, sinStepHamiltonian=False, omegas=None, alphas=None, gs=None, riseTime=None):
     """
     This function creates the hamiltonian for the specified number
     of energy levels. It also has the ability to return the hamiltonian
@@ -326,7 +323,7 @@ def getThetaEigenstates(x, H_const, H_omegaTB, omegaTBTh):
 def getEBUnitary(x, eigStsBB, nLevels, Dimension):
     """
     This function returns the unitary that is used for transforming
-    from the bare basis into the eigenbasis.
+    the bare basis hamiltonian into the eigenbasis hamiltonian.
     """
     # Construct U_e
     U_e = Qobj()
@@ -399,7 +396,7 @@ def eigenstateOrder(eigenstates, N):
     return order
 
 
-def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wantI):
+def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, wantI):
     fidelities = []
     fidelityTimes = []
 
@@ -422,7 +419,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
             for j, _ in enumerate(eigIndices):
                 M[i][j] = c_rf[j][ei].item(0)
 
-        if wantiSWAP:
+        if iSWAP:
             # Calculate phases (iSWAP):
             phi = np.angle(M[0][0])
             theta1 = np.angle(M[1][2]) + np.pi/2 - phi
@@ -430,7 +427,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
 
             # Ideal iSWAP gate matrix (with phases):
             U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, 0, np.exp(1j*(-np.pi/2 + theta1 + phi)), 0], [0, np.exp(1j*(-np.pi/2 + theta2 + phi)), 0, 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
-        elif wantCZ:
+        elif CZ:
             # Calculate phases (CZ):
             phi = np.angle(M[0][0])
             theta1 = np.angle(M[1][1]) - phi
@@ -465,7 +462,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, wantiSWAP, wantCZ, wa
 # Gate fidelity function.
 
 
-def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tIndices=[-76, -61, -23, -1]):
+def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tIndices=[-76, -61, -23, -1], circuitData=None):
     """
     This function calculates the gate fidelity for the
     iSWAP and CZ quantum gates given a parameter set x.
@@ -489,9 +486,11 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tInd
                 evaluated at times corresponding to the tIndices input, as well as those times.
     ---------------------------------------------------------
     """
+    # Unpack the circuit data needed to fully specify the hamiltonian.
+    omegas, alphas, gs, riseTime = unpackCircuitParameters(circuitData)
 
     # Get all parts of the hamiltonian in the bare basis.
-    HBBComps = getHamiltonian(x, N=N, getBBHamiltonianComps=True)
+    HBBComps = getHamiltonian(x, N=N, getBBHamiltonianComps=True, omegas=omegas, alphas=alphas, gs=gs, riseTime=riseTime)
 
     # Given the number of considered energy levels for each qubit, the dimension of the combined tensor state is calculated.
     D = N**3
@@ -541,7 +540,7 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tInd
         return fidelities, fidelityTimes
 
     # Calculate the eigenbasis hamiltonian
-    HEB = getHamiltonian(x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinStepHamiltonian=True)
+    HEB = getHamiltonian(x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinStepHamiltonian=True, omegas=omegas, alphas=alphas, gs=gs, riseTime=riseTime)
 
     # Initialise a list c of the time-evolved eigenstates
     c = [stateToBeEvolved for stateToBeEvolved in r]
@@ -557,7 +556,7 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tInd
     Hrot[eigIndices[-1], eigIndices[-1]] = Hrot[eigIndices[-2], eigIndices[-2]] + Hrot[eigIndices[-3], eigIndices[-3]] - Hrot[eigIndices[0], eigIndices[0]]
     Hrot = Qobj(Hrot, dims=[[N, N, N], [N, N, N]])
 
-    return fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, CZ, wantI)
+    return fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, wantI)
 
 
 ######################################################################################################################################################################
