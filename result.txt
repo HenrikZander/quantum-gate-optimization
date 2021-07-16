@@ -4373,7 +4373,6 @@ Total runtime: 6594.901270389557 seconds
        x: array([4.38251422e-01, 4.43982477e-02, 3.55739298e+00, 8.74775306e+01])
 ##################################################
 ##################################################
-<<<<<<< HEAD
 Result (full) from: 2021-07-15 17:05:12.525550
 Algorithm: Differential Evolution
 Total runtime: 13531.552882194519 seconds
@@ -4398,17 +4397,6 @@ Total runtime: 7354.436371088028 seconds
        x: array([4.20940222e-01, 4.33153772e-02, 3.52288475e+00, 6.05959392e+01])
 ##################################################
 ##################################################
-Result (full) from: 2021-07-16 00:39:25.460483
-Algorithm: Differential Evolution
-Total runtime: 12512.332355260849 seconds
-##################################################
-     fun: -0.9981577847323845
- message: 'Optimization terminated successfully.'
-    nfev: 7020
-     nit: 111
- success: True
-       x: array([4.38257820e-01, 4.35537745e-02, 3.55844233e+00, 9.06818174e+01])
-=======
 Result (full) from: 2021-07-15 19:34:11.700553
 Algorithm: Differential Evolution
 Total runtime: 9674.335086107254 seconds
@@ -4431,5 +4419,28 @@ Total runtime: 11594.892457485199 seconds
      nit: 163
  success: True
        x: array([-4.34197014e-01,  2.23010101e-02,  4.79967190e+00,  9.61616737e+01])
->>>>>>> 9fc24d4efa77d8cd64fdad44877a4d4d5a402376
+##################################################
+##################################################
+Result (full) from: 2021-07-16 00:39:25.460483
+Algorithm: Differential Evolution
+Total runtime: 12512.332355260849 seconds
+##################################################
+     fun: -0.9981577847323845
+ message: 'Optimization terminated successfully.'
+    nfev: 7020
+     nit: 111
+ success: True
+       x: array([4.38257820e-01, 4.35537745e-02, 3.55844233e+00, 9.06818174e+01])
+##################################################
+##################################################
+Result (full) from: 2021-07-16 03:22:27.770178
+Algorithm: Differential Evolution
+Total runtime: 10448.485659122467 seconds
+##################################################
+     fun: -0.999788461883617
+ message: 'Optimization terminated successfully.'
+    nfev: 6590
+     nit: 102
+ success: True
+       x: array([4.03140410e-01, 2.95892756e-02, 4.14970423e+00, 1.06035386e+02])
 ##################################################
