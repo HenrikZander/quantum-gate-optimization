@@ -84,10 +84,11 @@ x_210710_iSWAP_1_4lvl = [3.91437575e-01, 6.30717089e-02, 3.54292316e+00, 9.99427
 x_210713_iSWAP_1_4lvl = [4.03166181e-01, 2.16061627e-02, 3.50015579e+00, 7.98055976e+01] # Bad: fidelity only 0.98
 x_210713_iSWAP_2_4lvl = [-0.2452259, 0.19856197, 3.52316351, 62.77634052] # Terrible: fidelity only 0.85
 x_210713_iSWAP_3_4lvl = [3.77667126e-01, 5.17617928e-02, 3.51608253e+00, 8.83255578e+01] # Bad: fidelity only 0.987
-
+x_210715_CZ_1_4lvl = [4.28265258e-01, 2.28050495e-02, 4.28583819e+00, 1.15226156e+02]
+x_210716_CZ_2_4lvl = [4.03140410e-01, 2.95892756e-02, 4.14970423e+00, 1.06035386e+02]
 # Solution to use in simulations: 
 #xUsed = x_210713_iSWAP_1_4lvl
-xName = 'x_210714_iSWAP_1_4lvl' # Preferred if solution is listed in solutions.json
+xName = 'x_210715_iSWAP_2_4lvl' # Preferred if solution is listed in solutions.json
 #dateStr = "2021-07-13 15:12:18.004557"
 
 ######################################################################################################################################################################
@@ -99,21 +100,24 @@ def main():
 
     # for index in range(64):
     #     findEigenIndex(xUsed, eigenStateIndex=index, N=4, printResult=True)
-    # optimizeGate(iSWAP=True, energyLevels=4, maxAllowedGateTime=100, runDE=True, wantTradGate=False, wantCZ_20=False)
+    # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=120, runDE=True, wantTradGate=False, wantCZ_20=False)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=240, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=200, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
-    # simulateHamiltonian(xUsed, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, N=4, highestProjectionIndex=12)
-    plotFidelity(xName=xName, wantiSWAP=True, saveResults=True)
+    # simulateHamiltonian(xName=xName, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=3, N=4, highestProjectionIndex=12)
+    # plotFidelity(xName=xName, wantCZ=True, useSavedPlot=False, saveTojson=True)
     # deltaPulsePlot()
     # testPlotStates()
     # testEigenstateOrder()
+    # plotEigenenergies(xName=xName, N=4, simPoints=500, numOfEnergyLevels=None, useSavedPlot=True, saveTojson=False)
     # test()
-    # getRobustnessPlot(xUsed, wantCZ=True, checkOmegaPhi=True, checkOpTime=True, nPointsList=[5,5])
-    # print(getjsonDict('solutions.json'))
+    # getRobustnessPlot(xName=xName, wantiSWAP=True, checkOmegaPhi=True, checkOpTime=True, nPointsList=[17], saveTojson=True, maxDevs=[0.005, 0.005, 5*2 * np.pi * 0.002, 5*10])
+    # print(getFromjson('solutions.json'))
     # print(getSolutionNameList())
     # addNewSolution(xUsed, gateType="iSWAP", N=4, creationTime=datetime.fromisoformat(dateStr))
+    # solsDict = getFromjson('solutions.json')
+    # print(solsDict[xName]['fidelitiesAtTimes'][-45])
 
     print(f'Total running time: {time.time() - start} seconds.')
 

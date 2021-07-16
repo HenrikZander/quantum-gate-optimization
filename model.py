@@ -40,48 +40,51 @@ def unpackCircuitParameters(circuitData):
 ######################################################################################################################################################################
 # Parameter function.
 
-# def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=False, wantCZ_20=False):
-#     """
-#     This function gets the bounds for the different
-#     parameters that the optimizer can change in the
-#     simulation. The function assumes the associated parameters
-#     to have the shape: x = [Theta, delta, omegaPhi, modulationTime].
-#     ---------------------------------------------------------
-#     INPUT:
-#             maxAllowedGateTime (int) {Optional}: The maximum gate time that
-#                 will be allowed as a solution from the optimizer.
-#             wantTradCZ (boolean) {Optional}: If true, the parameter bounds
-#                 are constricted so that |Theta| < phi_crossing,
-#                 omegaPhi > 0.9 * min(omega_11<->20, omega_11<->02) and
-#                 omegaPhi < 1.1 * max(omega_11<->20, omega_11<->02).
-#                 Defaults to False.
-#             wantTradiSWAP (boolean) {Optional}: If true, the parameter bounds
-#                 are constricted so that |Theta| < phi_crossing and
-#                 so that omegaPhi is within 10% of omega_10<->01.
-#                 Defaults to False.
-#     ---------------------------------------------------------
-#     OUTPUT:
-#             parameterBounds (array(tuples(int))): Array of tuples that each
-#                 contain the associated upper and lower bounds for that parameter.
-#     ---------------------------------------------------------
-#     """
-#     if (wantTradCZ):
-#         if (wantCZ_20):
-#             omegaPhiMin = omegaPhi_CZ_20 - 0.15
-#             omegaPhiMax = omegaPhi_CZ_20 + 0.15
-#         else:
-#             omegaPhiMin = omegaPhi_CZ_02 - 0.15
-#             omegaPhiMax = omegaPhi_CZ_02 + 0.15
+def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=False, wantCZ_20=False):
+    """
+    This function gets the bounds for the different
+    parameters that the optimizer can change in the
+    simulation. The function assumes the associated parameters
+    to have the shape: x = [Theta, delta, omegaPhi, modulationTime].
+    ---------------------------------------------------------
+    INPUT:
+            maxAllowedGateTime (int) {Optional}: The maximum gate time that
+                will be allowed as a solution from the optimizer.
+            wantTradCZ (boolean) {Optional}: If true, the parameter bounds
+                are constricted so that |Theta| < phi_crossing and
+                omegaPhi = omega_11<->20 ± 0.15 Grad/s (if wantCZ_20 is True), or
+                omegaPhi = omega_11<->02 ± 0.15 Grad/s (if wantCZ_20 is False).
+                Defaults to False.
+            wantTradiSWAP (boolean) {Optional}: If true, the parameter bounds
+                are constricted so that |Theta| < phi_crossing and
+                so that omegaPhi is within 10% of omega_10<->01.
+                Defaults to False.
+            wantCZ_20 (boolean) {Optional}: If wantTradCZ, the value of this
+                boolean determines which type of “traditional” CZ to search for
+                (see wantTradCZ above). Defaults to False.
+    ---------------------------------------------------------
+    OUTPUT:
+            parameterBounds (array(tuples(int))): Array of tuples that each
+                contain the associated upper and lower bounds for that parameter.
+    ---------------------------------------------------------
+    """
+    if (wantTradCZ):
+        if (wantCZ_20):
+            omegaPhiMin = omegaPhi_CZ_20 - 0.15
+            omegaPhiMax = omegaPhi_CZ_20 + 0.15
+        else:
+            omegaPhiMin = omegaPhi_CZ_02 - 0.15
+            omegaPhiMax = omegaPhi_CZ_02 + 0.15
+        
+        return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
+    elif (wantTradiSWAP):
 
-#         return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
-#     elif (wantTradiSWAP):
-
-#         omegaPhiMin = omegaPhi_iSWAP - 0.15
-#         omegaPhiMax = omegaPhi_iSWAP + 0.15
-
-#         return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
-#     else:
-#         return [(-0.5, 0.5), (0, 0.25), (0, 8), (50, maxAllowedGateTime)]
+        omegaPhiMin = omegaPhi_iSWAP - 0.15
+        omegaPhiMax = omegaPhi_iSWAP + 0.15
+        
+        return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
+    else:
+        return [(-0.5, 0.5), (0, 0.25), (0, 8), (50, maxAllowedGateTime)]
 
 
 ######################################################################################################################################################################
@@ -352,7 +355,7 @@ def getRFUnitary(Hrot, t):
 #     return eigIndices
 
 
-def getIndices(N, eigenstates):
+def getIndices(N, eigenstates, lowestOverlapAllowed=0.9):
     eigenIndices = []
     for q1 in range(2):
         for q2 in range(2):
@@ -365,10 +368,10 @@ def getIndices(N, eigenstates):
                     eigIndMaxOverlap = eigenstateIndex
                     maxOverlap = currentOverlap
 
-            if (np.abs(maxOverlap) > 0.9):
+            if (np.abs(maxOverlap) > lowestOverlapAllowed):
                 eigenIndices.append(eigIndMaxOverlap)
             else:
-                print('Bad Theta: At least one state in the computational subspace had a maximum eigenstate overlap below 0.9')
+                print(f'Bad Theta: At least one state in the computational subspace had a maximum eigenstate overlap below {lowestOverlapAllowed}')
                 return None
     if len(eigenIndices) > len(set(eigenIndices)):
         print('Bad Theta: At least two states in the computational subspace got the same eigenindex')
@@ -389,10 +392,11 @@ def eigenstateOrder(eigenstates, N):
                     currentOverlap = Qobj(tensor(basis(N, q1), basis(N, q2), basis(N, qTB)), dims=[[N, N, N], [1, 1, 1]]).overlap(eigenstates[eigenstateIndex])
                     if np.abs(currentOverlap) > np.abs(maxOverlap[0]):
                         maxOverlap = (currentOverlap, (q1, q2, qTB), eigenstateIndex)
-                # (not {maxOverlap[2]}.issubset(assignedEigenstates)) and
-                if (np.abs(maxOverlap[0]) > 0.95):
+
+                #if (np.abs(maxOverlap[0]) > 0.9): # (not {maxOverlap[2]}.issubset(assignedEigenstates)) and
                     # assignedEigenstates.add(maxOverlap[2])
-                    order.append(maxOverlap)
+                #if len(eigenIndices) > len(set(eigenIndices)):
+                order.append(maxOverlap)
     return order
 
 

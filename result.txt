@@ -4373,498 +4373,74 @@ Total runtime: 6594.901270389557 seconds
        x: array([4.38251422e-01, 4.43982477e-02, 3.55739298e+00, 8.74775306e+01])
 ##################################################
 ##################################################
-Result (full) from: 2021-07-15 15:50:15.090307
+Result (full) from: 2021-07-15 17:05:12.525550
 Algorithm: Differential Evolution
-Total runtime: 29.91333532333374 seconds
+Total runtime: 13531.552882194519 seconds
 ##################################################
-     fun: 3.36608822604223e-06
- message: 'Maximum number of iterations has been exceeded.'
-    nfev: 180165
-     nit: 3000
- success: False
-       x: array([-2.41322050e-01,  2.67957091e-04,  3.53966369e+00,  1.71850044e+02])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 15:55:28.083099
-Algorithm: Differential Evolution
-Total runtime: 30.52456307411194 seconds
-##################################################
-     fun: 1.5963920141359722e-06
- message: 'Maximum number of iterations has been exceeded.'
-    nfev: 180165
-     nit: 3000
- success: False
-       x: array([-9.72612777e-02,  7.16101524e-02,  5.81098718e+00,  1.40995047e+02])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 15:56:00.061975
-Algorithm: Differential Evolution
-Total runtime: 7.919154405593872 seconds
-##################################################
-     fun: 0.00030817925725168394
- message: 'callback function requested stop early by returning True'
-    nfev: 17750
-     nit: 292
- success: False
-       x: array([-4.46573609e-01,  1.77257566e-01,  1.04909839e-01,  2.37101718e+02])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 15:56:44.001023
-Algorithm: Differential Evolution
-Total runtime: 29.642069339752197 seconds
-##################################################
-     fun: 3.1837868866846364e-06
- message: 'Maximum number of iterations has been exceeded.'
-    nfev: 180155
-     nit: 3000
- success: False
-       x: array([3.82110317e-01, 1.98327030e-01, 2.73326696e+00, 2.20818563e+02])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 15:56:56.358455
-Algorithm: Differential Evolution
-Total runtime: 12.348457098007202 seconds
-##################################################
-     fun: 1.651673310554269e-05
- message: 'callback function requested stop early by returning True'
-    nfev: 51855
-     nit: 861
- success: False
-       x: array([6.03051386e-02, 1.07478058e-01, 2.80821304e+00, 1.93927032e+02])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 15:57:27.837502
-Algorithm: Differential Evolution
-Total runtime: 29.071609497070312 seconds
-##################################################
-     fun: 3.214257944250676e-07
- message: 'Maximum number of iterations has been exceeded.'
-    nfev: 180180
-     nit: 3000
- success: False
-       x: array([ 0.41807553,  0.06442626,  7.03654243, 61.42153242])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 15:57:48.290044
-Algorithm: Differential Evolution
-Total runtime: 20.44755506515503 seconds
-##################################################
-     fun: 1.0734338839801794e-05
- message: 'callback function requested stop early by returning True'
-    nfev: 112725
-     nit: 1875
- success: False
-       x: array([-2.93333517e-02,  2.16963872e-01,  3.91646194e+00,  2.14745749e+02])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 16:00:22.566193
-Algorithm: Differential Evolution
-Total runtime: 8.70605731010437 seconds
-##################################################
-     fun: 1.6922324198809235e-05
- message: 'callback function requested stop early by returning True'
-    nfev: 26030
-     nit: 430
- success: False
-       x: array([ 0.31371502,  0.17650854,  0.63095402, 59.68821006])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 17:29:39.385348
-Algorithm: Differential Evolution
-Total runtime: 28.08660912513733 seconds
-##################################################
-     fun: 1.1670139620223452e-06
- message: 'Maximum number of iterations has been exceeded.'
-    nfev: 180165
-     nit: 3000
- success: False
-       x: array([ 0.21073949,  0.16274513,  1.4316566 , 80.20914668])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 17:34:43.255765
-Algorithm: Differential Evolution
-Total runtime: 170.71985006332397 seconds
-##################################################
-     fun: 5.368926067061963e-07
- message: 'callback function requested stop early by returning True'
-    nfev: 1351275
-     nit: 22517
- success: False
-       x: array([1.19766160e-02, 2.57394191e-02, 5.59069978e+00, 5.48407500e+01])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 17:35:11.092544
-Algorithm: Differential Evolution
-Total runtime: 8.279139518737793 seconds
-##################################################
-     fun: 8.320061205979723e-05
- message: 'callback function requested stop early by returning True'
-    nfev: 18730
-     nit: 309
- success: False
-       x: array([  0.15345032,   0.24167442,   1.09181732, 110.49327706])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 17:40:43.939536
-Algorithm: Differential Evolution
-Total runtime: 6.264280796051025 seconds
-##################################################
-     fun: 4926.663605779752
-     jac: array([-9.09494702e-05, -6.95749168e+02,  6.36646295e-04,  9.99694666e+01])
+     fun: -0.9980831345407598
  message: 'Optimization terminated successfully.'
-    nfev: 1605
-     nit: 24
+    nfev: 5760
+     nit: 91
  success: True
-       x: array([-0.48443668,  0.25      ,  7.03563448, 50.        ])
+       x: array([-4.36277011e-01,  4.60491251e-02,  3.55330802e+00,  9.95979985e+01])
 ##################################################
 ##################################################
-Result (full) from: 2021-07-15 17:42:16.052232
+Result (full) from: 2021-07-15 19:14:42.207310
 Algorithm: Differential Evolution
-Total runtime: 11.570747137069702 seconds
+Total runtime: 7354.436371088028 seconds
 ##################################################
-     fun: 4926.6636057797805
-     jac: array([ 0.00000000e+00, -6.95749168e+02, -1.18234312e-03,  9.99696485e+01])
+     fun: -0.9998051962528265
  message: 'Optimization terminated successfully.'
-    nfev: 1640
-     nit: 24
+    nfev: 4185
+     nit: 67
  success: True
-       x: array([-0.48443686,  0.25      ,  7.03563443, 50.        ])
+       x: array([4.20940222e-01, 4.33153772e-02, 3.52288475e+00, 6.05959392e+01])
 ##################################################
 ##################################################
-Result (full) from: 2021-07-15 17:44:15.560356
+Result (full) from: 2021-07-15 19:34:11.700553
 Algorithm: Differential Evolution
-Total runtime: 6.166120290756226 seconds
+Total runtime: 9674.335086107254 seconds
 ##################################################
-     fun: 4924.686579902889
-     jac: array([-9.99989425e-01, -6.98813438e+02,  9.09494707e-05,  9.99695575e+01])
+     fun: -0.9968753175095554
  message: 'Optimization terminated successfully.'
-    nfev: 1455
-     nit: 22
+    nfev: 6320
+     nit: 99
  success: True
-       x: array([ 0.5       ,  0.25      ,  7.03563446, 50.        ])
+       x: array([4.28265258e-01, 2.28050495e-02, 4.28583819e+00, 1.15226156e+02])
 ##################################################
 ##################################################
-Result (full) from: 2021-07-15 17:44:26.530441
+Result (full) from: 2021-07-16 00:25:16.669058
 Algorithm: Differential Evolution
-Total runtime: 5.9588727951049805 seconds
+Total runtime: 11594.892457485199 seconds
 ##################################################
-     fun: 4924.68657990289
-     jac: array([-9.99989425e-01, -6.98813347e+02, -9.09494707e-05,  9.99695575e+01])
+     fun: -0.9990983129882064
  message: 'Optimization terminated successfully.'
-    nfev: 1545
-     nit: 23
+    nfev: 10120
+     nit: 163
  success: True
-       x: array([ 0.5       ,  0.25      ,  7.03563446, 50.        ])
+       x: array([-4.34197014e-01,  2.23010101e-02,  4.79967190e+00,  9.61616737e+01])
 ##################################################
 ##################################################
-Result (full) from: 2021-07-15 17:48:42.554146
+Result (full) from: 2021-07-16 00:39:25.460483
 Algorithm: Differential Evolution
-Total runtime: 6.279371976852417 seconds
+Total runtime: 12512.332355260849 seconds
 ##################################################
-     fun: 4926.663605779892
-     jac: array([ 9.09494702e-05, -6.95748986e+02, -2.45563571e-03,  9.99697394e+01])
+     fun: -0.9981577847323845
  message: 'Optimization terminated successfully.'
-    nfev: 1615
-     nit: 24
+    nfev: 7020
+     nit: 111
  success: True
-       x: array([-0.48443574,  0.25      ,  7.0356344 , 50.        ])
+       x: array([4.38257820e-01, 4.35537745e-02, 3.55844233e+00, 9.06818174e+01])
 ##################################################
 ##################################################
-Result (full) from: 2021-07-15 17:48:53.639683
+Result (full) from: 2021-07-16 03:22:27.770178
 Algorithm: Differential Evolution
-Total runtime: 6.060478925704956 seconds
+Total runtime: 10448.485659122467 seconds
 ##################################################
-     fun: 4924.68657990289
-     jac: array([-9.99989425e-01, -6.98813347e+02, -9.09494707e-05,  9.99695575e+01])
+     fun: -0.999788461883617
  message: 'Optimization terminated successfully.'
-    nfev: 1765
-     nit: 27
+    nfev: 6590
+     nit: 102
  success: True
-       x: array([ 0.5       ,  0.25      ,  7.03563446, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 17:53:39.650774
-Algorithm: Differential Evolution
-Total runtime: 6.199280500411987 seconds
-##################################################
-     fun: 4924.686579902889
-     jac: array([-9.99989425e-01, -6.98813438e+02,  9.09494707e-05,  9.99695575e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1690
-     nit: 26
- success: True
-       x: array([ 0.5       ,  0.25      ,  7.03563446, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 17:53:50.811346
-Algorithm: Differential Evolution
-Total runtime: 6.141906261444092 seconds
-##################################################
-     fun: 4926.6636057859605
-     jac: array([-1.00044417e-03, -6.95750260e+02,  1.68256521e-02,  9.99683752e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1825
-     nit: 28
- success: True
-       x: array([-0.48444196,  0.25      ,  7.03563489, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 17:57:41.196465
-Algorithm: Differential Evolution
-Total runtime: 6.075093030929565 seconds
-##################################################
-     fun: 4924.686579902889
-     jac: array([-9.99989425e-01, -6.98813529e+02,  9.09494707e-05,  9.99695575e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1700
-     nit: 26
- success: True
-       x: array([ 0.5       ,  0.25      ,  7.03563446, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 17:58:01.262733
-Algorithm: Differential Evolution
-Total runtime: 6.03284215927124 seconds
-##################################################
-     fun: 4924.686579902891
-     jac: array([-9.99989425e-01, -6.98813438e+02, -1.81898941e-04,  9.99695575e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1575
-     nit: 24
- success: True
-       x: array([ 0.5       ,  0.25      ,  7.03563446, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 17:58:12.146080
-Algorithm: Differential Evolution
-Total runtime: 5.87396502494812 seconds
-##################################################
-     fun: 4924.686579902934
-     jac: array([-9.99989425e-01, -6.98813438e+02, -1.72803994e-03,  9.99696485e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1495
-     nit: 23
- success: True
-       x: array([ 0.5       ,  0.25      ,  7.03563442, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 18:03:26.226347
-Algorithm: Differential Evolution
-Total runtime: 6.3961639404296875 seconds
-##################################################
-     fun: 4924.686579902889
-     jac: array([-9.99989425e-01, -6.98813438e+02,  9.09494707e-05,  9.99695575e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1530
-     nit: 23
- success: True
-       x: array([ 0.5       ,  0.25      ,  7.03563446, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 18:03:32.108078
-Algorithm: Differential Evolution
-Total runtime: 5.874750137329102 seconds
-##################################################
-     fun: 4926.663605782671
-     jac: array([-9.09494702e-04, -6.95750078e+02,  8.18545237e-03,  9.99690118e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1590
-     nit: 24
- success: True
-       x: array([-0.48444132,  0.25      ,  7.03563467, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 18:08:45.076459
-Algorithm: Differential Evolution
-Total runtime: 7.3769755363464355 seconds
-##################################################
-     fun: 4926.663605779803
-     jac: array([ 0.00000000e+00, -6.95748986e+02, -1.63709047e-03,  9.99696485e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1610
-     nit: 24
- success: True
-       x: array([-0.48443609,  0.25      ,  7.03563442, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 18:11:18.928844
-Algorithm: Differential Evolution
-Total runtime: 7.59737753868103 seconds
-##################################################
-     fun: 4926.663605779761
-     jac: array([ 0.00000000e+00, -6.95749168e+02, -9.09494707e-04,  9.99695575e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1835
-     nit: 28
- success: True
-       x: array([-0.48443656,  0.25      ,  7.03563444, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 18:11:39.223532
-Algorithm: Differential Evolution
-Total runtime: 6.905585050582886 seconds
-##################################################
-     fun: 4926.663605779856
-     jac: array([ 9.09494702e-05, -6.95749077e+02, -2.72848412e-03,  9.99697394e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1445
-     nit: 21
- success: True
-       x: array([-0.48443612,  0.25      ,  7.0356344 , 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 18:12:22.232016
-Algorithm: Differential Evolution
-Total runtime: 6.940788745880127 seconds
-##################################################
-     fun: 4924.686579902889
-     jac: array([  -0.99998943, -698.81343771,    0.        ,   99.96955751])
- message: 'Optimization terminated successfully.'
-    nfev: 1585
-     nit: 24
- success: True
-       x: array([ 0.5       ,  0.25      ,  7.03563446, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 18:55:32.228978
-Algorithm: Differential Evolution
-Total runtime: 6.11397647857666 seconds
-##################################################
-     fun: 4926.6636057799315
-     jac: array([-1.81898940e-04, -6.95749350e+02,  2.27373677e-03,  9.99693756e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1830
-     nit: 28
- success: True
-       x: array([-0.48443769,  0.25      ,  7.03563452, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 18:55:52.411054
-Algorithm: Differential Evolution
-Total runtime: 5.732901096343994 seconds
-##################################################
-     fun: 4926.663605780076
-     jac: array([-2.72848411e-04, -6.95749350e+02, -3.54702936e-03,  9.99698304e+01])
- message: 'callback function requested stop early by returning True'
-    nfev: 215
-     nit: 1
- success: False
-       x: array([-0.4844378 ,  0.25      ,  7.03563437, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 18:56:27.293814
-Algorithm: Differential Evolution
-Total runtime: 6.059628009796143 seconds
-##################################################
-     fun: 4924.686579902903
-     jac: array([-9.99989425e-01, -6.98813438e+02, -8.18545237e-04,  9.99696485e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1700
-     nit: 26
- success: True
-       x: array([ 0.5       ,  0.25      ,  7.03563444, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 18:56:37.458366
-Algorithm: Differential Evolution
-Total runtime: 6.191944599151611 seconds
-##################################################
-     fun: 4924.686579902891
-     jac: array([-9.99989425e-01, -6.98813438e+02, -1.81898941e-04,  9.99695575e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1760
-     nit: 27
- success: True
-       x: array([ 0.5       ,  0.25      ,  7.03563446, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 18:58:24.197363
-Algorithm: Differential Evolution
-Total runtime: 37.68231177330017 seconds
-##################################################
-     fun: 4924.68657990289
-     jac: array([-9.99989425e-01, -6.98813438e+02, -9.09494707e-05,  9.99695575e+01])
- message: 'callback function requested stop early by returning True'
-    nfev: 1695
-     nit: 26
- success: False
-       x: array([ 0.5       ,  0.25      ,  7.03563446, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 18:59:46.077603
-Algorithm: Differential Evolution
-Total runtime: 31.250177145004272 seconds
-##################################################
-     fun: 4924.68657990289
-     jac: array([  -0.99998943, -698.81343771,    0.        ,   99.96946656])
- message: 'callback function requested stop early by returning True'
-    nfev: 1115
-     nit: 16
- success: False
-       x: array([ 0.5       ,  0.25      ,  7.03563446, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 19:00:48.028854
-Algorithm: Differential Evolution
-Total runtime: 35.55677366256714 seconds
-##################################################
-     fun: 4924.686579902889
-     jac: array([-9.99989425e-01, -6.98813438e+02,  9.09494707e-05,  9.99695575e+01])
- message: 'callback function requested stop early by returning True'
-    nfev: 1470
-     nit: 22
- success: False
-       x: array([ 0.5       ,  0.25      ,  7.03563446, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 19:03:01.410023
-Algorithm: Differential Evolution
-Total runtime: 38.06878614425659 seconds
-##################################################
-     fun: 4924.686579902889
-     jac: array([-9.99989425e-01, -6.98813347e+02,  9.09494707e-05,  9.99695575e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1700
-     nit: 26
- success: True
-       x: array([ 0.5       ,  0.25      ,  7.03563446, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 19:03:23.806044
-Algorithm: Differential Evolution
-Total runtime: 22.386042833328247 seconds
-##################################################
-     fun: 4926.66360578016
-     jac: array([-2.72848411e-04, -6.95749350e+02,  4.36557460e-03,  9.99692847e+01])
- message: 'callback function requested stop early by returning True'
-    nfev: 515
-     nit: 6
- success: False
-       x: array([-0.48443795,  0.25      ,  7.03563457, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 19:04:06.381420
-Algorithm: Differential Evolution
-Total runtime: 37.60090136528015 seconds
-##################################################
-     fun: 4926.663605793909
-     jac: array([ 1.72803993e-03, -6.95747258e+02, -2.15550246e-02,  9.99711037e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1800
-     nit: 28
- success: True
-       x: array([-0.48442706,  0.25      ,  7.03563392, 50.        ])
-##################################################
-##################################################
-Result (full) from: 2021-07-15 19:04:46.517137
-Algorithm: Differential Evolution
-Total runtime: 40.12075591087341 seconds
-##################################################
-     fun: 4924.686579902889
-     jac: array([-9.99989425e-01, -6.98813438e+02,  9.09494707e-05,  9.99695575e+01])
- message: 'Optimization terminated successfully.'
-    nfev: 1715
-     nit: 26
- success: True
-       x: array([ 0.5       ,  0.25      ,  7.03563446, 50.        ])
+       x: array([4.03140410e-01, 2.95892756e-02, 4.14970423e+00, 1.06035386e+02])
 ##################################################
