@@ -341,7 +341,7 @@ def getIndicesOld(N):
         eigIndices = [0, 1, 2, 4]
     return eigIndices
 
-def getIndices(N, eigenstates, lowestOverlapAllowed=0.7):
+def getIndices(N, eigenstates, lowestOverlapAllowed=0.9):
     eigenIndices = []
     for q1 in range(2):
         for q2 in range(2):
