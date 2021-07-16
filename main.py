@@ -90,7 +90,7 @@ x_210715_CZ_1_4lvl = [4.28265258e-01, 2.28050495e-02, 4.28583819e+00, 1.15226156
 x_210716_CZ_2_4lvl = [4.03140410e-01, 2.95892756e-02, 4.14970423e+00, 1.06035386e+02]
 # Solution to use in simulations: 
 #xUsed = x_210713_iSWAP_1_4lvl
-xName = 'x_210716_iSWAP_1_4lvl' # Preferred if solution is listed in solutions.json
+xName = 'x_210715_iSWAP_2_4lvl' # Preferred if solution is listed in solutions.json
 #dateStr = "2021-07-13 15:12:18.004557"
 
 ######################################################################################################################################################################
@@ -108,7 +108,7 @@ def main():
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
     # simulateHamiltonian(xName=xName, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=3, N=4, highestProjectionIndex=12)
-    # plotFidelity(xName=xName, wantiSWAP=True, useSavedPlot=False, saveTojson=True)
+    # plotFidelity(xName=xName, wantCZ=True, useSavedPlot=False, saveTojson=True)
     # deltaPulsePlot()
     # testPlotStates()
     # testEigenstateOrder()
