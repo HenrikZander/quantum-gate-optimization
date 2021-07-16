@@ -88,8 +88,9 @@ x_210715_CZ_1_4lvl = [4.28265258e-01, 2.28050495e-02, 4.28583819e+00, 1.15226156
 x_210716_CZ_2_4lvl = [4.03140410e-01, 2.95892756e-02, 4.14970423e+00, 1.06035386e+02]
 # Solution to use in simulations: 
 #xUsed = x_210713_iSWAP_1_4lvl
-xName = 'x_210715_iSWAP_2_4lvl' # Preferred if solution is listed in solutions.json
+xName = 'x_210716_iSWAP_1_4lvl' # Preferred if solution is listed in solutions.json
 #dateStr = "2021-07-13 15:12:18.004557"
+circuitDict = getFromjson('./circuit files/qubitPair01.json')
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -105,14 +106,14 @@ def main():
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=200, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
-    # simulateHamiltonian(xName=xName, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=3, N=4, highestProjectionIndex=12)
-    # plotFidelity(xName=xName, wantCZ=True, useSavedPlot=False, saveTojson=True)
+    # simulateHamiltonian(xName=xName, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=3, N=4, highestProjectionIndex=12, circuitData=getFromjson('./circuit files/qubitPair01.json'))
+    plotFidelity(xName=xName, iSWAP=True, useSavedPlot=False, saveTojson=True, circuitData=circuitDict)
     # deltaPulsePlot()
     # testPlotStates()
     # testEigenstateOrder()
     # plotEigenenergies(xName=xName, N=4, simPoints=500, numOfEnergyLevels=None, useSavedPlot=True, saveTojson=False)
     # test()
-    # getRobustnessPlot(xName=xName, wantiSWAP=True, checkOmegaPhi=True, checkOpTime=True, nPointsList=[17], saveTojson=True, maxDevs=[0.005, 0.005, 5*2 * np.pi * 0.002, 5*10])
+    # getRobustnessPlot(xName=xName, iSWAP=True, checkOmegaPhi=True, checkOpTime=True, nPointsList=[17], saveTojson=True, maxDevs=[0.005, 0.005, 5*2 * np.pi * 0.002, 5*10])
     # print(getFromjson('solutions.json'))
     # print(getSolutionNameList())
     # addNewSolution(xUsed, gateType="iSWAP", N=4, creationTime=datetime.fromisoformat(dateStr))
@@ -125,6 +126,12 @@ def main():
 ######################################################################################################################################################################
 # Functions used in testing.
 
+'''
+circuitDict = getFromjson('./circuit files/qubitPair01.json')
+for key in circuitDict:
+    circuitDict[key] = (2*np.pi*np.array(circuitDict[key])).tolist()
+dumpTojson(circuitDict, './circuit files/qubitPair01.json')
+'''
 
 def testEigenstateOrder():
     plotEigenenergies(xUsed, N=4, simPoints=200, numOfEnergyLevels=None)
@@ -142,14 +149,14 @@ def testSpeedOfModifiedGateFidelity():
     # Unmodified gate fidelity
     start = time.time()
     for i in range(numTimes):
-        temp = model.getGateFidelity(x, N=4, wantiSWAP=True)
+        temp = model.getGateFidelity(x, N=4, iSWAP=True)
     print(f'Total running time for UNMODIFIED gate fidelity: {time.time() - start} seconds.')
     print(f'F_avg = {temp}.\n')
     
     # Modified gate fidelity
     start = time.time()
     for i in range(numTimes):
-        temp = model_modified.getGateFidelity(x, N=4, wantiSWAP=True)
+        temp = model_modified.getGateFidelity(x, N=4, iSWAP=True)
     print(f'Total running time for MODIFIED gate fidelity: {time.time() - start} seconds.')
     print(f'F_avg = {temp}.\n')
 

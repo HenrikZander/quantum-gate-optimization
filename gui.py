@@ -43,7 +43,7 @@ def main():
     root.title("GateSide")
     root.geometry(str(width)+"x"+str(height))
     root.resizable(width=False, height=False)
-    programIcon = PhotoImage(file = "../GUI/Gateside_Logomark.png")
+    programIcon = PhotoImage(file = "./assets/Gateside_Logomark.png")
     root.iconphoto(False, programIcon)
 
     optimizeControlWindow(root, height)
