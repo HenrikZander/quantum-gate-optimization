@@ -70,7 +70,7 @@ x_0525_CZ_3_4lvl = [-3.33260202e-01,  9.12536869e-02,  3.03332840e+00,  1.539833
 x_0525_CZ_4_4lvl = [3.31034106e-01, 7.56628827e-02, 2.03924480e+00, 1.16525277e+02]
 
 # Presented solutions in the report:
-x_0502_iSWAP_2_3lvl = [-3.23785448e-01,  3.74318501e-02,  2.45144003e+00, 9.51244239e+01] # ometaTB0 = 4.02247024e+01 # Fidelitet stiger efter att griden stängts av.     # F = [(0.9945143458523513+0j), (0.9946846702621196+0j), (0.9948477877462383+0j), (0.9950036555493578+0j)]
+x_0502_iSWAP_2_3lvl = [-3.23785448e-01,  3.74318501e-02,  2.45144003e+00, 9.51244239e+01] # omegaTB0 = 4.02247024e+01 # Fidelitet stiger efter att griden stängts av.     # F = [(0.9945143458523513+0j), (0.9946846702621196+0j), (0.9948477877462383+0j), (0.9950036555493578+0j)]
 x_0522_CZ_1_4lvl = [-3.42740346e-01,  5.14288612e-02,  2.97036730e+00,  1.13806249e+02]
 
 # Only solutions below this point are to be added to solutions.json:
@@ -107,7 +107,7 @@ def main():
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
     # simulateHamiltonian(xName=xName, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=3, N=4, highestProjectionIndex=12, circuitData=getFromjson('./circuit files/qubitPair01.json'))
-    plotFidelity(xName=xName, iSWAP=True, useSavedPlot=False, saveTojson=True, circuitData=circuitDict)
+    # plotFidelity(xName=xName, iSWAP=True, useSavedPlot=False, saveTojson=True, circuitData=circuitDict)
     # deltaPulsePlot()
     # testPlotStates()
     # testEigenstateOrder()
