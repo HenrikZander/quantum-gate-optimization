@@ -27,7 +27,7 @@ import time
 from threading import Thread
 import numpy as np
 
-from main import *
+# from main import *
 import functions
 import model
 
@@ -237,7 +237,7 @@ def setStatus(currentStatus):
 
     
 def setDefaultBoundaryValues():
-    data = functions.getjsonDict("config.json")
+    data = functions.getFromjson("config.json")
 
     thetaLower.set(data["theta"][0])
     thetaUpper.set(data["theta"][1])
@@ -314,19 +314,19 @@ def stopOptimizing():
 def loadCircuit():
     circuitFile = filedialog.askopenfilename(title="Select circuit", defaultextension='.json', filetypes=[("JSON files (.json)", '*.json')])
     if circuitFile:
-        circuitData = getjsonDict(circuitFile)
+        circuitData = functions.getFromjson(circuitFile)
         setCircuitVariables(circuitData)
 
 
 def changeDefaultCircuit():
-    configData = getjsonDict("config.json")
+    configData = functions.getFromjson("config.json")
     newCircuitData = getCircuitVariables()
     setDefaultCircuitValuesFromVariables(configData, newCircuitData)
-    dumpjsonDict(configData, "config.json")
+    functions.dumpTojson(configData, "config.json")
 
 
 def useDefaultCircuit():
-    configData = functions.getjsonDict("config.json")
+    configData = functions.getFromjson("config.json")
     setCircuitVariables(configData)
 
 
@@ -334,7 +334,7 @@ def exportCircuit():
     circuitData = getCircuitVariables()
     path = filedialog.asksaveasfilename(title="Save circuit", defaultextension='.json', filetypes=[("JSON files (.json)", '*.json')])
     if path:
-        dumpjsonDict(circuitData, path)
+        functions.dumpTojson(circuitData, path)
 
 ######################################################################################################################################################################
 # Functions that generate the window for optimization control of two qubit gates.

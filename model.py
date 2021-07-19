@@ -33,9 +33,8 @@ def unpackCircuitParameters(circuitData):
     frequencies = circuitData["frequencies"]
     anharmonicities = circuitData["anharmonicities"]
     couplings = circuitData["couplings"]
-    riseTime = circuitData["rise-time"]
 
-    return frequencies, anharmonicities, couplings, riseTime
+    return frequencies, anharmonicities, couplings
 
 ######################################################################################################################################################################
 # Parameter function.
@@ -195,7 +194,7 @@ def coeffomegaTB(omegaTB0, Phi):
 # Hamiltomnian function.
 
 
-def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB=False, getEigenEnergies=False, sinStepHamiltonian=False, omegas=None, alphas=None, gs=None, riseTime=None):
+def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB=False, getEigenEnergies=False, sinStepHamiltonian=False, circuitData=None):
     """
     This function creates the hamiltonian for the specified number
     of energy levels. It also has the ability to return the hamiltonian
@@ -221,6 +220,8 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
             Hamiltonian (array(Qobj)): The hamiltonian for the case specified by the input parameters.
     ---------------------------------------------------------
     """
+    # Unpack the circuit data needed to fully specify the hamiltonian.
+    omegas, alphas, gs = unpackCircuitParameters(circuitData)
 
     # Choose the number of energy levels that should be used in the creation of the hamiltonian components.
     if N > 2:
@@ -400,7 +401,7 @@ def eigenstateOrder(eigenstates, N):
     return order
 
 
-def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, wantI):
+def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I):
     fidelities = []
     fidelityTimes = []
 
@@ -439,7 +440,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, want
 
             # Ideal CZ gate matrix (with phases):
             U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(np.pi + theta1 + theta2 + phi))]])
-        elif wantI:
+        elif I:
             # Calculate phases (I):
             phi = np.angle(M[0][0])
             theta1 = np.angle(M[1][1]) - phi
@@ -466,7 +467,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, want
 # Gate fidelity function.
 
 
-def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tIndices=[-76, -61, -23, -1], circuitData=None):
+def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices=[-76, -61, -23, -1], circuitData=None, riseTime=25.0):
     """
     This function calculates the gate fidelity for the
     iSWAP and CZ quantum gates given a parameter set x.
@@ -480,9 +481,9 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tInd
                 the final simulated time, roughly 25 ns after the gate is applied. 
 
         Only change ONE of these to True!:
-            wantiSWAP (boolean) {Optional}: Specifies that the gate fidelity is to be calculated for the iSWAP gate. Defaults to False.
-            wantCZ (boolean) {Optional}: Specifies that the gate fidelity is to be calculated for the CZ gate. Defaults to False.
-            wantI (boolean) {Optional}: USED IN TESTING ONLY! Specifies that the gate fidelity is to be calculated for the identity gate.
+            iSWAP (boolean) {Optional}: Specifies that the gate fidelity is to be calculated for the iSWAP gate. Defaults to False.
+            CZ (boolean) {Optional}: Specifies that the gate fidelity is to be calculated for the CZ gate. Defaults to False.
+            I (boolean) {Optional}: USED IN TESTING ONLY! Specifies that the gate fidelity is to be calculated for the identity gate.
                 Defaults to False.
     ---------------------------------------------------------
     OUTPUT:
@@ -491,10 +492,10 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tInd
     ---------------------------------------------------------
     """
     # Unpack the circuit data needed to fully specify the hamiltonian.
-    omegas, alphas, gs, riseTime = unpackCircuitParameters(circuitData)
+    omegas, _, _ = unpackCircuitParameters(circuitData)
 
     # Get all parts of the hamiltonian in the bare basis.
-    HBBComps = getHamiltonian(x, N=N, getBBHamiltonianComps=True, omegas=omegas, alphas=alphas, gs=gs, riseTime=riseTime)
+    HBBComps = getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData)
 
     # Given the number of considered energy levels for each qubit, the dimension of the combined tensor state is calculated.
     D = N**3
@@ -544,7 +545,7 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tInd
         return fidelities, fidelityTimes
 
     # Calculate the eigenbasis hamiltonian
-    HEB = getHamiltonian(x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinStepHamiltonian=True, omegas=omegas, alphas=alphas, gs=gs, riseTime=riseTime)
+    HEB = getHamiltonian(x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinStepHamiltonian=True, circuitData=circuitData)
 
     # Initialise a list c of the time-evolved eigenstates
     c = [stateToBeEvolved for stateToBeEvolved in r]
@@ -560,7 +561,7 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, wantI=False, tInd
     Hrot[eigIndices[-1], eigIndices[-1]] = Hrot[eigIndices[-2], eigIndices[-2]] + Hrot[eigIndices[-3], eigIndices[-3]] - Hrot[eigIndices[0], eigIndices[0]]
     Hrot = Qobj(Hrot, dims=[[N, N, N], [N, N, N]])
 
-    return fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, wantI)
+    return fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I)
 
 
 ######################################################################################################################################################################

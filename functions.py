@@ -341,7 +341,7 @@ def getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex):
     return usedLabels
 
 
-def simulateHamiltonian(x=None, xName=None, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, highestProjectionIndex=8, N=4):
+def simulateHamiltonian(x=None, xName=None, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, highestProjectionIndex=8, N=4, circuitData=None):
     """
     This function simulates the population transfers between 
     different eigenstates of the 4-level hamiltonian from 
@@ -427,8 +427,8 @@ def simulateHamiltonian(x=None, xName=None, sinStepHamiltonian=True, rotatingFra
     expectationValues = expect(projectionOperators, states)
 
     # Calculate gate fidelity for both iSWAP and CZ.
-    gateFidelity_iSWAP, timesiSWAP = getGateFidelity(x, N=N, wantiSWAP=True)
-    gateFidelity_CZ, timesCZ = getGateFidelity(x, N=N, wantCZ=True)
+    gateFidelity_iSWAP, timesiSWAP = getGateFidelity(x, N=N, iSWAP=True, circuitData=circuitData)
+    gateFidelity_CZ, timesCZ = getGateFidelity(x, N=N, CZ=True, circuitData=circuitData)
 
     # Print fidelity
     print(f'################################################\n\nGate fidelity for iSWAP: {gateFidelity_iSWAP}.\n\nGate fidelity for CZ: {gateFidelity_CZ}.\n\n################################################')
@@ -465,7 +465,7 @@ def simulateHamiltonian(x=None, xName=None, sinStepHamiltonian=True, rotatingFra
     return gateFidelity_iSWAP, gateFidelity_CZ
 
 
-def plotFidelity(x=None, wantiSWAP=False, wantCZ=False, xName=None, useSavedPlot=False, saveTojson=False):
+def plotFidelity(x=None, iSWAP=False, CZ=False, xName=None, useSavedPlot=False, saveTojson=False, circuitData=None):
     if (xName is not None):
         if (x is not None):
             print("Warning: Ignoring manually supplied x")
@@ -476,14 +476,14 @@ def plotFidelity(x=None, wantiSWAP=False, wantCZ=False, xName=None, useSavedPlot
             times = solsDict[xName]['times']
         else:
             indices = np.linspace(-116, -1, 116).astype(int)
-            F, times = getGateFidelity(x, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=indices)
+            F, times = getGateFidelity(x, N=4, iSWAP=iSWAP, CZ=CZ, tIndices=indices, circuitData=circuitData)
     else:
         if (x is None):
             print("Must supply either the name of an x stored in a json file or a list x manually (or both)")
             return None
         else:
             indices = np.linspace(-116, -1, 116).astype(int)
-            F, times = getGateFidelity(x, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=indices)
+            F, times = getGateFidelity(x, N=4, iSWAP=iSWAP, CZ=CZ, tIndices=indices, circuitData=circuitData)
 
     plt.figure(figsize=(8, 7))
     plt.plot(times, F)
@@ -533,7 +533,7 @@ def deltaPulsePlot():
     plt.show()
 
 
-def getRobustnessPlot(x=None, xName=None, wantiSWAP=False, wantCZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[5e-4, 1e-3, 2*np.pi * 2e-3, 4e0], useSavedPlot=False, saveTojson=False):
+def getRobustnessPlot(x=None, xName=None, iSWAP=False, CZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[5e-4, 1e-3, 2*np.pi * 2e-3, 4e0], useSavedPlot=False, saveTojson=False, circuitData=None):
     if (xName is None):
         if (x is None):
             print("Must supply either the name of an x stored in a json file or a list x manually (or both)")
@@ -587,7 +587,7 @@ def getRobustnessPlot(x=None, xName=None, wantiSWAP=False, wantCZ=False, checkTh
                 fidelities = []
                 for i, d in enumerate(deviations):
                     xDev[xIndex] = x[xIndex] + d
-                    fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
+                    fidelity, _ = getGateFidelity(xDev, N=4, iSWAP=iSWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData)
                     fidelities.append(fidelity[0])
                     statusBar((i+1)*100/nPointsList[0])
 
@@ -652,7 +652,7 @@ def getRobustnessPlot(x=None, xName=None, wantiSWAP=False, wantCZ=False, checkTh
                     xDev[xIndices[1]] = x[xIndices[1]] + jDev
                     for i, iDev in enumerate(iDeviations):
                         xDev[xIndices[0]] = x[xIndices[0]] + iDev
-                        fidelity, _ = getGateFidelity(xDev, N=4, wantiSWAP=wantiSWAP, wantCZ=wantCZ, tIndices=[-76])
+                        fidelity, _ = getGateFidelity(xDev, N=4, iSWAP=iSWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData)
                         fidelities.append(fidelity[0])
                         statusBar((j*nPointsList[0] + (i+1))*100/(nPointsList[0]*nPointsList[1]))
                 fidelities2D = np.array(fidelities).reshape(nPointsList[1], nPointsList[0])
@@ -833,7 +833,7 @@ def averageFidelity(F, gateTimeWeight=2):
 
 
 def cost(x, N, iSWAP, SWAP, CZ, circuitData):
-    F, _ = getGateFidelity(x, N=N, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, circuitData=circuitData)
+    F, _ = getGateFidelity(x, N=N, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, circuitData=circuitData, riseTime=circuitData['rise-time'])
     return averageFidelity(F)
 
 ######################################################################################################################################################################
