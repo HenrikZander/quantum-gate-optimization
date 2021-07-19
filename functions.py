@@ -875,36 +875,3 @@ def optimizeGate(iSWAP=False, SWAP=False, CZ=False, energyLevels=3, runSHG=False
 
 
 ######################################################################################################################################################################
-# Scrap functions
-"""
-def simulateEigenEnergies(x, numOfEnergyLevels=2, pointResolution=500):
-    hamiltonian = hamiltonianModule.getHamiltonian(x, getEigenEnergies=True)
-    
-    eigenEnergies = [[] for _ in range(numOfEnergyLevels)] #[[]]*numOfEnergyLevels
-    bounds = hamiltonianModule.getParameterBounds()
-    start, end = bounds[0][0]+bounds[1][0], bounds[0][1]+bounds[1][1]
-    listOfPhis = np.linspace(start, end, pointResolution)
-    
-    H = hamiltonian(0)
-    eigenList = H.eigenstates()   
-    # print(eigenList[1][1:4])
-    
-    fig, ax = plt.subplots()
-    labels = ["|010><010|"]
-    for phi in listOfPhis:
-        H = hamiltonian(phi)
-        eigenList = H.eigenstates()
-        
-        for i, energyLevel in enumerate(eigenEnergies):
-            energyLevel.append(eigenList[0][i])
-    
-    for index, energy in enumerate(eigenEnergies, start=1):
-        ax.plot(listOfPhis, energy)
-        #labels.append("Eigenenergy " + str(index))
-    ax.set_xlabel('Flux')
-    ax.set_ylabel('Energy')
-    ax.legend(labels)
-    plt.show()
-"""
-
-######################################################################################################################################################################
