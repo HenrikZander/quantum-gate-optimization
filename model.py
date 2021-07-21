@@ -490,7 +490,9 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
     ---------------------------------------------------------
     """
     
-
+    # Change the units of omegaPhi from GHz to Grad/s
+    x[2] = 2*np.pi*x[2]
+    
     # Unpack the circuit data needed to fully specify the hamiltonian.
     omegas, _, _ = unpackCircuitParameters(circuitData)
 

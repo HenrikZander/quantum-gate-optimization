@@ -115,6 +115,7 @@ def initiateGlobalVariables(root, givenHeight):
     progressValue = DoubleVar(root)
     statusString = StringVar(root)
 
+
 ######################################################################################################################################################################
 # High level functions.
 
@@ -190,6 +191,7 @@ def scheduleOptimizingSessions():
     runOptimizer = False
     resetStartStopButtons()
 
+
 ######################################################################################################################################################################
 # Functions to interact with the global variables.
 
@@ -216,7 +218,7 @@ def getAllVariablesForTheOptimizer():
 
     data["theta"] = (thetaLower.get(), thetaUpper.get())
     data["delta"] = (deltaLower.get(), deltaUpper.get())
-    data["omega-phi"] = (2*np.pi*omegaPhiLower.get(), 2*np.pi*omegaPhiUpper.get())
+    data["omega-phi"] = (omegaPhiLower.get(), omegaPhiUpper.get())
     data["modulation-time"] = (modulationTimeLower.get(), modulationTimeUpper.get())
 
     return data
@@ -229,6 +231,7 @@ def getRunOptimizer():
 
 def setProgressValue(value):
     progressValue.set(value)
+
 
 def setStatus(currentStatus):
     global statusString
@@ -280,6 +283,7 @@ def setDefaultCircuitValuesFromVariables(configData, newCircuitData):
     configData["couplings"] = newCircuitData["couplings"]
 
     return configData
+
 
 ######################################################################################################################################################################
 # Button callbacks
@@ -335,6 +339,7 @@ def exportCircuit():
     if path:
         dataManager.dumpTojson(circuitData, path)
 
+
 ######################################################################################################################################################################
 # Functions that generate the window for optimization control of two qubit gates.
 
@@ -362,6 +367,7 @@ def optimizeStatusFrame(bottomFrame):
     global progress
     progress = ttk.Progressbar(bottomFrame, length=width*0.67, orient=HORIZONTAL, mode='determinate', value=0, variable=progressValue, maximum=1)
     progress.place(relx=0.05, rely=0.5, anchor='nw')
+
 
 ##################################################################################
 # Functions that generate the circuit parameter frames and result saving functionality.
@@ -524,6 +530,7 @@ def optimizeCircuitParameterFrame(topFrame):
 
     generateCircuitInputs(circuitFrame)
     generateCircuitInputControls(circuitFrame)
+
 
 ##################################################################################
 # Functions that generate the controls for optimizer configuration, boundary search limits and signal shape.
@@ -772,6 +779,7 @@ def optimizerSettingsFrame(topFrame):
     generateLeftSettings(settingsFrameLeft)
     generateRightSettings(settingsFrameRight)
     generateBoundarySettings(settingsBoundaryFrame)
+
 
 ##################################################################################
 

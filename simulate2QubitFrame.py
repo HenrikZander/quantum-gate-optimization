@@ -81,14 +81,41 @@ def initiateGlobalVariables(root, givenHeight):
 # High level functions.
 
 def simulateSolution(solutionData):
+    writeStatus("Simulation started! Please wait.")
     circuitData = getAllVariables()
     process = Thread(target=model.getGateFidelity, args=((solutionData["theta"], solutionData["delta"], solutionData["omega-phi"], solutionData["modulation-time"]), 4, False, False, True, False, [-76, -61, -23, -1], circuitData, 25.0))
     process.start()
     process.join()
+    writeStatus("Simulation complete.")
 
 
 ######################################################################################################################################################################
 # Functions to interact with the global variables.
+
+
+def writeStatus(statusString):
+    solutionPreviewField.config(state="normal")
+    solutionPreviewField.delete("6.0", "end")
+    solutionPreviewField.insert("6.0", "\n" + statusString)
+    solutionPreviewField.config(state="disabled")
+
+
+def invalidSolutionStatus():
+    solutionPreviewField.config(state="normal")
+    solutionPreviewField.delete("1.0", "end")
+    solutionPreviewField.insert("1.0", "Invalid solution! Try again!")
+    solutionPreviewField.config(state="disabled")
+
+
+def writeSolutionParameterStatus(solutionData):
+    solutionPreviewField.config(state="normal")
+    solutionPreviewField.delete("1.0", "end")
+    solutionPreviewField.insert("1.0", f'Strength of DC-flux \u0398 [\u03A6{subscriptZero}]: {solutionData["theta"]}\n')
+    solutionPreviewField.insert("2.0", f'Amplitude of \u03B4(t) [\u03A6{subscriptZero}]: {solutionData["delta"]}\n')
+    solutionPreviewField.insert("3.0", f'Frequency \u03C9 of AC-flux [GHz]: {solutionData["omega-phi"]}\n')
+    solutionPreviewField.insert("4.0", f'Total modulation time of AC-flux [ns]: {solutionData["modulation-time"]}\n\n')
+    solutionPreviewField.insert("6.0", "Solution format valid! Ready to simulate solution.")
+    solutionPreviewField.config(state="disabled")
 
 
 def getAllVariables():
@@ -134,19 +161,38 @@ def setDefaultCircuitValuesFromVariables(configData, newCircuitData):
     return configData
 
 
+def enableStartSimulationButton():
+    startSimulationButton.config(background="green", command=startSimulation)
+
+
+def disableStartSimulationButton():
+    startSimulationButton.config(background="gray", command=NONE)
+
+
 ######################################################################################################################################################################
 # Button callbacks
+
+
+def startSimulation():
+    solutionData = dataManager.getFromjson(solutionPath.get())
+
+    process = Thread(target=simulateSolution, args=(solutionData,))
+    process.start()
 
 
 def loadSolution():
     solutionFilePath = filedialog.askopenfilename(title="Select solution", defaultextension='.json', filetypes=[("JSON files (.json)", '*.json')])
     if solutionFilePath:
-        solutionData = dataManager.getFromjson(solutionFilePath)
-        setCircuitVariables(solutionData)
-        solutionPath.set(solutionFilePath)
-        
-        process = Thread(target=simulateSolution, args=(solutionData,))
-        process.start()
+        try:
+            solutionData = dataManager.getFromjson(solutionFilePath)
+            setCircuitVariables(solutionData)
+            writeSolutionParameterStatus(solutionData)
+            solutionPath.set(solutionFilePath)
+            enableStartSimulationButton()
+        except:
+            disableStartSimulationButton()
+            invalidSolutionStatus()
+            solutionPath.set(solutionFilePath)
 
 
 def selectSaveFolder():
@@ -179,6 +225,7 @@ def exportCircuit():
     path = filedialog.asksaveasfilename(title="Save circuit", defaultextension='.json', filetypes=[("JSON files (.json)", '*.json')])
     if path:
         dataManager.dumpTojson(circuitData, path)
+
 
 ######################################################################################################################################################################
 # Functions that generate the window for simulation control of two qubit gates.
@@ -285,26 +332,6 @@ def generateFrequencyInputs(circuitFrame, entryCharacterWidth):
     frequencyEntryCoupler.pack(side=LEFT, padx=(0, 5))
 
 
-def generateCircuitInputControls(circuitFrame):
-    controlsInputFrameOuter = Frame(circuitFrame, height=80, width=relativeWidth*width*0.40)  # , background="orange")
-    controlsInputFrameOuter.grid(row=4, column=0, columnspan=3)
-
-    controlsInputFrameInner = Frame(controlsInputFrameOuter)
-    controlsInputFrameInner.place(anchor='center', relx=0.5, rely=0.5)
-
-    loadCircuitButton = Button(controlsInputFrameInner, text="Load Circuit", command=loadCircuit, padx=3, pady=3, background="#21e4d7")
-    loadCircuitButton.grid(row=0, column=0, padx=4, pady=4)
-
-    changeDefaultCircuitButton = Button(controlsInputFrameInner, text="Set to Default", command=changeDefaultCircuit, padx=3, pady=3, background="#21e4d7")
-    changeDefaultCircuitButton.grid(row=0, column=1, padx=4, pady=4)
-
-    useDefaultCircuitButton = Button(controlsInputFrameInner, text="Use Default", command=useDefaultCircuit, padx=3, pady=3, background="#21e4d7")
-    useDefaultCircuitButton.grid(row=0, column=2, padx=4, pady=4)
-
-    generateCircuitButton = Button(controlsInputFrameInner, text="Export", command=exportCircuit, padx=3, pady=3, background="#21e4d7")
-    generateCircuitButton.grid(row=0, column=3, padx=4, pady=4)
-
-
 def generateCircuitInputs(circuitFrame):
     entryCharacterWidth = 10
 
@@ -329,14 +356,39 @@ def simulateCircuitParameterFrame(topFrame):
     circuitFrame.grid_propagate(0)
 
     generateCircuitInputs(circuitFrame)
-    # generateCircuitInputControls(circuitFrame)
+
 
 ##################################################################################
 # Functions that generate the controls for simulation configuration and widgets that show of a selected solution.
 
 
-def generateSelectEnergyLevels(settingsFrameRight):
-    selectEnergyLevelsFrameOuter = Frame(settingsFrameRight, height=55, width=relativeWidth*width*0.30)  # , background="blue")
+def generateSolutionPreviewField(solutionFrame):
+    solutionPreviewFrameOuter = Frame(solutionFrame, height=relativeHeight*height-210, width=relativeWidth*width*0.60)# , background="green")
+    solutionPreviewFrameOuter.grid(row=5, column=0, columnspan=2)
+    solutionPreviewFrameOuter.grid_propagate(0)
+
+    solutionPreviewFrameInner = Frame(solutionPreviewFrameOuter)
+    solutionPreviewFrameInner.place(anchor='n', relx=0.5, rely=0)
+
+    global solutionPreviewField
+    solutionPreviewField = Text(solutionPreviewFrameInner, height=22, width=65, state="disabled", background="lightgray", font=("Helvetica", 11) )
+    solutionPreviewField.pack(anchor="center")
+
+
+def generateStartSimulationFrame(settingsFrame):
+    startSimulationFrameOuter = Frame(settingsFrame, height=55, width=relativeWidth*width*0.30)# , background="blue")
+    startSimulationFrameOuter.grid(row=1, column=0)
+
+    startSimulationFrameInner = Frame(startSimulationFrameOuter)# , background="orange")
+    startSimulationFrameInner.place(anchor="center", relx=0.5, rely=0.5)
+
+    global startSimulationButton
+    startSimulationButton = Button(startSimulationFrameInner, text="Start Simulation", command=NONE, background="gray")
+    startSimulationButton.pack(side=LEFT)
+
+
+def generateSelectEnergyLevels(settingsFrame):
+    selectEnergyLevelsFrameOuter = Frame(settingsFrame, height=55, width=relativeWidth*width*0.30)  # , background="blue")
     selectEnergyLevelsFrameOuter.grid(row=1, column=0)
 
     selectEnergyLevelsFrameInner = Frame(selectEnergyLevelsFrameOuter)  # , background="orange")
@@ -350,19 +402,23 @@ def generateSelectEnergyLevels(settingsFrameRight):
     selectEnergyLevels.pack(side=LEFT)
 
 
+def generateLeftSettings(settingsFrameLeft):
+    generateSelectEnergyLevels(settingsFrameLeft)
+
+
 def generateRightSettings(settingsFrameRight):
-    generateSelectEnergyLevels(settingsFrameRight)
+    generateStartSimulationFrame(settingsFrameRight)
 
 
 def generateSelectSolutionInput(solutionFrame):
-    selectSolutionFrameOuter = Frame(solutionFrame, height=50, width=relativeWidth*width*0.60, background="green")
+    selectSolutionFrameOuter = Frame(solutionFrame, height=50, width=relativeWidth*width*0.60)# , background="green")
     selectSolutionFrameOuter.grid(column=0, row=1, columnspan=2)
     selectSolutionFrameOuter.grid_propagate(0)
 
     selectSolutionFrameInner = Frame(selectSolutionFrameOuter)
     selectSolutionFrameInner.place(anchor='center', relx=0.5, rely=0.5)
 
-    selectSolutionEntry = Entry(selectSolutionFrameInner, state="readonly", width=50, readonlybackground="white", textvariable=solutionPath)
+    selectSolutionEntry = Entry(selectSolutionFrameInner, state="readonly", width=65, readonlybackground="white", textvariable=solutionPath)
     selectSolutionEntry.pack(side=LEFT)
 
     selectSolutionButton = Button(selectSolutionFrameInner, text="Select Solution", command=loadSolution, background="#21e4d7")
@@ -373,11 +429,11 @@ def solutionSelectionFrame(topFrame):
     selectSolutionTitleFrameHeight = 50
     selectSolutionFrameHeight = 110
 
-    solutionFrame = Frame(topFrame, height=relativeHeight*height, width=relativeWidth*width*0.60, background="yellow")
+    solutionFrame = Frame(topFrame, height=relativeHeight*height, width=relativeWidth*width*0.60)# , background="yellow")
     solutionFrame.grid(row=0, column=2)
     solutionFrame.grid_propagate(0)
 
-    selectSolutionTitleFrame = Frame(solutionFrame, height=selectSolutionTitleFrameHeight, width=relativeWidth*width*0.60, background="orange")
+    selectSolutionTitleFrame = Frame(solutionFrame, height=selectSolutionTitleFrameHeight, width=relativeWidth*width*0.60)# , background="orange")
     selectSolutionTitleFrame.grid(row=0, column=0, columnspan=2)
 
     settingsTitle = Label(selectSolutionTitleFrame, text='Simulation Configuration', font=('Helvetica', 12))
@@ -388,25 +444,27 @@ def solutionSelectionFrame(topFrame):
 
     generateSelectSolutionInput(solutionFrame)
 
-    solutionSettingsFrameLeft = Frame(solutionFrame, height=selectSolutionTitleFrameHeight, width=relativeWidth*width*0.30, background="blue")
+    solutionSettingsFrameLeft = Frame(solutionFrame, height=selectSolutionTitleFrameHeight, width=relativeWidth*width*0.30) #, background="blue")
     solutionSettingsFrameLeft.grid(column=0, row=2)
     solutionSettingsFrameLeft.grid_propagate(0)
 
-    solutionSettingsFrameRight = Frame(solutionFrame, height=selectSolutionTitleFrameHeight, width=relativeWidth*width*0.30, background="red")
+    solutionSettingsFrameRight = Frame(solutionFrame, height=selectSolutionTitleFrameHeight, width=relativeWidth*width*0.30) #, background="red")
     solutionSettingsFrameRight.grid(column=1, row=2)
     solutionSettingsFrameRight.grid_propagate(0)
 
     separator = ttk.Separator(solutionFrame, orient='horizontal')
     separator.grid(row=3, column=0, columnspan=2, sticky="nesw")
 
-    solutionPreviewTitleFrame = Frame(solutionFrame, height=selectSolutionTitleFrameHeight, width=relativeWidth*width*0.60, background="orange")
+    solutionPreviewTitleFrame = Frame(solutionFrame, height=selectSolutionTitleFrameHeight, width=relativeWidth*width*0.60) #, background="orange")
     solutionPreviewTitleFrame.grid(row=4, column=0, columnspan=2)
 
-    solutionPreviewTitle = Label(solutionPreviewTitleFrame, text='Parameters of selected solution', font=('Helvetica', 12))
+    solutionPreviewTitle = Label(solutionPreviewTitleFrame, text='Current Simulation Status', font=('Helvetica', 12))
     solutionPreviewTitle.configure(font=titleSettingsFont)
     solutionPreviewTitle.place(anchor='center', relx=0.5, rely=0.5)
 
+    generateLeftSettings(solutionSettingsFrameLeft)
     generateRightSettings(solutionSettingsFrameRight)
+    generateSolutionPreviewField(solutionFrame)
 
 
 ##################################################################################
