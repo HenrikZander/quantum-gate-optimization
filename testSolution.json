@@ -1,0 +1,20 @@
+{
+    "frequencies": [
+        4.2,
+        3.8,
+        7.0
+    ],
+    "anharmonicities": [
+        -0.15,
+        -0.15,
+        -0.15
+    ],
+    "couplings": [
+        0.05,
+        0.05
+    ],
+    "theta": -3.42740346e-01,
+    "delta": 5.14288612e-02,
+    "omega-phi": 2.97036730,
+    "modulation-time": 1.13806249e+02
+}

@@ -490,6 +490,8 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
                 evaluated at times corresponding to the tIndices input, as well as those times.
     ---------------------------------------------------------
     """
+    print(f'Energy levels: {N}')
+
     # Unpack the circuit data needed to fully specify the hamiltonian.
     omegas, _, _ = unpackCircuitParameters(circuitData)
 

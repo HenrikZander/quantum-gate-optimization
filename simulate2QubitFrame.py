@@ -28,6 +28,8 @@ from threading import Thread
 import numpy as np
 
 import dataManager
+import functions
+import model
 #import simulateManager
 
 ######################################################################################################################################################################
@@ -78,8 +80,12 @@ def initiateGlobalVariables(root, givenHeight):
 ######################################################################################################################################################################
 # High level functions.
 
-def simulateSolution():
-    pass
+def simulateSolution(solutionData):
+    circuitData = getAllVariables()
+    process = Thread(target=model.getGateFidelity, args=((solutionData["theta"], solutionData["delta"], solutionData["omega-phi"], solutionData["modulation-time"]), 3, False, False, True, False, [-76, -61, -23, -1], circuitData, 25.0))
+    process.start()
+    process.join()
+
 
 ######################################################################################################################################################################
 # Functions to interact with the global variables.
@@ -93,22 +99,6 @@ def getAllVariables():
     data["anharmonicities"] = (2*np.pi*anharmonicityQ1.get(), 2 * np.pi*anharmonicityQ2.get(), 2*np.pi*anharmonicityCoupler.get())
 
     data["couplings"] = (2*np.pi*couplingQ1.get(), 2*np.pi*couplingQ2.get())
-
-    data["save-folder"] = resultFolderPath.get()
-
-    data["runDE"] = runDifferentialEvolution.get()
-    data["runSHG"] = runSimplicalHomologyGlobal.get()
-    data["runDA"] = runDualAnneling.get()
-
-    data[selectedGate.get()] = True
-    data["energy-levels"] = energyLevels.get()
-
-    data["rise-time"] = riseTime.get()
-
-    data["theta"] = (thetaLower.get(), thetaUpper.get())
-    data["delta"] = (deltaLower.get(), deltaUpper.get())
-    data["omega-phi"] = (2*np.pi*omegaPhiLower.get(), 2*np.pi*omegaPhiUpper.get())
-    data["modulation-time"] = (modulationTimeLower.get(), modulationTimeUpper.get())
 
     return data
 
@@ -149,10 +139,14 @@ def setDefaultCircuitValuesFromVariables(configData, newCircuitData):
 
 
 def loadSolution():
-    solutionFile = filedialog.askopenfilename(title="Select solution", defaultextension='.json', filetypes=[("JSON files (.json)", '*.json')])
-    if solutionFile:
-        solutionData = dataManager.getFromjson(solutionFile)
+    solutionFilePath = filedialog.askopenfilename(title="Select solution", defaultextension='.json', filetypes=[("JSON files (.json)", '*.json')])
+    if solutionFilePath:
+        solutionData = dataManager.getFromjson(solutionFilePath)
         setCircuitVariables(solutionData)
+        solutionPath.set(solutionFilePath)
+        
+        process = Thread(target=simulateSolution, args=(solutionData,))
+        process.start()
 
 
 def selectSaveFolder():
@@ -335,7 +329,7 @@ def simulateCircuitParameterFrame(topFrame):
     circuitFrame.grid_propagate(0)
 
     generateCircuitInputs(circuitFrame)
-    #generateCircuitInputControls(circuitFrame)
+    # generateCircuitInputControls(circuitFrame)
 
 ##################################################################################
 # Functions that generate the controls for simulation configuration and widgets that show of a selected solution.
