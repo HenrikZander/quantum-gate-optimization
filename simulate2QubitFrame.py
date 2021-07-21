@@ -82,7 +82,7 @@ def initiateGlobalVariables(root, givenHeight):
 
 def simulateSolution(solutionData):
     circuitData = getAllVariables()
-    process = Thread(target=model.getGateFidelity, args=((solutionData["theta"], solutionData["delta"], solutionData["omega-phi"], solutionData["modulation-time"]), 3, False, False, True, False, [-76, -61, -23, -1], circuitData, 25.0))
+    process = Thread(target=model.getGateFidelity, args=((solutionData["theta"], solutionData["delta"], solutionData["omega-phi"], solutionData["modulation-time"]), 4, False, False, True, False, [-76, -61, -23, -1], circuitData, 25.0))
     process.start()
     process.join()
 

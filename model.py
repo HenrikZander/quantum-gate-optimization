@@ -19,7 +19,6 @@
 
 ######################################################################################################################################################################
 
-from numpy.core.numeric import False_
 from qutip import *
 import numpy as np
 from numba import njit
@@ -490,7 +489,7 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
                 evaluated at times corresponding to the tIndices input, as well as those times.
     ---------------------------------------------------------
     """
-    print(f'Energy levels: {N}')
+    
 
     # Unpack the circuit data needed to fully specify the hamiltonian.
     omegas, _, _ = unpackCircuitParameters(circuitData)
@@ -562,7 +561,10 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
     Hrot[eigIndices[-1], eigIndices[-1]] = Hrot[eigIndices[-2], eigIndices[-2]] + Hrot[eigIndices[-3], eigIndices[-3]] - Hrot[eigIndices[0], eigIndices[0]]
     Hrot = Qobj(Hrot, dims=[[N, N, N], [N, N, N]])
 
-    return fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I)
+    res = fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I)
+    print(f'Energy levels: {N}')
+    print(res)
+    return res
 
 
 ######################################################################################################################################################################
