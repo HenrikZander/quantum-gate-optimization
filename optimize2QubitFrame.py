@@ -27,15 +27,14 @@ import time
 from threading import Thread
 import numpy as np
 
-# from main import *
-import functions
-import model
+import dataManager
+import optimizeManager
 
 ######################################################################################################################################################################
 # Global variables and function to initiate global variables
 
 relativeHeight = 0.85
-relativeWidth = 0.98
+relativeWidth = 1
 
 SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 subscriptZero = "0".translate(SUB)
@@ -167,7 +166,7 @@ def callOptimizeGate():
     dataFromUser = getAllVariablesForTheOptimizer()
     iSWAP, SWAP, CZ = identifyGate(dataFromUser)
 
-    functions.optimizeGate(iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, energyLevels=dataFromUser["energy-levels"], runSHG=dataFromUser["runSHG"], runDA=dataFromUser["runDA"], runDE=dataFromUser["runDE"], parameterBounds=(dataFromUser["theta"], dataFromUser["delta"], dataFromUser["omega-phi"], dataFromUser["modulation-time"]), circuitData=dataFromUser)
+    optimizeManager.optimize2QubitGate(iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, energyLevels=dataFromUser["energy-levels"], runSHG=dataFromUser["runSHG"], runDA=dataFromUser["runDA"], runDE=dataFromUser["runDE"], parameterBounds=(dataFromUser["theta"], dataFromUser["delta"], dataFromUser["omega-phi"], dataFromUser["modulation-time"]), circuitData=dataFromUser)
 
 
 def scheduleOptimizingSessions():
@@ -237,7 +236,7 @@ def setStatus(currentStatus):
 
     
 def setDefaultBoundaryValues():
-    data = functions.getFromjson("config.json")
+    data = dataManager.getFromjson("config.json")
 
     thetaLower.set(data["theta"][0])
     thetaUpper.set(data["theta"][1])
@@ -314,19 +313,19 @@ def stopOptimizing():
 def loadCircuit():
     circuitFile = filedialog.askopenfilename(title="Select circuit", defaultextension='.json', filetypes=[("JSON files (.json)", '*.json')])
     if circuitFile:
-        circuitData = functions.getFromjson(circuitFile)
+        circuitData = dataManager.getFromjson(circuitFile)
         setCircuitVariables(circuitData)
 
 
 def changeDefaultCircuit():
-    configData = functions.getFromjson("config.json")
+    configData = dataManager.getFromjson("config.json")
     newCircuitData = getCircuitVariables()
     setDefaultCircuitValuesFromVariables(configData, newCircuitData)
-    functions.dumpTojson(configData, "config.json")
+    dataManager.dumpTojson(configData, "config.json")
 
 
 def useDefaultCircuit():
-    configData = functions.getFromjson("config.json")
+    configData = dataManager.getFromjson("config.json")
     setCircuitVariables(configData)
 
 
@@ -334,7 +333,7 @@ def exportCircuit():
     circuitData = getCircuitVariables()
     path = filedialog.asksaveasfilename(title="Save circuit", defaultextension='.json', filetypes=[("JSON files (.json)", '*.json')])
     if path:
-        functions.dumpTojson(circuitData, path)
+        dataManager.dumpTojson(circuitData, path)
 
 ######################################################################################################################################################################
 # Functions that generate the window for optimization control of two qubit gates.
@@ -689,10 +688,10 @@ def generateSelectAlgorithm(settingsFrameLeft):
     selectDifferentialEvolutionBox.select()
     selectDifferentialEvolutionBox.grid(row=0, column=0, sticky='w')
 
-    selectSimplicalHomologyBox = Checkbutton(selectAlgorithmFrameInner, text="Simplical Homology Global", variable=runSimplicalHomologyGlobal)
+    selectSimplicalHomologyBox = Checkbutton(selectAlgorithmFrameInner, text="Simplical Homology Global (Disabled)", variable=runSimplicalHomologyGlobal, state=DISABLED)
     selectSimplicalHomologyBox.grid(row=1, column=0, sticky='w')
 
-    selectDualAnnelingBox = Checkbutton(selectAlgorithmFrameInner, text="Dual Anneling", variable=runDualAnneling)
+    selectDualAnnelingBox = Checkbutton(selectAlgorithmFrameInner, text="Dual Anneling (Disabled)", variable=runDualAnneling, state=DISABLED)
     selectDualAnnelingBox.grid(row=2, column=0, sticky='w')
 
 
@@ -735,7 +734,7 @@ def optimizerSettingsFrame(topFrame):
     separator = ttk.Separator(topFrame, orient='vertical')
     separator.grid(row=0, column=1, sticky="nesw")
 
-    settingsFrame = Frame(topFrame, height=relativeHeight*height, width=relativeWidth*width*0.60)  # , background="yellow")
+    settingsFrame = Frame(topFrame, height=relativeHeight*height, width=relativeWidth*width*0.60, background="yellow")
     settingsFrame.grid(row=0, column=2)
     settingsFrame.grid_propagate(0)
 
@@ -775,5 +774,45 @@ def optimizerSettingsFrame(topFrame):
     generateBoundarySettings(settingsBoundaryFrame)
 
 ##################################################################################
+
+######################################################################################################################################################################
+# Functions that generate different windows
+
+
+def optimizeControlFrame(root, parentWidget, givenHeight, givenWidth):
+    initiateGlobalVariables(root, givenHeight)
+
+    global relativeHeight
+    global relativeWidth
+    global height
+    global width
+
+    height = givenHeight
+    width = givenWidth
+
+    windowFrame = Frame(parentWidget, height=height, width=width)# , background="green")
+    windowFrame.place(anchor="center", relx=0.5, rely=0.5)
+    windowFrame.grid_propagate(0)
+
+    topFrame = Frame(windowFrame, height=relativeHeight*height, width=width)# , background="green")
+    topFrame.grid(row=0, column=0)
+    topFrame.grid_propagate(0)
+
+    separator = ttk.Separator(windowFrame, orient='horizontal')
+    separator.grid(row=1, column=0, sticky="nesw")
+
+    bottomFrame = Frame(windowFrame, height=(1-relativeHeight)*height, width=width)
+    bottomFrame.grid(row=2, column=0)
+    bottomFrame.grid_propagate(0)
+
+    optimizeStatusFrame(bottomFrame)
+    optimizeCircuitParameterFrame(topFrame)
+    optimizerSettingsFrame(topFrame)
+
+    useDefaultCircuit()
+    setDefaultBoundaryValues()
+
+    return windowFrame
+
 
 ######################################################################################################################################################################

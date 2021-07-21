@@ -23,63 +23,72 @@ from tkinter import *
 import tkinter.ttk as ttk
 import tkinter.font as tkFont
 import time
-
-from main import *
-import optimize2QubitWindow
+import math
+import optimize2QubitFrame
+import simulate2QubitFrame
 
 ######################################################################################################################################################################
 # Global variables
 
-height = 600
-width = int(1.62*height)
+height = 0
+width = 0
 
 ######################################################################################################################################################################
 # Main 
 
+
 def main():
     global root
+    global height
+    global width
 
     root = Tk()
+    calculateWindowSize(root)
     root.title("GateSide")
-    root.geometry(str(width)+"x"+str(height))
+    root.geometry(str(width)+"x"+str(math.ceil(height*1.04)))
     root.resizable(width=False, height=False)
     programIcon = PhotoImage(file = "./assets/Gateside_Logomark.png")
     root.iconphoto(False, programIcon)
 
-    optimizeControlWindow(root, height)
+    twoQubit(root, height, width)
 
     root.mainloop()
 
-######################################################################################################################################################################
-# Functions that is used to manage the config.JSON-file.
-
-
 
 ######################################################################################################################################################################
-# Functions that generate different windows
+# Function that calculate the height of the window.
 
-def optimizeControlWindow(root, height):
-    optimize2QubitWindow.initiateGlobalVariables(root, height)
-    relativeHeight = optimize2QubitWindow.relativeHeight
-    relativeWidth = optimize2QubitWindow.relativeWidth
 
-    topFrame = Frame(root, height=relativeHeight*height, width=relativeWidth*width)#, background="green")
-    topFrame.grid(row=0, column=0)
-    topFrame.grid_propagate(0)
+def calculateWindowSize(root):
+    global height
+    global width
 
-    separator = ttk.Separator(root, orient='horizontal')
-    separator.grid(row=1, column=0, sticky="nesw")
+    screen_height = root.winfo_screenheight()
+    screen_width = root.winfo_screenwidth()
 
-    bottomFrame = Frame(root, height=(1-relativeHeight-0.02)*height, width=relativeWidth*width)
-    bottomFrame.grid(row=2, column=0)
-    bottomFrame.grid_propagate(0)
+    height = math.ceil(screen_height*0.6944444)
+    width = math.ceil(screen_width*0.6328125)
 
-    optimize2QubitWindow.optimizeStatusFrame(bottomFrame)
-    optimize2QubitWindow.optimizeCircuitParameterFrame(topFrame)
-    optimize2QubitWindow.optimizerSettingsFrame(topFrame)
 
-    optimize2QubitWindow.useDefaultCircuit()
-    optimize2QubitWindow.setDefaultBoundaryValues()
+######################################################################################################################################################################
+# Functions that are used to generate different windows.
+
+
+def twoQubit(root, height, width):
+    twoQubitNotepad = ttk.Notebook(root, height=height, width=width)
+    twoQubitNotepad.pack()
+
+    mainMenuFrame = Frame(twoQubitNotepad, height=height, width=width , background="green")
+    mainMenuFrame.place(anchor="center", relx=0.5, rely=0.5)
+
+    optimizeFrame = optimize2QubitFrame.optimizeControlFrame(root, twoQubitNotepad, height, width)
+
+    simulateFrame = simulate2QubitFrame.simulateControlFrame(root, twoQubitNotepad, height, width)
+    
+    twoQubitNotepad.add(mainMenuFrame, text="Main Menu")
+    twoQubitNotepad.add(optimizeFrame, text="Optimize")
+    twoQubitNotepad.add(simulateFrame, text="Simulate")
+
 
 ######################################################################################################################################################################
 # Auto-run the main()-function if main.py is compiled.

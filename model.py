@@ -22,7 +22,6 @@
 from numpy.core.numeric import False_
 from qutip import *
 import numpy as np
-# from variables import *
 from numba import njit
 
 ######################################################################################################################################################################
