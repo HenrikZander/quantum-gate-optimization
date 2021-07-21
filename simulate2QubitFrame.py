@@ -95,26 +95,27 @@ def simulateSolution(solutionData):
 
 def writeStatus(statusString):
     solutionPreviewField.config(state="normal")
-    solutionPreviewField.delete("6.0", "end")
-    solutionPreviewField.insert("6.0", "\n" + statusString)
+    solutionPreviewField.delete("8.0", "end")
+    solutionPreviewField.insert("8.0", "\nStatus: " + statusString)
     solutionPreviewField.config(state="disabled")
 
 
 def invalidSolutionStatus():
     solutionPreviewField.config(state="normal")
     solutionPreviewField.delete("1.0", "end")
-    solutionPreviewField.insert("1.0", "Invalid solution! Try again!")
+    solutionPreviewField.insert("1.0", "Status: Invalid solution! Try again!")
     solutionPreviewField.config(state="disabled")
 
 
 def writeSolutionParameterStatus(solutionData):
     solutionPreviewField.config(state="normal")
     solutionPreviewField.delete("1.0", "end")
-    solutionPreviewField.insert("1.0", f'Strength of DC-flux \u0398 [\u03A6{subscriptZero}]: {solutionData["theta"]}\n')
-    solutionPreviewField.insert("2.0", f'Amplitude of \u03B4(t) [\u03A6{subscriptZero}]: {solutionData["delta"]}\n')
-    solutionPreviewField.insert("3.0", f'Frequency \u03C9 of AC-flux [GHz]: {solutionData["omega-phi"]}\n')
-    solutionPreviewField.insert("4.0", f'Total modulation time of AC-flux [ns]: {solutionData["modulation-time"]}\n\n')
-    solutionPreviewField.insert("6.0", "Solution format valid! Ready to simulate solution.")
+    solutionPreviewField.insert("1.0", f'Resulting gate: CZ, iSWAP or SWAP. This needs to be implemented!\n\n')
+    solutionPreviewField.insert("3.0", f'Strength of DC-flux \u0398 [\u03A6{subscriptZero}]: {solutionData["theta"]}\n')
+    solutionPreviewField.insert("4.0", f'Amplitude of \u03B4(t) [\u03A6{subscriptZero}]: {solutionData["delta"]}\n')
+    solutionPreviewField.insert("5.0", f'Frequency \u03C9 of AC-flux [GHz]: {solutionData["omega-phi"]}\n')
+    solutionPreviewField.insert("6.0", f'Total modulation time of AC-flux [ns]: {solutionData["modulation-time"]}\n\n')
+    solutionPreviewField.insert("8.0", "Status: Solution format valid! Ready to simulate.")
     solutionPreviewField.config(state="disabled")
 
 
