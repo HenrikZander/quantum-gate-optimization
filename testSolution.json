@@ -16,5 +16,7 @@
     "theta": -3.42740346e-01,
     "delta": 5.14288612e-02,
     "omega-phi": 2.97036730,
-    "modulation-time": 1.13806249e+02
+    "modulation-time": 1.13806249e+02,
+    "rise_time": 25,
+    "gate_type": "CZ"
 }
