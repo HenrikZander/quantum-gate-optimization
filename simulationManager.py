@@ -20,5 +20,58 @@
 ######################################################################################################################################################################
 
 import model
+from dataManager import *
+import numpy as np
+import matplotlib.pyplot as plt
+
 
 ######################################################################################################################################################################
+
+def simulate():
+    pass
+
+def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False):
+    solutionDict = getFromjson(fileName=solutionPath)
+    x = (solutionDict['theta'], solutionDict['delta'], solutionDict['omegaPhi'], solutionDict['modulationTime'])
+    
+    circuitDataKeys = ['frequencies', 'anharmonicities', 'couplings']
+    circuitData = {}
+    for key in circuitDataKeys:
+        circuitData[key] = [2*np.pi*item for item in solutionDict[key]]
+
+    if solutionDict['gateType'] == 'iSWAP':
+        iSWAP = True
+    else:
+        iSWAP = False
+    if solutionDict['gateType'] == 'CZ':
+        CZ = True
+    else:
+        CZ = False
+    
+    if useSavedPlot:
+        F = solutionDict['fidelitiesAtTimes']
+        times = solutionDict['times']
+    else:
+        indices = np.linspace(-116, -1, 116).astype(int)
+        F, times = model.getGateFidelity(x, N=4, iSWAP=iSWAP, CZ=CZ, tIndices=indices, circuitData=circuitData)
+
+    plt.figure(figsize=(8, 7))
+    plt.plot(times, F)
+    plt.plot([x[-1], x[-1]], [0, 1], 'r--')
+    plt.grid()
+    plt.ylim([0.99, 1])
+    plt.xlim([times[0], times[-1]])
+    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=19, loc="lower right")
+    #plt.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
+    plt.xlabel("Tid efter grindstart [ns]", fontsize=26)
+    plt.ylabel("Fidelitet", fontsize=26)
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
+    plt.tight_layout()
+    plt.show()
+
+    if (saveToFile == True):
+        solutionDict['times'] = times
+        solutionDict['fidelitiesAtTimes'] = F
+        solutionDict['gateFidelity'] = F[-76]
+        dumpTojson(solutionDict,solutionPath)

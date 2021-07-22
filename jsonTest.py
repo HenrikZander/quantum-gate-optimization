@@ -1,4 +1,3 @@
-from os import name
 from qutip import *
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,7 +6,25 @@ from datetime import datetime
 from variables import *
 from functions import *
 from plotting import *
+from dataManager import *
 
+solsDict = getFromjson('solutions.json')
+for solName in solsDict:
+    testSolutionNew = getFromjson('circuit files/qubitPair01.json')
+
+    for key in solsDict[solName]:
+        if key != 'x':
+            testSolutionNew[key] = solsDict[solName][key]
+        else:
+            testSolutionNew['riseTime'] = 25
+            testSolutionNew['theta'] = solsDict[solName]['x'][0]
+            testSolutionNew['delta'] = solsDict[solName]['x'][1]
+            testSolutionNew['omegaPhi'] = solsDict[solName]['x'][2] / (2 * np.pi)
+            testSolutionNew['modulationTime'] = solsDict[solName]['x'][3]
+    
+    dumpTojson(testSolutionNew, "solutions/" + solName[2:-5] + ".json")
+
+'''
 def getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex):
     labelsList = []
     eigenIndices = []
@@ -42,4 +59,5 @@ eigenEnergyDict = getFromjson('eigenenergies.json')
 labelsUsed = getEigenstateLabels(eigenEnergyDict, theta, maxProjIndex)
 
 print(labelsUsed)
+'''
 

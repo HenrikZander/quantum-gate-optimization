@@ -83,7 +83,7 @@ def initiateGlobalVariables(root, givenHeight):
 def simulateSolution(solutionData):
     writeStatus("Simulation started! Please wait.")
     circuitData = getAllVariables()
-    process = Thread(target=model.getGateFidelity, args=((solutionData["theta"], solutionData["delta"], solutionData["omega-phi"], solutionData["modulation-time"]), 4, False, False, True, False, [-76, -61, -23, -1], circuitData, 25.0))
+    process = Thread(target=model.getGateFidelity, args=((solutionData["theta"], solutionData["delta"], solutionData["omegaPhi"], solutionData["modulationTime"]), 4, True, False, False, False, [-76, -61, -23, -1], circuitData, 25.0))
     process.start()
     process.join()
     writeStatus("Simulation complete.")
@@ -113,8 +113,8 @@ def writeSolutionParameterStatus(solutionData):
     solutionPreviewField.insert("1.0", f'Resulting gate: CZ, iSWAP or SWAP. This needs to be implemented!\n\n')
     solutionPreviewField.insert("3.0", f'Strength of DC-flux \u0398 [\u03A6{subscriptZero}]: {solutionData["theta"]}\n')
     solutionPreviewField.insert("4.0", f'Amplitude of \u03B4(t) [\u03A6{subscriptZero}]: {solutionData["delta"]}\n')
-    solutionPreviewField.insert("5.0", f'Frequency \u03C9 of AC-flux [GHz]: {solutionData["omega-phi"]}\n')
-    solutionPreviewField.insert("6.0", f'Total modulation time of AC-flux [ns]: {solutionData["modulation-time"]}\n\n')
+    solutionPreviewField.insert("5.0", f'Frequency \u03C9 of AC-flux [GHz]: {solutionData["omegaPhi"]}\n')
+    solutionPreviewField.insert("6.0", f'Total modulation time of AC-flux [ns]: {solutionData["modulationTime"]}\n\n')
     solutionPreviewField.insert("8.0", "Status: Solution format valid! Ready to simulate.")
     solutionPreviewField.config(state="disabled")
 
@@ -122,9 +122,9 @@ def writeSolutionParameterStatus(solutionData):
 def getAllVariables():
     data = {}
 
-    data["frequencies"] = (2*np.pi*frequencyQ1.get(), 2 * np.pi*frequencyQ2.get(), 2*np.pi*frequencyCoupler.get())
+    data["frequencies"] = (2*np.pi*frequencyQ1.get(), 2*np.pi*frequencyQ2.get(), 2*np.pi*frequencyCoupler.get())
 
-    data["anharmonicities"] = (2*np.pi*anharmonicityQ1.get(), 2 * np.pi*anharmonicityQ2.get(), 2*np.pi*anharmonicityCoupler.get())
+    data["anharmonicities"] = (2*np.pi*anharmonicityQ1.get(), 2*np.pi*anharmonicityQ2.get(), 2*np.pi*anharmonicityCoupler.get())
 
     data["couplings"] = (2*np.pi*couplingQ1.get(), 2*np.pi*couplingQ2.get())
 

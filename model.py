@@ -175,7 +175,7 @@ def omegaTBSinStep(t, args):
     omegatb0 = args['omegatb0']
     operationTime = args['operationTime']
     omegaTBTh = args['omegaTBTh']
-    tRise = args['rise-time']
+    tRise = args['riseTime']
     sinBoxVal = sinBox(t, operationTime, tRise)
     return tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal) - omegaTBTh
 
@@ -491,7 +491,7 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
     """
     
     # Change the units of omegaPhi from GHz to Grad/s
-    omegaphi = 2*np.pi*x[2]
+    omegaphi = x[2] * 2*np.pi
     
     # Unpack the circuit data needed to fully specify the hamiltonian.
     omegas, _, _ = unpackCircuitParameters(circuitData)
@@ -552,7 +552,7 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
     # Initialise a list c of the time-evolved eigenstates
     c = [stateToBeEvolved for stateToBeEvolved in r]
     # Calculate final states and store them in c
-    args = {'theta': x[0], 'delta': x[1], 'omegaphi': omegaphi, 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBTh, 'rise-time': riseTime}
+    args = {'theta': x[0], 'delta': x[1], 'omegaphi': omegaphi, 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBTh, 'riseTime': riseTime}
     for i in range(len(c)):
         output = sesolve(HEB, c[i], ts, args=args)
         c[i] = output.states

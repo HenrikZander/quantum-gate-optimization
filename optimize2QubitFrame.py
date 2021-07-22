@@ -167,7 +167,7 @@ def callOptimizeGate():
     dataFromUser = getAllVariablesForTheOptimizer()
     iSWAP, SWAP, CZ = identifyGate(dataFromUser)
 
-    optimizeManager.optimize2QubitGate(iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, energyLevels=dataFromUser["energy-levels"], runSHG=dataFromUser["runSHG"], runDA=dataFromUser["runDA"], runDE=dataFromUser["runDE"], parameterBounds=(dataFromUser["theta"], dataFromUser["delta"], dataFromUser["omega-phi"], dataFromUser["modulation-time"]), circuitData=dataFromUser)
+    optimizeManager.optimize2QubitGate(iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, energyLevels=dataFromUser["energy-levels"], runSHG=dataFromUser["runSHG"], runDA=dataFromUser["runDA"], runDE=dataFromUser["runDE"], parameterBounds=(dataFromUser["theta"], dataFromUser["delta"], dataFromUser["omegaPhi"], dataFromUser["modulationTime"]), circuitData=dataFromUser)
 
 
 def scheduleOptimizingSessions():
@@ -218,8 +218,8 @@ def getAllVariablesForTheOptimizer():
 
     data["theta"] = (thetaLower.get(), thetaUpper.get())
     data["delta"] = (deltaLower.get(), deltaUpper.get())
-    data["omega-phi"] = (omegaPhiLower.get(), omegaPhiUpper.get())
-    data["modulation-time"] = (modulationTimeLower.get(), modulationTimeUpper.get())
+    data["omegaPhi"] = (omegaPhiLower.get(), omegaPhiUpper.get())
+    data["modulationTime"] = (modulationTimeLower.get(), modulationTimeUpper.get())
 
     return data
 
