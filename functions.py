@@ -19,6 +19,7 @@
 
 ######################################################################################################################################################################
 
+import os
 from qutip import *
 import numpy as np
 import matplotlib.pyplot as plt
@@ -34,6 +35,7 @@ import json
 from datetime import datetime
 import math
 from dataManager import *
+import copy
 
 ######################################################################################################################################################################
 # Global variables
@@ -72,12 +74,16 @@ def getSolutionNameList():
     solsDict = getFromjson('solutions.json')
     return [xName for xName in solsDict]
 
-
-def createSolName(ymd, gateType, solNumberStr, usedNlvls):
+'''
+def createSolNameOld(ymd, gateType, solNumberStr, usedNlvls):
     return "x_" + ymd + "_" + gateType + "_" + solNumberStr + "_" + usedNlvls
+'''
 
+def createSolName(ymd, gateType, solNumberStr):
+    return ymd + "_" + gateType + "_" + solNumberStr
 
-def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), fileName='solutions.json'):
+'''
+def addNewSolutionOld(x, gateType, N, solNumber=1, creationTime=datetime.today(), fileName='solutions.json'):
     ymd = creationTime.strftime('%Y%m%d')[2:]
     creationTime = creationTime.strftime('%Y-%m-%d %H:%M:%S')
     usedNlvls = str(N) + "lvl"
@@ -116,12 +122,70 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
                 return None
             solNumber += 1
             solName = createSolName(ymd, gateType, str(solNumber), usedNlvls)
+'''
+
+def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), folder='solutions_qubitPair01', circuitFile='circuit files/qubitPair01.json', circuitData=None, riseTime=25):
+    ymd = creationTime.strftime('%Y%m%d')[2:]
+    creationTime = creationTime.strftime('%Y-%m-%d %H:%M:%S')
+
+    solName = createSolName(ymd, gateType, str(solNumber))
+
+    # print(solName)
+
+    filePath = "./" + folder + "/" + solName + ".json"
+
+    if circuitData is None:
+        solDict = getFromjson(circuitFile)
+    else:
+        solDict = copy.deepcopy(circuitData)
+
+    while (solNumber < 1000):
+        if not os.path.isfile(filePath):
+            newInfoDict = {
+                "creationTime": creationTime,
+                "gateType": gateType,
+                "nOptimizationLvls": N,
+                "riseTime": riseTime,
+                "theta": x[0],
+                "delta": x[1],
+                "omegaPhi": x[2]/(2*np.pi),
+                "modulationTime": x[3],
+                'gateFidelity': None,
+                'times': None,
+                'fidelitiesAtTimes': None,
+                # Listor med avvikelser från korrekt Theta, delta, omegaPhi, opTime
+                'deviations': [[], [], [], []],
+                # Listor med fideliten evaluerad vid dessa avvikelser
+                'fidelities1D_Dev': [[], [], [], []],
+                'fidelities2D_Theta_delta': None,
+                'fidelities2D_Theta_omegaPhi': None,
+                'fidelities2D_Theta_opTime': None,
+                'fidelities2D_delta_omegaPhi': None,
+                'fidelities2D_delta_opTime': None,
+                'fidelities2D_omegaPhi_opTime': None
+            }
+            solDict.update(newInfoDict)
+
+            dumpTojson(solDict, filePath)
+            return
+        else:
+            try:
+                existingSolDict = getFromjson(filePath)
+                if (existingSolDict['creationTime'] == creationTime):
+                    print("Can't add solution: Solution already exists in solutions.json")
+                    return
+            except FileNotFoundError:
+                pass
+
+            solNumber += 1
+            solName = createSolName(ymd, gateType, str(solNumber))
+            filePath = "./" + folder + "/" + solName + ".json"
 
 
-def saveSolutionsTojson(results, gateType, N, fileName="solutions.json", dateAndTime=datetime.today()):
+def saveSolutionsTojson(results, gateType, N, folder, circuitFile=None, circuitData=None, dateAndTime=datetime.today()):
     for i in range(len(results)):
         x = results[i].x.tolist()
-        addNewSolution(x, gateType, N, fileName=fileName, creationTime=dateAndTime)
+        addNewSolution(x, gateType, N, folder=folder, circuitFile=circuitFile, circuitData=circuitData, creationTime=dateAndTime)
 
 
 ######################################################################################################################################################################
@@ -157,6 +221,7 @@ def getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex):
     return usedLabels
 
 
+'''
 def simulateHamiltonian(x=None, xName=None, sinStepHamiltonian=True, rotatingFrame=False, initialStateIndex=1, highestProjectionIndex=8, N=4, circuitData=None):
     """
     This function simulates the population transfers between 
@@ -219,7 +284,7 @@ def simulateHamiltonian(x=None, xName=None, sinStepHamiltonian=True, rotatingFra
     initialState = Qobj(basis(D, initialStateIndex), dims=[[N, N, N], [1, 1, 1]])
 
     # Time evolve the initial state.
-    result = sesolve(hamiltonian, initialState, timeStamps, [], options=options, args={'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBDC})
+    result = sesolve(hamiltonian, initialState, timeStamps, e_ops=[], options=options, args={'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBDC})
     states = result.states
 
     # Transform into the rotating frame.
@@ -279,7 +344,7 @@ def simulateHamiltonian(x=None, xName=None, sinStepHamiltonian=True, rotatingFra
     plt.show()
 
     return gateFidelity_iSWAP, gateFidelity_CZ
-
+'''
 
 def getCircuitData(solutionDict):
     circuitDataKeys = ['frequencies', 'anharmonicities', 'couplings']
@@ -289,7 +354,6 @@ def getCircuitData(solutionDict):
     return circuitData
 
 
-# Doesn't work for some reason:
 def simulatePopTransfer(solutionPath, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, highestProjectionIndex=12, N=4):
     """
     This function simulates the population transfers between 
@@ -300,15 +364,19 @@ def simulatePopTransfer(solutionPath, sinStepHamiltonian=True, rotatingFrame=Tru
             solutionPath (string): The path to the solution file that the simulation is be performed for.
             sinStepHamiltonian (boolean) {Optional}: If True the amplitude of AC part of the flux signal that is applied to the tunable bus will be sinusodially modulated.
             rotatingFrame (boolean) {Optional}: If True the states will be transformed into the rotating frame after the time evolution has been completed.
-            initialStateIndex (int) {Optional}: This parameter decides which eigenstate that will be the initial state in the time evolution. If initialStateIndex=0 the eigenstate with the lowest associated energy will be the inital state.
-            highestProjectionIndex (int) {Optional}: The eigenstates between, and including, the one with the lowest energy up to the (highestProjectionIndex)-lowest eigenstate will be projected onto.
+            initialStateIndex (int) {Optional}: This parameter determines which eigenstate will be the initial state in the time evolution. If initialStateIndex=0,
+                the eigenstate with the lowest associated energy will be the initial state.
+            highestProjectionIndex (int) {Optional}: Determines how many eigenstates to project the evolving state onto. If highestProjectionIndex = n, the population of
+                the n+1 lowest eigenstates are shown (since the lowest possible eigenIndex is zero).
             N (int) {Optional}: How many energy levels that should be accounted for in the simulations.
     ---------------------------------------------------------
     """
 
+    # Load a solution from a file and create a list x defining the control signal, converting omegaPhi from GHz to Grad/s.
     solutionDict = getFromjson(fileName=solutionPath)
-    x = (solutionDict['theta'], solutionDict['delta'], solutionDict['omegaPhi'], solutionDict['modulationTime'])
+    x = [solutionDict['theta'], solutionDict['delta'], 2*np.pi*solutionDict['omegaPhi'], solutionDict['modulationTime']]
 
+    # Load circuit data into a dictionary and change units from GHz to Grad/s.
     circuitData = getCircuitData(solutionDict)
 
     # Calculate the dimension of the tensor states and set the simulation time.
@@ -321,7 +389,7 @@ def simulatePopTransfer(solutionPath, sinStepHamiltonian=True, rotatingFrame=Tru
     # Calculate the tunable bus frequency when only the DC part of the flux is active.
     omegaTBDC = coeffomegaTB(circuitData['frequencies'][2], x[0])
 
-    # Calculate eigenstates and eigenenergies of the hamiltonian in the bare basis when the flux only has it's DC part.
+    # Calculate eigenstates and eigenenergies of the hamiltonian in the bare basis when the flux only has its DC part.
     eigenStatesAndEnergies = getThetaEigenstates(x, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
 
     # Get eigenindices.
@@ -394,7 +462,7 @@ def simulatePopTransfer(solutionPath, sinStepHamiltonian=True, rotatingFrame=Tru
         legobj.set_linewidth(5.0)
     plt.show()
 
-
+'''
 def plotFidelityOld(x=None, iSWAP=False, CZ=False, xName=None, useSavedPlot=False, saveTojson=False, circuitData=None):
     if (xName is not None):
         if (x is not None):
@@ -439,7 +507,7 @@ def plotFidelityOld(x=None, iSWAP=False, CZ=False, xName=None, useSavedPlot=Fals
             solsDict[xName]['fidelitiesAtTimes'] = F
             solsDict[xName]['gateFidelity'] = F[-76]
             dumpTojson(solsDict,'solutions.json')
-
+'''
 
 def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False):
     solutionDict = getFromjson(fileName=solutionPath)

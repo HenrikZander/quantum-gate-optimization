@@ -92,7 +92,7 @@ solName = "210715_iSWAP_2"
 #xUsed = x_210713_iSWAP_1_4lvl
 xName = 'x_' + solName + '_4lvl' # Preferred if solution is listed in solutions.json
 #dateStr = "2021-07-13 15:12:18.004557"
-solPath = './solutions/' + solName + '.json' # './circuit files/qubitPair01.json'
+solPath = './solutions_qubitPair01/' + solName + '.json' # './circuit files/qubitPair01.json'
 solDict = getFromjson(solPath)
 
 ######################################################################################################################################################################

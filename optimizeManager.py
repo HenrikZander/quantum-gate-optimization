@@ -25,6 +25,14 @@ import dataManager
 import model
 import numpy as np
 import scipy
+import datetime
+
+######################################################################################################################################################################
+# Global variables
+
+i = 0
+global maxRuntime
+maxRuntime = 40000
 
 ######################################################################################################################################################################
 # Cost function definition
@@ -70,7 +78,10 @@ def optimize2QubitGate(iSWAP=False, SWAP=False, CZ=False, energyLevels=3, runSHG
             No output.
     ---------------------------------------------------------
     """
-    findMinimum(cost, parameterBounds, argumentsToOptimizer=(energyLevels, iSWAP, SWAP, CZ, circuitData), runSHG=runSHG, runDA=runDA, runDE=runDE)
+    # Denna ska tas in mha gui:t
+    solutionsFolder = "solutions_qubitPair01"
+
+    findMinimum(cost, parameterBounds, argumentsToOptimizer=(energyLevels, iSWAP, SWAP, CZ, circuitData), runSHG=runSHG, runDA=runDA, runDE=runDE, solutionsFolder=solutionsFolder)
     gui.enableStopButton()
     if gui.getRunOptimizer():
         gui.processFinished()
@@ -132,7 +143,7 @@ def callbackDA(x, fun, context):
     iterTime = currentTime - lastTime
     lastTime = currentTime
 
-    bestResults = evaluateResult(x, fun, bestResults)
+    bestResults = dataManager.evaluateResult(x, fun, bestResults)
     print(f'Num of minima found: {i+1}')
     print(f'The Dual Annealing algorithm gave a minimum of {fun} at the point {x}.')
     print(f'Total time passed: {passedTime} seconds.')
@@ -142,7 +153,7 @@ def callbackDA(x, fun, context):
         result = []
         for i in range(len(bestResults[1])):
             result.append((bestResults[0][i], bestResults[1][i]))
-        saveResToFile(result, "Dual Annealing", i, passedTime)
+        dataManager.saveResToFile(result, "Dual Annealing", i, passedTime)
         i = 0
         print("Optimization timeout triggered!")
         return True
@@ -182,7 +193,7 @@ def callbackSHG(x):
 ######################################################################################################################################################################
 
 
-def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=False, runDE=True):
+def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=False, runDE=True, solutionsFolder=None):
     """
     This function aims to find the global minimum of the specified cost 
     function, within the parameter bounds that has been specified. A 
@@ -252,6 +263,29 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
     print(message + "##################################################")
     dateAndTime = datetime.today()
     saveAllFinalResults(result, algorithmsUsed, runtime, dateAndTime=dateAndTime)
+    if solutionsFolder is not None:
+        N, iSWAP, SWAP, CZ, circuitData = argumentsToOptimizer
+        if iSWAP:
+            gateType = "iSWAP"
+        elif SWAP:
+            gateType = "SWAP"
+        elif CZ:
+            gateType = "CZ"
+        dataManager.saveSolutionsTojson(result, gateType, N, solutionsFolder, circuitData=circuitData, dateAndTime=dateAndTime)
     return result, dateAndTime
+
+
+def saveAllFinalResults(results, algorithm, runtime, fileName="result.txt", dateAndTime=datetime.today()):
+    resultFile = open(fileName, "a")
+    for i in range(len(results)):
+        dateStr = f'Result (full) from: {dateAndTime}\n'
+        algorithmStr = f'Algorithm: {algorithm[i]}\n'
+        runtimeStr = f'Total runtime: {runtime[i]} seconds\n'
+        dividerStr = "##################################################\n"
+        resultStr = str(results[i])
+        
+        strList = [dividerStr, dateStr, algorithmStr, runtimeStr, dividerStr, resultStr, "\n", dividerStr]
+        resultFile.writelines(strList)
+    resultFile.close()
 
 ######################################################################################################################################################################

@@ -238,7 +238,7 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
         ad_2 = tensor(I, ad, I)
         ad_TB = tensor(I, I, ad)
 
-        # Get the 4 energy level hamltonian components.
+        # Get the N-energy level hamltonian components.
         H0BB = omegas[0]*ad_1*a_1 - (alphas[0]/2.0)*(1-ad_1*a_1)*ad_1*a_1 + omegas[1]*ad_2*a_2 - (alphas[1]/2.0)*(1-ad_2*a_2)*ad_2*a_2 - (alphas[2]/2.0)*(1-ad_TB*a_TB)*ad_TB*a_TB
         HiBB = gs[0]*(ad_1 + a_1)*(ad_TB + a_TB) + gs[1]*(ad_2 + a_2)*(ad_TB + a_TB)
         H1BB = ad_TB*a_TB
