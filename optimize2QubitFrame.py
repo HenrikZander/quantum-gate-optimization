@@ -199,7 +199,7 @@ def scheduleOptimizingSessions():
 def getAllVariablesForTheOptimizer():
     data = {}
 
-    data["frequencies"] = (2*np.pi*frequencyQ1.get(), 2 * np.pi*frequencyQ2.get(), 2*np.pi*frequencyCoupler.get())
+    data["frequencies"] = (2*np.pi*frequencyQ1.get(), 2*np.pi*frequencyQ2.get(), 2*np.pi*frequencyCoupler.get())
 
     data["anharmonicities"] = (2*np.pi*anharmonicityQ1.get(), 2 * np.pi*anharmonicityQ2.get(), 2*np.pi*anharmonicityCoupler.get())
 

@@ -29,8 +29,8 @@ from variables import *
 from functions import *
 from plotting import *
 import model
-import time
 from datetime import datetime
+import time as t
 from dataManager import *
 
 ######################################################################################################################################################################
@@ -88,7 +88,7 @@ x_210713_iSWAP_3_4lvl = [3.77667126e-01, 5.17617928e-02, 3.51608253e+00, 8.83255
 x_210715_CZ_1_4lvl = [4.28265258e-01, 2.28050495e-02, 4.28583819e+00, 1.15226156e+02]
 x_210716_CZ_2_4lvl = [4.03140410e-01, 2.95892756e-02, 4.14970423e+00, 1.06035386e+02]
 # Solution to use in simulations:
-solName = "210715_iSWAP_2"
+solName = "210728_iSWAP_1"
 #xUsed = x_210713_iSWAP_1_4lvl
 xName = 'x_' + solName + '_4lvl' # Preferred if solution is listed in solutions.json
 #dateStr = "2021-07-13 15:12:18.004557"
@@ -100,7 +100,7 @@ solDict = getFromjson(solPath)
 
 
 def main():
-    start = time.time()
+    start = t.time()
 
     # for index in range(64):
     #     findEigenIndex(xUsed, eigenStateIndex=index, N=4, printResult=True)
@@ -110,7 +110,7 @@ def main():
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
     # simulateHamiltonian(xName=xName, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=3, N=4, highestProjectionIndex=12, circuitData=getFromjson('./circuit files/qubitPair01.json'))
-    simulatePopTransfer(solutionPath=solPath, initialStateIndex=1, highestProjectionIndex=12)
+    # simulatePopTransfer(solutionPath=solPath, initialStateIndex=3, highestProjectionIndex=12)
     # plotFidelityOld(xName=xName, iSWAP=True, useSavedPlot=False, saveTojson=False, circuitData=solDict)
     # plotFidelity(solutionPath=solPath, useSavedPlot=False, saveToFile=True)
     # deltaPulsePlot()
@@ -118,14 +118,14 @@ def main():
     # testEigenstateOrder()
     # plotEigenenergies(xName=xName, N=4, simPoints=500, numOfEnergyLevels=None, useSavedPlot=True, saveTojson=False)
     # test()
-    # getRobustnessPlot(xName=xName, iSWAP=True, checkOmegaPhi=True, checkOpTime=True, nPointsList=[17], saveTojson=True, maxDevs=[0.005, 0.005, 5*2 * np.pi * 0.002, 5*10])
+    getRobustnessPlot(solutionPath=solPath, useSavedPlot=False, saveToFile=False, checkOmegaPhi=True, checkOpTime=True, nPointsList=[17], maxDevs=[0.005, 0.005, 4*0.0025, 4*10])
     # print(getFromjson('solutions.json'))
     # print(getSolutionNameList())
     # addNewSolution(xUsed, gateType="iSWAP", N=4, creationTime=datetime.fromisoformat(dateStr))
     # solsDict = getFromjson('solutions.json')
     # print(solsDict[xName]['fidelitiesAtTimes'][-45])
 
-    print(f'Total running time: {time.time() - start} seconds.')
+    print(f'Total running time: {t.time() - start} seconds.')
 
 
 ######################################################################################################################################################################

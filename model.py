@@ -354,7 +354,7 @@ def getRFUnitary(Hrot, t):
 #     return eigIndices
 
 
-def getIndices(N, eigenstates, lowestOverlapAllowed=0.9):
+def getIndices(N, eigenstates, lowestOverlapAllowed=0.7):
     eigenIndices = []
     for q1 in range(2):
         for q2 in range(2):
@@ -564,8 +564,8 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
     Hrot = Qobj(Hrot, dims=[[N, N, N], [N, N, N]])
 
     res = fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I)
-    print(f'Energy levels: {N}')
-    print(res)
+    #print(f'Energy levels: {N}')
+    #print(res)
     return res
 
 

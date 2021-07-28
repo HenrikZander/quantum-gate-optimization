@@ -25,7 +25,7 @@ import dataManager
 import model
 import numpy as np
 import scipy
-import datetime
+from datetime import datetime
 
 ######################################################################################################################################################################
 # Global variables
@@ -45,7 +45,7 @@ def averageFidelity(F, gateTimeWeight=2):
 
 def cost(x, N, iSWAP, SWAP, CZ, circuitData):
     F, _ = model.getGateFidelity(x, N=N, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, circuitData=circuitData)
-    return averageFidelity(F)
+    return -averageFidelity(F)
 
 
 ######################################################################################################################################################################

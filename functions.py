@@ -148,7 +148,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
                 "riseTime": riseTime,
                 "theta": x[0],
                 "delta": x[1],
-                "omegaPhi": x[2]/(2*np.pi),
+                "omegaPhi": x[2],
                 "modulationTime": x[3],
                 'gateFidelity': None,
                 'times': None,
@@ -575,8 +575,8 @@ def deltaPulsePlot():
     plt.annotate("$t_{Fall}$", xy=(operationTime-10, 0.53), fontsize=18)
     plt.show()
 
-
-def getRobustnessPlot(x=None, xName=None, iSWAP=False, CZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[5e-4, 1e-3, 2*np.pi * 2e-3, 4e0], useSavedPlot=False, saveTojson=False, circuitData=None):
+'''
+def getRobustnessPlotOld(x=None, xName=None, iSWAP=False, CZ=False, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[5e-4, 1e-3, 2*np.pi * 2e-3, 4e0], useSavedPlot=False, saveTojson=False, circuitData=None):
     if (xName is None):
         if (x is None):
             print("Must supply either the name of an x stored in a json file or a list x manually (or both)")
@@ -736,6 +736,171 @@ def getRobustnessPlot(x=None, xName=None, iSWAP=False, CZ=False, checkTheta=Fals
                 solsDict[xName][listName][1] = iDeviations.tolist()
                 solsDict[xName][listName][2] = jDeviations.tolist()
                 dumpTojson(solsDict, 'solutions.json')
+'''
+
+def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[5e-4, 1e-3, 2e-3, 4e0], useSavedPlot=False, saveToFile=False):
+    solDict = getFromjson(solutionPath)
+    x = [solDict['theta'], solDict['delta'], solDict['omegaPhi'], solDict['modulationTime']]
+    circuitData = getCircuitData(solDict)
+
+    if solDict['gateType'] == 'iSWAP':
+        iSWAP = True
+    else:
+        iSWAP = False
+    if solDict['gateType'] == 'CZ':
+        CZ = True
+    else:
+        CZ = False
+
+    if (useSavedPlot and saveToFile):
+        print("Re-saving data in a file where that data is already saved is rather pointless, don't ya think?")
+        saveToFile = False
+
+    checkList = [checkTheta, checkDelta, checkOmegaPhi, checkOpTime]
+    if (sum(checkList) < 1):
+        print("You need to specify at least one parameter to check")
+    elif (sum(checkList) > 2):
+        print("Too many parameters! There is currently only support for checking one or two parameters simultaneously")
+    elif (len(nPointsList) > 2):
+        print("Can't plot in more than two dimensions!")
+    elif (len(nPointsList) < 1):
+        print("Can't plot in less than one dimension!")
+    else:
+        xDev = [xi for xi in x]
+        plt.figure(figsize=(11, 7))
+        plt.xticks(fontsize=16)
+        plt.yticks(fontsize=16)
+
+        axlabels = ["Avvikelse från hittat $\Theta$ [$\Phi_0$]", "Avvikelse från hittat $\delta$ [$\Phi_0$]", "Avvikelse från hittat $\omega_\Phi$ [MHz]", "Avvikelse från hittat $t_{MOD}$ [ns]"]
+        legendStrs = ["$\Theta = %.4f$" %x[0], "$\delta = %.4f$" %x[1], "$\omega_\Phi = %.1f$" %(x[2]*1000), "$t_{MOD} = %.1f$" %x[3]]
+        # maxDevs = [3e-4, 1e-3, 2*np.pi * 8e-3, 40e0] # Testing extended bounds, looking for chevrony stuff
+
+        xIndices = []
+        if (checkTheta):
+            xIndices.append(0)
+        if (checkDelta):
+            xIndices.append(1)
+        if (checkOmegaPhi):
+            xIndices.append(2)
+        if (checkOpTime):
+            xIndices.append(3)
+
+        if (sum(checkList) == 1):
+            xIndex = xIndices[0]
+            if (useSavedPlot):
+                deviations = np.array(solDict['deviations'][xIndex])
+                fidelities = solDict['fidelities1D_Dev'][xIndex]
+            else:
+                deviations = np.linspace(-maxDevs[xIndex], maxDevs[xIndex], nPointsList[0])
+                fidelities = []
+                for i, d in enumerate(deviations):
+                    xDev[xIndex] = x[xIndex] + d
+                    fidelity, _ = getGateFidelity(xDev, N=4, iSWAP=iSWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData)
+                    fidelities.append(fidelity[0])
+                    statusBar((i+1)*100/nPointsList[0])
+
+            if (xIndex == 2):
+                # Re-scale x-axis to MHz
+                nTicks = 9
+                locs = np.linspace(deviations[0], deviations[-1], nTicks)
+                newDevMax = deviations[-1]*1e3
+                newTicks = np.linspace(-newDevMax,newDevMax,nTicks)
+                plt.xticks(locs,newTicks)
+            
+            plt.plot(deviations, fidelities, 'b-')
+            plt.plot([0, 0], [0, 1], 'r--')
+            plt.legend(["Fidelitet", legendStrs[xIndex]], fontsize=19, loc="upper right")
+            plt.grid()
+            plt.xlabel(axlabels[xIndex], fontsize=26)
+            plt.ylabel("Fidelitet", fontsize=26)
+            plt.xlim([deviations[0], deviations[-1]])
+            plt.ylim([0.99, 1])
+            plt.tight_layout()
+            plt.show()
+
+            if (saveToFile):
+                solDict['deviations'][xIndex] = deviations.tolist()
+                solDict['fidelities1D_Dev'][xIndex] = fidelities
+                dumpTojson(solDict, solutionPath)
+        elif (sum(checkList) == 2):
+            if (len(nPointsList) == 1):
+                nPointsList.append(nPointsList[0])
+            
+            plt.xlabel(axlabels[xIndices[0]], fontsize=26)
+            plt.ylabel(axlabels[xIndices[1]], fontsize=26)
+            iLegendStr = legendStrs[xIndices[0]]
+            jLegendStr = legendStrs[xIndices[1]]
+
+            if (xIndices == [0,1]):
+                listName = "fidelities2D_Theta_delta"
+            elif (xIndices == [0,2]):
+                listName = "fidelities2D_Theta_omegaPhi"
+            elif (xIndices == [0,3]):
+                listName = "fidelities2D_Theta_opTime"
+            elif (xIndices == [1,2]):
+                listName = "fidelities2D_delta_omegaPhi"
+            elif (xIndices == [1,3]):
+                listName = "fidelities2D_delta_opTime"
+            elif (xIndices == [2,3]):
+                listName = "fidelities2D_omegaPhi_opTime"
+            else:
+                print("Error: If you see this, something went wrong")
+                return
+
+            if (useSavedPlot):
+                fidelities2D = np.array(solDict[listName][0])
+                iDeviations = np.array(solDict[listName][1])
+                jDeviations = np.array(solDict[listName][2])
+            else:
+                iDeviations = np.linspace(-maxDevs[xIndices[0]], maxDevs[xIndices[0]], nPointsList[0])
+                jDeviations = np.linspace(-maxDevs[xIndices[1]], maxDevs[xIndices[1]], nPointsList[1])
+                
+                fidelities = []
+                for j, jDev in enumerate(jDeviations):
+                    xDev[xIndices[1]] = x[xIndices[1]] + jDev
+                    for i, iDev in enumerate(iDeviations):
+                        xDev[xIndices[0]] = x[xIndices[0]] + iDev
+                        fidelity, _ = getGateFidelity(xDev, N=4, iSWAP=iSWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData)
+                        fidelities.append(fidelity[0])
+                        statusBar((j*nPointsList[0] + (i+1))*100/(nPointsList[0]*nPointsList[1]))
+                fidelities2D = np.array(fidelities).reshape(nPointsList[1], nPointsList[0])
+
+            nyTicks = nxTicks = 9
+
+            xlocs = np.linspace(0,nPointsList[0]-1,nxTicks)
+            xticks = np.linspace(iDeviations[0], iDeviations[-1], nxTicks)
+            plt.xticks(xlocs,xticks)
+            ylocs = np.linspace(0,nPointsList[1]-1,nyTicks)
+            yticks = np.linspace(jDeviations[0], jDeviations[-1], nyTicks)
+            plt.yticks(ylocs,yticks)
+
+            if (xIndices[0] == 2):
+                # Re-scale x-axis to MHz
+                xlocs = np.linspace(0,nPointsList[0]-1,nxTicks)
+                newDevMax = iDeviations[-1]*1e3
+                xticks = np.linspace(-newDevMax, newDevMax, nxTicks)
+                plt.xticks(xlocs, xticks)
+            elif (xIndices[1] == 2):
+                # Re-scale y-axis to MHz
+                ylocs = np.linspace(0,nPointsList[1]-1,nyTicks)
+                newDevMax = jDeviations[-1]*1e3
+                yticks = np.linspace(-newDevMax, newDevMax, nyTicks)
+                plt.yticks(ylocs, yticks)
+
+            plt.imshow(fidelities2D, interpolation="bilinear", origin="lower")
+            plt.colorbar(label="Fidelitet", orientation="vertical")
+
+            plt.axvline(x=(nPointsList[0]-1)/2, color='k')
+            plt.axhline(y=(nPointsList[1]-1)/2, color='r')
+            plt.legend([iLegendStr, jLegendStr], fontsize=19, loc="upper right")
+            plt.show()
+
+            if (saveToFile):
+                solDict[listName] = [[],[],[]]
+                solDict[listName][0] = fidelities2D.tolist()
+                solDict[listName][1] = iDeviations.tolist()
+                solDict[listName][2] = jDeviations.tolist()
+                dumpTojson(solDict, solutionPath)
 
 
 def indexToString(indexTuple):

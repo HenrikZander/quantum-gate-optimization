@@ -22,7 +22,7 @@
 import os
 import json
 import numpy as np
-import datetime
+from datetime import *
 
 ######################################################################################################################################################################
 # Functions that handle data loading and dumping to json-files.
@@ -51,7 +51,7 @@ def createSolName(ymd, gateType, solNumber):
     return ymd + "_" + gateType + "_" + str(solNumber)
 
 
-def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), folder='solutions_qubitPair01', circuitFile='circuit files/qubitPair01.json', riseTime=25):
+def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), folder='solutions_qubitPair01', circuitFile='circuit files/qubitPair01.json', circuitData=None, riseTime=25):
     ymd = creationTime.strftime('%Y%m%d')[2:]
     creationTime = creationTime.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -61,7 +61,14 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
 
     filePath = "./" + folder + "/" + solName + ".json"
 
-    solDict = getFromjson(circuitFile)
+    if circuitData is None:
+        solDict = getFromjson(circuitFile)
+    else:
+        solDict = {}
+        circuitDataKeys = ['frequencies', 'anharmonicities', 'couplings']
+        for key in circuitDataKeys:
+            solDict[key] = [item/(2*np.pi) for item in circuitData[key]]
+
     while (solNumber < 1000):
         if not os.path.isfile(filePath):
             newInfoDict = {
@@ -71,14 +78,14 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
                 "riseTime": riseTime,
                 "theta": x[0],
                 "delta": x[1],
-                "omegaPhi": x[2]/(2*np.pi),
+                "omegaPhi": x[2],
                 "modulationTime": x[3],
                 'gateFidelity': None,
                 'times': None,
                 'fidelitiesAtTimes': None,
                 # Listor med avvikelser från korrekt Theta, delta, omegaPhi, opTime
                 'deviations': [[], [], [], []],
-                # Listor med fideliten evaluerad vid dessa avvikelser
+                # Listor med fideliteten evaluerad vid dessa avvikelser
                 'fidelities1D_Dev': [[], [], [], []],
                 'fidelities2D_Theta_delta': None,
                 'fidelities2D_Theta_omegaPhi': None,
