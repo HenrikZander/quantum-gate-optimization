@@ -211,10 +211,11 @@ def simulatePopTransfer(solutionPath, sinStepHamiltonian=True, rotatingFrame=Tru
     plt.show()
 
 
-def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[5e-4, 1e-3, 2*np.pi * 2e-3, 4e0], useSavedPlot=False, saveToFile=False, circuitData=None):
+def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[5e-4, 1e-3, 2e-3, 4e0], useSavedPlot=False, saveToFile=False):
     solDict = getFromjson(solutionPath)
     x = [solDict['theta'], solDict['delta'], solDict['omegaPhi'], solDict['modulationTime']]
-    
+    circuitData = getCircuitData(solDict)
+
     if solDict['gateType'] == 'iSWAP':
         iSWAP = True
     else:
@@ -275,7 +276,7 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
                 # Re-scale x-axis to MHz
                 nTicks = 9
                 locs = np.linspace(deviations[0], deviations[-1], nTicks)
-                newDevMax = deviations[-1]/(2*np.pi)*1e3
+                newDevMax = deviations[-1]*1e3
                 newTicks = np.linspace(-newDevMax,newDevMax,nTicks)
                 plt.xticks(locs,newTicks)
             
@@ -349,13 +350,13 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
             if (xIndices[0] == 2):
                 # Re-scale x-axis to MHz
                 xlocs = np.linspace(0,nPointsList[0]-1,nxTicks)
-                newDevMax = iDeviations[-1]/(2*np.pi)*1e3
+                newDevMax = iDeviations[-1]*1e3
                 xticks = np.linspace(-newDevMax, newDevMax, nxTicks)
                 plt.xticks(xlocs, xticks)
             elif (xIndices[1] == 2):
                 # Re-scale y-axis to MHz
                 ylocs = np.linspace(0,nPointsList[1]-1,nyTicks)
-                newDevMax = jDeviations[-1]/(2*np.pi)*1e3
+                newDevMax = jDeviations[-1]*1e3
                 yticks = np.linspace(-newDevMax, newDevMax, nyTicks)
                 plt.yticks(ylocs, yticks)
 
