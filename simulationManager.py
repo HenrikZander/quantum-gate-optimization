@@ -374,3 +374,90 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
                 solDict[listName][1] = iDeviations.tolist()
                 solDict[listName][2] = jDeviations.tolist()
                 dumpTojson(solDict, solutionPath)
+
+
+def plotEigenenergies(solutionPath=None, eigenenergiesPath='eigenenergies.json', N=3, simPoints=200, numOfEnergyLevels=None, useSavedPlot=False, saveToFile=False):
+    solDict = getFromjson(solutionPath)
+    x = [solDict['theta'], solDict['delta'], solDict['omegaPhi'], solDict['modulationTime']]
+    circuitData = getCircuitData(solDict)
+
+    x[0] = - abs(x[0])
+
+    if (useSavedPlot and saveToFile):
+        print("Re-saving something in a json file that's already saved there is rather pointless, don't ya think?")
+        saveToFile = False
+
+    if (useSavedPlot):
+        eigenEnergyDict = getFromjson(eigenenergiesPath)
+        energyOfEigenstate = [eigenEnergyDict[key] for key in eigenEnergyDict]
+    else:
+        if numOfEnergyLevels is None:
+            numOfEnergyLevels = N**3
+        
+        energyOfEigenstate = [ [ [], [], (x, x, x), [] ] for x in range(N**3)]
+
+        i = 0
+        for q1 in range(N):
+            for q2 in range(N):
+                for qTB in range(N):
+                    energyOfEigenstate[i][2] = (q1,q2,qTB)
+                    i = i + 1
+
+        HBareBasisComponents = model.getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData)
+        thetas = np.linspace(-0.5, 0, simPoints)
+        
+        for i, theta in enumerate(thetas):
+            omegaTBTh = model.coeffomegaTB(circuitData['frequencies'][2], theta)
+            eigenStatesAndEnergiesBareBasis = model.getThetaEigenstates(x, HBareBasisComponents[0]+HBareBasisComponents[1], HBareBasisComponents[2], omegaTBTh)
+            order = model.eigenstateOrder(eigenStatesAndEnergiesBareBasis[1][0:numOfEnergyLevels], N) # eigenStatesAndEnergiesBareBasis[0][0:numOfEnergyLevels],
+
+            for entry in order:
+                _, state, energyIndex = entry
+                energy = eigenStatesAndEnergiesBareBasis[0][energyIndex]
+
+                saveEnergyAndFlux(energyOfEigenstate, state, theta, energy, energyIndex)
+
+            statusBar((i+1)*100/simPoints)
+
+
+    ############################
+    # Plot energies!
+    print("Plotting!")
+    linestyle = ['-', '--', '-.', ':']
+    labels = []
+    plt.figure(figsize=(8, 7))
+
+    for index, item in enumerate(energyOfEigenstate):
+        flux, energy, state, _ = item
+        if not (len(flux) == 0):
+            plt.plot(flux, energy, ls=linestyle[math.floor(index / 10) % 4])
+            labels.append(indexToString(state))
+
+    plt.plot([x[0], x[0]], [-200, 200], 'r--')
+    plt.xlabel('Magnetic Flux [$\Phi$]', fontsize=16)
+    plt.ylabel('Energi', fontsize=16)
+    plt.xlim([-0.5, 0])
+    plt.ylim([-1, 100])
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    leg = plt.legend(labels, bbox_to_anchor=(1.1, 1), fontsize=10, loc="upper right")
+    for legobj in leg.legendHandles:
+        legobj.set_linewidth(2.0)
+    plt.show()
+    ############################
+    if (saveToFile):
+        eigenEnergyDict = {labels[i]: item for i, item in enumerate(energyOfEigenstate)}
+        dumpTojson(eigenEnergyDict, eigenenergiesPath)
+
+
+def indexToString(indexTuple):
+    return f'|{indexTuple[0]}{indexTuple[1]}{indexTuple[2]}>'
+
+
+def saveEnergyAndFlux(itemList, state, flux, energy, energyIndex):
+    for item in itemList:
+        if item[2] == state:
+            item[0].append(flux)
+            item[1].append(energy)
+            item[3].append(energyIndex)
+            break
