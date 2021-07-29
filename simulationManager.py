@@ -62,50 +62,6 @@ def getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex):
     return usedLabels
 
 
-def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False):
-    solutionDict = getFromjson(fileName=solutionPath)
-    x = (solutionDict['theta'], solutionDict['delta'], solutionDict['omegaPhi'], solutionDict['modulationTime'])
-    
-    circuitData = getCircuitData(solutionDict)
-
-    if solutionDict['gateType'] == 'iSWAP':
-        iSWAP = True
-    else:
-        iSWAP = False
-    if solutionDict['gateType'] == 'CZ':
-        CZ = True
-    else:
-        CZ = False
-    
-    if useSavedPlot:
-        F = solutionDict['fidelitiesAtTimes']
-        times = solutionDict['times']
-    else:
-        indices = np.linspace(-116, -1, 116).astype(int)
-        F, times = model.getGateFidelity(x, N=4, iSWAP=iSWAP, CZ=CZ, tIndices=indices, circuitData=circuitData)
-
-    plt.figure(figsize=(8, 7))
-    plt.plot(times, F)
-    plt.plot([x[-1], x[-1]], [0, 1], 'r--')
-    plt.grid()
-    plt.ylim([0.99, 1])
-    plt.xlim([times[0], times[-1]])
-    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=19, loc="lower right")
-    #plt.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
-    plt.xlabel("Tid efter grindstart [ns]", fontsize=26)
-    plt.ylabel("Fidelitet", fontsize=26)
-    plt.xticks(fontsize=16)
-    plt.yticks(fontsize=16)
-    plt.tight_layout()
-    plt.show()
-
-    if (saveToFile == True):
-        solutionDict['times'] = times
-        solutionDict['fidelitiesAtTimes'] = F
-        solutionDict['gateFidelity'] = F[-76]
-        dumpTojson(solutionDict,solutionPath)
-
-
 def simulatePopTransfer(solutionPath, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, highestProjectionIndex=12, N=4):
     """
     This function simulates the population transfers between 
@@ -211,6 +167,54 @@ def simulatePopTransfer(solutionPath, sinStepHamiltonian=True, rotatingFrame=Tru
     plt.show()
 
 
+def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False):
+    solutionDict = getFromjson(fileName=solutionPath)
+    x = (solutionDict['theta'], solutionDict['delta'], solutionDict['omegaPhi'], solutionDict['modulationTime'])
+    
+    circuitData = getCircuitData(solutionDict)
+
+    if solutionDict['gateType'] == 'iSWAP':
+        iSWAP = True
+    else:
+        iSWAP = False
+    if solutionDict['gateType'] == 'SWAP':
+        SWAP = True
+    else:
+        SWAP = False
+    if solutionDict['gateType'] == 'CZ':
+        CZ = True
+    else:
+        CZ = False
+    
+    if useSavedPlot:
+        F = solutionDict['fidelitiesAtTimes']
+        times = solutionDict['times']
+    else:
+        indices = np.linspace(-116, -1, 116).astype(int)
+        F, times = model.getGateFidelity(x, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=indices, circuitData=circuitData)
+
+    plt.figure(figsize=(8, 7))
+    plt.plot(times, F)
+    plt.plot([x[-1], x[-1]], [0, 1], 'r--')
+    plt.grid()
+    plt.ylim([0.99, 1])
+    plt.xlim([times[0], times[-1]])
+    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=19, loc="lower right")
+    #plt.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
+    plt.xlabel("Tid efter grindstart [ns]", fontsize=26)
+    plt.ylabel("Fidelitet", fontsize=26)
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
+    plt.tight_layout()
+    plt.show()
+
+    if (saveToFile == True):
+        solutionDict['times'] = times
+        solutionDict['fidelitiesAtTimes'] = F
+        solutionDict['gateFidelity'] = F[-76]
+        dumpTojson(solutionDict,solutionPath)
+
+
 def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[5e-4, 1e-3, 2e-3, 4e0], useSavedPlot=False, saveToFile=False):
     solDict = getFromjson(solutionPath)
     x = [solDict['theta'], solDict['delta'], solDict['omegaPhi'], solDict['modulationTime']]
@@ -220,6 +224,10 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
         iSWAP = True
     else:
         iSWAP = False
+    if solDict['gateType'] == 'SWAP':
+        SWAP = True
+    else:
+        SWAP = False
     if solDict['gateType'] == 'CZ':
         CZ = True
     else:
@@ -268,7 +276,7 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
                 fidelities = []
                 for i, d in enumerate(deviations):
                     xDev[xIndex] = x[xIndex] + d
-                    fidelity, _ = model.getGateFidelity(xDev, N=4, iSWAP=iSWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData)
+                    fidelity, _ = model.getGateFidelity(xDev, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData)
                     fidelities.append(fidelity[0])
                     statusBar((i+1)*100/nPointsList[0])
 
@@ -333,7 +341,7 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
                     xDev[xIndices[1]] = x[xIndices[1]] + jDev
                     for i, iDev in enumerate(iDeviations):
                         xDev[xIndices[0]] = x[xIndices[0]] + iDev
-                        fidelity, _ = model.getGateFidelity(xDev, N=4, iSWAP=iSWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData)
+                        fidelity, _ = model.getGateFidelity(xDev, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData)
                         fidelities.append(fidelity[0])
                         statusBar((j*nPointsList[0] + (i+1))*100/(nPointsList[0]*nPointsList[1]))
                 fidelities2D = np.array(fidelities).reshape(nPointsList[1], nPointsList[0])

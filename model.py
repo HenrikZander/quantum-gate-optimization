@@ -430,6 +430,14 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I):
 
             # Ideal iSWAP gate matrix (with phases):
             U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, 0, np.exp(1j*(-np.pi/2 + theta1 + phi)), 0], [0, np.exp(1j*(-np.pi/2 + theta2 + phi)), 0, 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
+        elif SWAP:
+            # Calculate phases (SWAP):
+            phi = np.angle(M[0][0])
+            theta1 = np.angle(M[1][2]) - phi
+            theta2 = np.angle(M[2][1]) - phi
+
+            # Ideal SWAP gate matrix (with phases):
+            U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, 0, np.exp(1j*(theta1 + phi)), 0], [0, np.exp(1j*(theta2 + phi)), 0, 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
         elif CZ:
             # Calculate phases (CZ):
             phi = np.angle(M[0][0])
@@ -480,6 +488,7 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
 
         Only change ONE of these to True!:
             iSWAP (boolean) {Optional}: Specifies that the gate fidelity is to be calculated for the iSWAP gate. Defaults to False.
+            SWAP (boolean) {Optional}: Specifies that the gate fidelity is to be calculated for the SWAP gate. Defaults to False.
             CZ (boolean) {Optional}: Specifies that the gate fidelity is to be calculated for the CZ gate. Defaults to False.
             I (boolean) {Optional}: USED IN TESTING ONLY! Specifies that the gate fidelity is to be calculated for the identity gate.
                 Defaults to False.
