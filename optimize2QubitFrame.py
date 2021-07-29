@@ -238,7 +238,7 @@ def setStatus(currentStatus):
     statusString.set(currentStatus)
 
     
-def setDefaultBoundaryValues():
+def useDefaultBoundaryValues():
     data = dataManager.getFromjson("config.json")
 
     thetaLower.set(data["theta"][0])
@@ -285,8 +285,32 @@ def setDefaultCircuitValuesFromVariables(configData, newCircuitData):
     return configData
 
 
+def setDefaultBoundaryValues(configData, newBoundaryData):
+    configData["theta"] = newBoundaryData["theta"]
+    configData["delta"] = newBoundaryData["delta"]
+    configData["omegaPhi"] = newBoundaryData["omegaPhi"]
+    configData["modulationTime"] = newBoundaryData["modulationTime"]
+
+    return configData
+
+
 ######################################################################################################################################################################
 # Button callbacks
+
+
+def presetBoundaryConditions():
+    print("Forcing traditional gate!")
+
+
+def setBoundaryDefault():
+    configData = dataManager.getFromjson("config.json")
+    newBoundaryData = getAllVariablesForTheOptimizer()
+    configData = setDefaultBoundaryValues(configData, newBoundaryData)
+    dataManager.dumpTojson(configData, "config.json")
+
+
+def useBoundaryDefault():
+    useDefaultBoundaryValues()
 
 
 def selectSaveFolder():
@@ -494,7 +518,7 @@ def generateCircuitInputControls(circuitFrame):
     loadCircuitButton = Button(controlsInputFrameInner, text="Load Circuit", command=loadCircuit, padx=3, pady=3, background="#21e4d7")
     loadCircuitButton.grid(row=0, column=0, padx=4, pady=4)
 
-    changeDefaultCircuitButton = Button(controlsInputFrameInner, text="Set to Default", command=changeDefaultCircuit, padx=3, pady=3, background="#21e4d7")
+    changeDefaultCircuitButton = Button(controlsInputFrameInner, text="Save as Default", command=changeDefaultCircuit, padx=3, pady=3, background="#21e4d7")
     changeDefaultCircuitButton.grid(row=0, column=1, padx=4, pady=4)
 
     useDefaultCircuitButton = Button(controlsInputFrameInner, text="Use Default", command=useDefaultCircuit, padx=3, pady=3, background="#21e4d7")
@@ -541,7 +565,7 @@ def generateModulationTimeBoundaryInput(inputBoundaryFrame, entryCharacterWidth)
     modulationTimeInputFrameOuter.grid(row=4, column=0, columnspan=3)
 
     modulationTimeInputFrameInner = Frame(modulationTimeInputFrameOuter)  # , background="blue")
-    modulationTimeInputFrameInner.place(anchor="e", relx=0.8, rely=0.5)
+    modulationTimeInputFrameInner.place(anchor="e", relx=0.82, rely=0.5)
 
     modulationTimeLabel = Label(modulationTimeInputFrameInner, text="Total modulation time of AC-flux [ns]:")
     modulationTimeLabel.pack(side=LEFT, padx=(0, 5))
@@ -564,7 +588,7 @@ def generateOmegaPhiBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
     omegaPhiInputFrameOuter.grid(row=3, column=0, columnspan=3)
 
     omegaPhiInputFrameInner = Frame(omegaPhiInputFrameOuter)  # , background="blue")
-    omegaPhiInputFrameInner.place(anchor="e", relx=0.8, rely=0.5)
+    omegaPhiInputFrameInner.place(anchor="e", relx=0.82, rely=0.5)
 
     omegaPhiLabel = Label(omegaPhiInputFrameInner, text="Frequency \u03C9 of AC-flux [GHz]:")
     omegaPhiLabel.pack(side=LEFT, padx=(0, 5))
@@ -587,7 +611,7 @@ def generateDeltaBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
     deltaInputFrameOuter.grid(row=2, column=0, columnspan=3)
 
     deltaInputFrameInner = Frame(deltaInputFrameOuter)  # , background="blue")
-    deltaInputFrameInner.place(anchor="e", relx=0.8, rely=0.5)
+    deltaInputFrameInner.place(anchor="e", relx=0.82, rely=0.5)
 
     deltaLabel = Label(deltaInputFrameInner, text="Amplitude of \u03B4(t) [\u03A6"+subscriptZero+"]:")
     deltaLabel.pack(side=LEFT, padx=(0, 5))
@@ -610,7 +634,7 @@ def generateThetaBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
     thetaInputFrameOuter.grid(row=1, column=0, columnspan=3)
 
     thetaInputFrameInner = Frame(thetaInputFrameOuter)  # , background="blue")
-    thetaInputFrameInner.place(anchor="e", relx=0.8, rely=0.5)
+    thetaInputFrameInner.place(anchor="e", relx=0.82, rely=0.5)
 
     thetaLabel = Label(thetaInputFrameInner, text="Strength of DC-flux \u0398 [\u03A6"+subscriptZero+"]:")
     thetaLabel.pack(side=LEFT, padx=(0, 5))
@@ -629,7 +653,7 @@ def generateThetaBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
 
 
 def generateBoundaryInput(inputBoundaryFrame):
-    entryCharacterWidth = 4
+    entryCharacterWidth = 6
 
     riseTimeFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60)  # , background="red")
     riseTimeFrameOuter.grid(row=0, column=0, columnspan=3)
@@ -703,10 +727,9 @@ def generateSelectAlgorithm(settingsFrameLeft):
 
 
 def generateBoundarySettings(settingsBoundaryFrame):
-    selectSignalFrameOuter = Frame(settingsBoundaryFrame, height=35, width=relativeWidth*width*0.60)  # , background="blue")
+    selectSignalFrameOuter = Frame(settingsBoundaryFrame, height=35, width=relativeWidth*width*0.60)# , background="blue")
     selectSignalFrameOuter.grid(row=0, column=0)
 
-    # , background="orange")
     selectSignalFrameInner = Frame(selectSignalFrameOuter)
     selectSignalFrameInner.place(anchor="center", relx=0.5, rely=0.5)
 
@@ -717,12 +740,28 @@ def generateBoundarySettings(settingsBoundaryFrame):
     selectSignal.current(0)
     selectSignal.pack(side=LEFT)
 
-    # , highlightbackground="black", highlightthickness=1)#, background="blue")
     inputBoundaryFrame = Frame(settingsBoundaryFrame, height=175, width=relativeWidth*width*0.60)
     inputBoundaryFrame.grid(row=1, column=0)
     inputBoundaryFrame.grid_propagate(0)
 
     generateBoundaryInput(inputBoundaryFrame)
+
+
+def generateBoundaryControls(settingsBoundaryFrame):
+    boundaryControlsFrameOuter = Frame(settingsBoundaryFrame, height=relativeHeight*height-2*210, width=relativeWidth*width*0.60)# , background="green")
+    boundaryControlsFrameOuter.grid(row=2, column=0)
+
+    boundaryControlsFrameInner = Frame(boundaryControlsFrameOuter)
+    boundaryControlsFrameInner.place(anchor='center', relx=0.5, rely=0.5)
+
+    setDefaultBoundaryConditionButton = Button(boundaryControlsFrameInner, text="Save as Default", command=setBoundaryDefault, padx=3, pady=3, background="#21e4d7")
+    setDefaultBoundaryConditionButton.grid(row=0, column=0, padx=4, pady=4)
+
+    useDefaultBoundaryConditionButton = Button(boundaryControlsFrameInner, text="Use Default", command=useBoundaryDefault, padx=3, pady=3, background="#21e4d7")
+    useDefaultBoundaryConditionButton.grid(row=0, column=1, padx=4, pady=4)
+
+    presetBoundaryConditionsButton = Button(boundaryControlsFrameInner, text="Preset Boundary Conditions", command=presetBoundaryConditions, padx=3, pady=3, background="#21e4d7")
+    presetBoundaryConditionsButton.grid(row=0, column=2, padx=4, pady=4)
 
 
 def generateRightSettings(settingsFrameRight):
@@ -741,7 +780,7 @@ def optimizerSettingsFrame(topFrame):
     separator = ttk.Separator(topFrame, orient='vertical')
     separator.grid(row=0, column=1, sticky="nesw")
 
-    settingsFrame = Frame(topFrame, height=relativeHeight*height, width=relativeWidth*width*0.60, background="yellow")
+    settingsFrame = Frame(topFrame, height=relativeHeight*height, width=relativeWidth*width*0.60)# , background="yellow")
     settingsFrame.grid(row=0, column=2)
     settingsFrame.grid_propagate(0)
 
@@ -772,13 +811,14 @@ def optimizerSettingsFrame(topFrame):
     settingsBoundaryTitle.configure(font=titleSettingsFont)
     settingsBoundaryTitle.place(anchor='center', relx=0.5, rely=0.5)
 
-    settingsBoundaryFrame = Frame(settingsFrame, height=relativeHeight*height-optimizeSettingsFrameHeight - 2*settingsTitleFrameHeight, width=relativeWidth*width*0.60)  # , background="orange")
+    settingsBoundaryFrame = Frame(settingsFrame, height=relativeHeight*height-optimizeSettingsFrameHeight - 2*settingsTitleFrameHeight, width=relativeWidth*width*0.60)#, background="orange")
     settingsBoundaryFrame.grid(row=4, column=0, columnspan=2)
     settingsBoundaryFrame.grid_propagate(0)
 
     generateLeftSettings(settingsFrameLeft)
     generateRightSettings(settingsFrameRight)
     generateBoundarySettings(settingsBoundaryFrame)
+    generateBoundaryControls(settingsBoundaryFrame)
 
 
 ##################################################################################
@@ -818,7 +858,7 @@ def optimizeControlFrame(root, parentWidget, givenHeight, givenWidth):
     optimizerSettingsFrame(topFrame)
 
     useDefaultCircuit()
-    setDefaultBoundaryValues()
+    useDefaultBoundaryValues()
 
     return windowFrame
 
