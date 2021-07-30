@@ -574,6 +574,11 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
 
     res = fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I)
     #print(f'Energy levels: {N}')
+    print('##################################################')
+    print(f'Theta: {x[0]}, delta: {x[1]}, Modulation frequency: {x[2]} GHz, Modulation time = {x[3]} ns')
+    print(f'Fidelities: {res[0]}')
+    print(f'Times [ns]: {res[1]}')
+    print('##################################################')
     #print(res)
     return res
 
