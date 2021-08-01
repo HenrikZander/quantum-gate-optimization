@@ -88,7 +88,7 @@ x_210713_iSWAP_3_4lvl = [3.77667126e-01, 5.17617928e-02, 3.51608253e+00, 8.83255
 x_210715_CZ_1_4lvl = [4.28265258e-01, 2.28050495e-02, 4.28583819e+00, 1.15226156e+02]
 x_210716_CZ_2_4lvl = [4.03140410e-01, 2.95892756e-02, 4.14970423e+00, 1.06035386e+02]
 # Solution to use in simulations:
-solName = "210731_SWAP_bad"
+solName = "210801_SWAP_1"
 #xUsed = x_210713_iSWAP_1_4lvl
 xName = 'x_' + solName + '_4lvl' # Preferred if solution is listed in solutions.json
 #dateStr = "2021-07-13 15:12:18.004557"
@@ -110,16 +110,16 @@ def main():
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
     # simulateHamiltonian(xName=xName, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=3, N=4, highestProjectionIndex=12, circuitData=getFromjson('./circuit files/qubitPair01.json'))
-    # simulatePopTransfer(solutionPath=solPath, initialStateIndex=3, highestProjectionIndex=12)
+    # simulatePopTransfer(solutionPath=solPath, initialStateIndex=1, highestProjectionIndex=12)
     # plotFidelityOld(xName=xName, iSWAP=True, useSavedPlot=False, saveTojson=False, circuitData=solDict)
-    plotFidelity(solutionPath=solPath, useSavedPlot=False, saveToFile=True)
+    # plotFidelity(solutionPath=solPath, useSavedPlot=False, saveToFile=True)
     # deltaPulsePlot()
     # testPlotStates()
     # testEigenstateOrder()
     # plotEigenenergiesOld(xName=xName, N=4, simPoints=500, numOfEnergyLevels=None, useSavedPlot=True, saveTojson=False)
     # plotEigenenergies(solutionPath=solPath, eigenenergiesPath='eigenenergies.json', N=4, simPoints=200, numOfEnergyLevels=None, useSavedPlot=True, saveToFile=False)
     # test()
-    # getRobustnessPlot(solutionPath=solPath, useSavedPlot=False, saveToFile=False, checkOmegaPhi=True, checkOpTime=True, nPointsList=[17], maxDevs=[0.005, 0.005, 4*0.0025, 4*10])
+    getRobustnessPlot(solutionPath=solPath, useSavedPlot=False, saveToFile=True, checkOpTime=True, nPointsList=[33], maxDevs=[0.005, 0.005, 0.002, 5])
     # print(getFromjson('solutions.json'))
     # print(getSolutionNameList())
     # addNewSolution(xUsed, gateType="iSWAP", N=4, creationTime=datetime.fromisoformat(dateStr))

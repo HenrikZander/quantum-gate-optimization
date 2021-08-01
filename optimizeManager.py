@@ -44,7 +44,7 @@ def averageFidelity(F, gateTimeWeight=2):
 
 
 def cost(x, N, iSWAP, SWAP, CZ, circuitData):
-    F, _ = model.getGateFidelity(x, N=N, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, circuitData=circuitData)
+    F, _ = model.getGateFidelity(x, N=N, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, circuitData=circuitData, printResults=True)
     return -averageFidelity(F)
 
 
@@ -109,10 +109,12 @@ def callbackDE(x, convergence=None):
     iterTime = currentTime - lastTime
     lastTime = currentTime
 
+    print('##################################################')
     print(f'Num of iterations: {i+1}')
-    print(f'The currently best minimum that the Differential Evolution algorithm has found has a convergence of {convergence} at the point {x}.')
+    print(f'The best gate that the Differential Evolution algorithm has found thus far lies at the point {x}, and the current convergence is {convergence}.')
     print(f'Total time passed: {passedTime} seconds.')
     print(f'Iteration time: {iterTime} seconds.\n')
+    print('##################################################')
     i += 1
 
     gui.setProgressValue(convergence)

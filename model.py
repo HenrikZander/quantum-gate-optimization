@@ -473,7 +473,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I):
 # Gate fidelity function.
 
 
-def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices=[-76, -61, -23, -1], circuitData=None, riseTime=25.0):
+def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices=[-76, -61, -23, -1], circuitData=None, riseTime=25.0, printResults=False):
     """
     This function calculates the gate fidelity for the
     iSWAP and CZ quantum gates given a parameter set x.
@@ -573,13 +573,14 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
     Hrot = Qobj(Hrot, dims=[[N, N, N], [N, N, N]])
 
     res = fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I)
-    #print(f'Energy levels: {N}')
-    print('##################################################')
-    print(f'Theta: {x[0]}, delta: {x[1]}, Modulation frequency: {x[2]} GHz, Modulation time = {x[3]} ns')
-    print(f'Fidelities: {res[0]}')
-    print(f'Times [ns]: {res[1]}')
-    print('##################################################')
-    #print(res)
+    if printResults:
+        #print(f'Energy levels: {N}')
+        print('--------------------------------------------------')
+        print(f'Solution: {x}')
+        print(f'Fidelities: {res[0]}')
+        print(f'Times [ns]: {res[1]}')
+        #print('--------------------------------------------------')
+        #print(res)
     return res
 
 
