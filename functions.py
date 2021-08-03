@@ -69,10 +69,11 @@ def evaluateResult(x, fun, resultList, N=5):
 ######################################################################################################################################################################
 # json helper functions
 
-
+'''
 def getSolutionNameList():
     solsDict = getFromjson('solutions.json')
     return [xName for xName in solsDict]
+'''
 
 '''
 def createSolNameOld(ymd, gateType, solNumberStr, usedNlvls):
@@ -446,8 +447,6 @@ def simulatePopTransfer(solutionPath, sinStepHamiltonian=True, rotatingFrame=Tru
     linestyle = ['-', '--', '-.', ':']
     for index, values in enumerate(expectationValues):
         plt.plot(timeStamps, values, ls=linestyle[math.floor(index / 10) % 4])
-        # eigenOrder = (findEigenIndex(x, eigenStateIndex=index))[1]
-        # labels.append(f'|{eigenOrder[0]}{eigenOrder[1]}{eigenOrder[2]}>')
 
     plt.grid()
     plt.ylim([0, 1.1])
@@ -519,6 +518,10 @@ def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False):
         iSWAP = True
     else:
         iSWAP = False
+    if solutionDict['gateType'] == 'SWAP':
+        SWAP = True
+    else:
+        SWAP = False
     if solutionDict['gateType'] == 'CZ':
         CZ = True
     else:
@@ -529,7 +532,7 @@ def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False):
         times = solutionDict['times']
     else:
         indices = np.linspace(-116, -1, 116).astype(int)
-        F, times = getGateFidelity(x, N=4, iSWAP=iSWAP, CZ=CZ, tIndices=indices, circuitData=circuitData)
+        F, times = getGateFidelity(x, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=indices, circuitData=circuitData)
 
     plt.figure(figsize=(8, 7))
     plt.plot(times, F)
@@ -747,6 +750,10 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
         iSWAP = True
     else:
         iSWAP = False
+    if solDict['gateType'] == 'SWAP':
+        SWAP = True
+    else:
+        SWAP = False
     if solDict['gateType'] == 'CZ':
         CZ = True
     else:
@@ -795,7 +802,7 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
                 fidelities = []
                 for i, d in enumerate(deviations):
                     xDev[xIndex] = x[xIndex] + d
-                    fidelity, _ = getGateFidelity(xDev, N=4, iSWAP=iSWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData)
+                    fidelity, _ = getGateFidelity(xDev, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData)
                     fidelities.append(fidelity[0])
                     statusBar((i+1)*100/nPointsList[0])
 
@@ -860,7 +867,7 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
                     xDev[xIndices[1]] = x[xIndices[1]] + jDev
                     for i, iDev in enumerate(iDeviations):
                         xDev[xIndices[0]] = x[xIndices[0]] + iDev
-                        fidelity, _ = getGateFidelity(xDev, N=4, iSWAP=iSWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData)
+                        fidelity, _ = getGateFidelity(xDev, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData)
                         fidelities.append(fidelity[0])
                         statusBar((j*nPointsList[0] + (i+1))*100/(nPointsList[0]*nPointsList[1]))
                 fidelities2D = np.array(fidelities).reshape(nPointsList[1], nPointsList[0])
@@ -901,19 +908,6 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
                 solDict[listName][1] = iDeviations.tolist()
                 solDict[listName][2] = jDeviations.tolist()
                 dumpTojson(solDict, solutionPath)
-
-
-def indexToString(indexTuple):
-    return f'|{indexTuple[0]}{indexTuple[1]}{indexTuple[2]}>'
-
-
-def saveEnergyAndFlux(itemList, state, flux, energy, energyIndex):
-    for item in itemList:
-        if item[2] == state:
-            item[0].append(flux)
-            item[1].append(energy)
-            item[3].append(energyIndex)
-            break
 
 '''
 def plotEigenenergies(x=None, xName=None, N=3, simPoints=200, numOfEnergyLevels=None, useSavedPlot=False, saveTojson=False):
@@ -1069,7 +1063,7 @@ def plotEigenenergies(solutionPath=None, eigenenergiesPath='eigenenergies.json',
         eigenEnergyDict = {labels[i]: item for i, item in enumerate(energyOfEigenstate)}
         dumpTojson(eigenEnergyDict, eigenenergiesPath)
 
-
+'''
 def findEigenIndex(x, eigenStateIndex=0, N=4, printResult=False):
 
     # Get eigenindices and dimension.
@@ -1103,6 +1097,18 @@ def findEigenIndex(x, eigenStateIndex=0, N=4, printResult=False):
         print(f'The eigenstate with eigen index {eigenStateIndex} is the |{result[1][0]}{result[1][1]}{result[1][2]}> state. The norm difference is {result[0]}.')
 
     return result
+'''
 
+def indexToString(indexTuple):
+    return f'|{indexTuple[0]}{indexTuple[1]}{indexTuple[2]}>'
+
+
+def saveEnergyAndFlux(itemList, state, flux, energy, energyIndex):
+    for item in itemList:
+        if item[2] == state:
+            item[0].append(flux)
+            item[1].append(energy)
+            item[3].append(energyIndex)
+            break
 
 ######################################################################################################################################################################

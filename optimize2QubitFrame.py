@@ -688,7 +688,7 @@ def generateSelectEnergyLevels(settingsFrameRight):
     selectEnergyLevelsTitle.pack(side=LEFT, padx=(0, 5))
 
     selectEnergyLevels = ttk.Spinbox(selectEnergyLevelsFrameInner, from_=2, to=7, textvariable=energyLevels, width=4, state="readonly")
-    selectEnergyLevels.set(3)
+    selectEnergyLevels.set(4)
     selectEnergyLevels.pack(side=LEFT)
 
 
