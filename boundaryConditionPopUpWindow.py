@@ -23,12 +23,17 @@ from tkinter import *
 import math
 
 import dataManager
+import optimize2QubitFrame as gui
 
 ######################################################################################################################################################################
 # The pop up window that let's the user select a preset boundary condition.
 
 
 def selectPresetWindow(root):
+    global suppliedRoot
+    global pop
+    suppliedRoot = root
+
     pop = Toplevel(root)
     pop.title("Boundary condition manager")
 
@@ -48,7 +53,35 @@ def selectPresetWindow(root):
 
 
 ######################################################################################################################################################################
-# Function that generates the widgets in the window.
+# The pop up window that is used to preview boundary presets and create new ones.
+
+
+def interactWithPresetWindow(addNew=False):
+    global suppliedRoot
+    global popPreview
+    popPreview = Toplevel(suppliedRoot)
+
+    height = 500
+    width = 400
+
+    popPreview.geometry(str(width)+"x"+str(height))
+    popPreview.resizable(width=False, height=False)
+
+    programIcon = PhotoImage(file = "./assets/Gateside_Logomark.png")
+    popPreview.iconphoto(False, programIcon)
+
+    if addNew:
+        popPreview.title("Add new boundary preset")
+        generateBoundaryPresetCreator(popPreview, height, width)
+    else:
+        popPreview.title("Edit boundary preset")
+        generateBoundaryPresetEditor(popPreview, height, width)
+
+    popPreview.grab_set()
+
+
+######################################################################################################################################################################
+# Function that generates the widgets in the windows.
 
 
 def generateBoundaryManager(pop, height, width):
@@ -78,20 +111,41 @@ def generateBoundaryManager(pop, height, width):
     editPresetButton.pack(side=LEFT, padx=4, pady=4)
 
 
+def generateBoundaryPresetCreator(popPreview, height, width):
+    pass
+
+
+def generateBoundaryPresetEditor(popPreview, height, width):
+    pass
+
+
 ######################################################################################################################################################################
 # Button callback functions
 
 
 def selectPreset():
-    pass
+    global presetsBox
+    selectedPresetIndex = presetsBox.curselection()
+    if len(selectedPresetIndex) > 0:
+        selectedPresetIndex = selectedPresetIndex[0]
+
+        boundaryValues = getPreset(selectedPresetIndex)
+        gui.setBoundaryValues(boundaryValues)
+        # print(boundaryValues)
+
+        global pop
+        pop.grab_release()
+        pop.destroy()
+    else:
+        print("No preset selected!")
 
 
 def addNewPreset():
-    pass
+    interactWithPresetWindow(addNew=True)
 
 
 def editPreset():
-    pass
+    interactWithPresetWindow()
 
 
 ######################################################################################################################################################################
@@ -100,7 +154,8 @@ def editPreset():
 
 def loadAllPresets():
     global presetsBox
-
+    presetsBox.delete(0,END)
+    
     configData = dataManager.getFromjson("config.json")
     presetList = configData["boundaryPresets"]
 
@@ -108,8 +163,24 @@ def loadAllPresets():
         presetsBox.insert(END, item[0])
 
 
-def addPreset():
-    configData = dataManager.getFromjson("config.json")["boundaryPresets"].append(["test", 0, 0, 0, 0)
-    
+def addPreset(name, boundaryValues):
+    configData = dataManager.getFromjson("config.json")
+    configData["boundaryPresets"].append([name, True, *boundaryValues])
+    dataManager.dumpTojson(configData, "config.json")
+
+    loadAllPresets()
+
+
+def getPreset(index):
+    configData = dataManager.getFromjson("config.json")
+    return configData["boundaryPresets"][index]
+
+
+def changePreset(index, newBoundaryValues):
+    configData = dataManager.getFromjson("config.json")
+    oldBoundaryValues = configData["boundaryPresets"][index]
+    configData["boundaryPresets"][index] = [oldBoundaryValues[0], oldBoundaryValues[1], *newBoundaryValues]
+    dataManager.dumpTojson(configData, "config.json")
+
 
 ######################################################################################################################################################################

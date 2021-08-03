@@ -9,7 +9,7 @@
 #     `Y8bood8P'  o888o o888o `Y888""8o o888o o888o o888o o888o `Y8bod8P' d888b    8""888P' 
 
 
-# File name: optimize2QubitWindow.py
+# File name: optimize2QubitFrame.py
 
 # Author(s): Henrik Zander
 
@@ -199,6 +199,20 @@ def scheduleOptimizingSessions():
 # Functions to interact with the global variables.
 
 
+def setBoundaryValues(boundaryValues):
+    thetaLower.set(boundaryValues[2][0])
+    thetaUpper.set(boundaryValues[2][1])
+
+    deltaUpper.set(boundaryValues[3][1])
+    deltaLower.set(boundaryValues[3][0])
+
+    omegaPhiLower.set(boundaryValues[4][0])
+    omegaPhiUpper.set(boundaryValues[4][1])
+
+    modulationTimeLower.set(boundaryValues[5][0])
+    modulationTimeUpper.set(boundaryValues[5][1])
+
+
 def getAllVariablesForTheOptimizer():
     data = {}
 
@@ -242,19 +256,8 @@ def setStatus(currentStatus):
 
     
 def useDefaultBoundaryValues():
-    data = dataManager.getFromjson("config.json")
-
-    thetaLower.set(data["theta"][0])
-    thetaUpper.set(data["theta"][1])
-
-    deltaLower.set(data["delta"][0])
-    deltaUpper.set(data["delta"][1])
-
-    omegaPhiLower.set(data["omegaPhi"][0])
-    omegaPhiUpper.set(data["omegaPhi"][1])
-
-    modulationTimeLower.set(data["modulationTime"][0])
-    modulationTimeUpper.set(data["modulationTime"][1])
+    data = boundaryWindow.getPreset(0)
+    setBoundaryValues(data)
 
 
 def setCircuitVariables(data):
@@ -288,13 +291,9 @@ def setDefaultCircuitValuesFromVariables(configData, newCircuitData):
     return configData
 
 
-def setDefaultBoundaryValues(configData, newBoundaryData):
-    configData["theta"] = newBoundaryData["theta"]
-    configData["delta"] = newBoundaryData["delta"]
-    configData["omegaPhi"] = newBoundaryData["omegaPhi"]
-    configData["modulationTime"] = newBoundaryData["modulationTime"]
-
-    return configData
+def setDefaultBoundaryValues():
+    newValues = [[thetaLower.get(), thetaUpper.get()], [deltaLower.get(), deltaUpper.get()], [omegaPhiLower.get(), omegaPhiUpper.get()], [modulationTimeLower.get(), modulationTimeUpper.get()]]
+    boundaryWindow.changePreset(0, newValues)
 
 
 ######################################################################################################################################################################
@@ -306,10 +305,7 @@ def presetBoundaryConditions():
 
 
 def setBoundaryDefault():
-    configData = dataManager.getFromjson("config.json")
-    newBoundaryData = getAllVariablesForTheOptimizer()
-    configData = setDefaultBoundaryValues(configData, newBoundaryData)
-    dataManager.dumpTojson(configData, "config.json")
+    setDefaultBoundaryValues()
 
 
 def useBoundaryDefault():
