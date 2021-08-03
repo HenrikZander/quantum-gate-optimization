@@ -22,6 +22,8 @@
 from tkinter import *
 import math
 
+import dataManager
+
 ######################################################################################################################################################################
 # The pop up window that let's the user select a preset boundary condition.
 
@@ -40,6 +42,7 @@ def selectPresetWindow(root):
     pop.iconphoto(False, programIcon)
     
     generateBoundaryManager(pop, height, width)
+    loadAllPresets()
 
     pop.grab_set()
 
@@ -90,5 +93,23 @@ def addNewPreset():
 def editPreset():
     pass
 
+
+######################################################################################################################################################################
+# Functions for handling all the preset items
+
+
+def loadAllPresets():
+    global presetsBox
+
+    configData = dataManager.getFromjson("config.json")
+    presetList = configData["boundaryPresets"]
+
+    for item in presetList:
+        presetsBox.insert(END, item[0])
+
+
+def addPreset():
+    configData = dataManager.getFromjson("config.json")["boundaryPresets"].append(["test", 0, 0, 0, 0)
+    
 
 ######################################################################################################################################################################
