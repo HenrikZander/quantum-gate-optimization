@@ -43,7 +43,7 @@ def main():
     global width
 
     root = Tk()
-    calculateWindowSize(root)
+    height, width = calculateWindowSize(root)
     root.title("GateSide")
     root.geometry(str(width)+"x"+str(math.ceil(height*1.04)))
     root.resizable(width=False, height=False)
@@ -60,14 +60,13 @@ def main():
 
 
 def calculateWindowSize(root):
-    global height
-    global width
-
     screen_height = root.winfo_screenheight()
     screen_width = root.winfo_screenwidth()
 
     height = math.ceil(screen_height*0.6944444)
     width = math.ceil(screen_width*0.6328125)
+
+    return height, width
 
 
 ######################################################################################################################################################################

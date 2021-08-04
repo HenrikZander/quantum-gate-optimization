@@ -9,7 +9,7 @@
 #     `Y8bood8P'  o888o o888o `Y888""8o o888o o888o o888o o888o `Y8bod8P' d888b    8""888P' 
 
 
-# File name: optimize2QubitWindow.py
+# File name: optimize2QubitFrame.py
 
 # Author(s): Henrik Zander
 
@@ -29,6 +29,7 @@ import numpy as np
 
 import dataManager
 import optimizeManager
+import boundaryConditionPopUpWindow as boundaryWindow
 
 ######################################################################################################################################################################
 # Global variables and function to initiate global variables
@@ -42,11 +43,13 @@ subscriptZero = "0".translate(SUB)
 runOptimizer = False
 
 
-def initiateGlobalVariables(root, givenHeight):
+def initiateGlobalVariables(rootWindow, givenHeight):
+    global root
     global height
     global width
     height = givenHeight
     width = int(1.62*height)
+    root = rootWindow
 
     global frequencyQ1
     global frequencyQ2
@@ -122,11 +125,11 @@ def initiateGlobalVariables(root, givenHeight):
 
 def enableStopButton():
     startOptimizeButton.config(background="grey", command=NONE)
-    stopOptimizeButton.config(background="red", command=stopOptimizing)
+    stopOptimizeButton.config(background="#FF0000", command=stopOptimizing)
 
 
 def resetStartStopButtons():
-    startOptimizeButton.config(background="green", command=startOptimizing)
+    startOptimizeButton.config(background="#00FF00", command=startOptimizing)
     stopOptimizeButton.config(background="grey", command=NONE)
 
 
@@ -196,6 +199,20 @@ def scheduleOptimizingSessions():
 # Functions to interact with the global variables.
 
 
+def setBoundaryValues(boundaryValues):
+    thetaLower.set(boundaryValues[2][0])
+    thetaUpper.set(boundaryValues[2][1])
+
+    deltaLower.set(boundaryValues[3][0])
+    deltaUpper.set(boundaryValues[3][1])
+
+    omegaPhiLower.set(boundaryValues[4][0])
+    omegaPhiUpper.set(boundaryValues[4][1])
+
+    modulationTimeLower.set(boundaryValues[5][0])
+    modulationTimeUpper.set(boundaryValues[5][1])
+
+
 def getAllVariablesForTheOptimizer():
     data = {}
 
@@ -239,19 +256,8 @@ def setStatus(currentStatus):
 
     
 def useDefaultBoundaryValues():
-    data = dataManager.getFromjson("config.json")
-
-    thetaLower.set(data["theta"][0])
-    thetaUpper.set(data["theta"][1])
-
-    deltaLower.set(data["delta"][0])
-    deltaUpper.set(data["delta"][1])
-
-    omegaPhiLower.set(data["omegaPhi"][0])
-    omegaPhiUpper.set(data["omegaPhi"][1])
-
-    modulationTimeLower.set(data["modulationTime"][0])
-    modulationTimeUpper.set(data["modulationTime"][1])
+    data = boundaryWindow.getPreset(0)
+    setBoundaryValues(data)
 
 
 def setCircuitVariables(data):
@@ -285,13 +291,9 @@ def setDefaultCircuitValuesFromVariables(configData, newCircuitData):
     return configData
 
 
-def setDefaultBoundaryValues(configData, newBoundaryData):
-    configData["theta"] = newBoundaryData["theta"]
-    configData["delta"] = newBoundaryData["delta"]
-    configData["omegaPhi"] = newBoundaryData["omegaPhi"]
-    configData["modulationTime"] = newBoundaryData["modulationTime"]
-
-    return configData
+def setDefaultBoundaryValues():
+    newValues = [[thetaLower.get(), thetaUpper.get()], [deltaLower.get(), deltaUpper.get()], [omegaPhiLower.get(), omegaPhiUpper.get()], [modulationTimeLower.get(), modulationTimeUpper.get()]]
+    boundaryWindow.changePreset(0, newValues)
 
 
 ######################################################################################################################################################################
@@ -299,14 +301,11 @@ def setDefaultBoundaryValues(configData, newBoundaryData):
 
 
 def presetBoundaryConditions():
-    print("Forcing traditional gate!")
+    boundaryWindow.selectPresetWindow(root)
 
 
 def setBoundaryDefault():
-    configData = dataManager.getFromjson("config.json")
-    newBoundaryData = getAllVariablesForTheOptimizer()
-    configData = setDefaultBoundaryValues(configData, newBoundaryData)
-    dataManager.dumpTojson(configData, "config.json")
+    setDefaultBoundaryValues()
 
 
 def useBoundaryDefault():
@@ -373,11 +372,11 @@ def exportCircuit():
 
 def optimizeStatusFrame(bottomFrame):
     global startOptimizeButton
-    startOptimizeButton = Button(bottomFrame, text="Start Optimizing", command=startOptimizing, padx=3, pady=3, background="green")
+    startOptimizeButton = Button(bottomFrame, text="Start Optimizing", command=startOptimizing, padx=3, pady=3, background="#00FF00", relief=FLAT)
     startOptimizeButton.grid(column=2, row=0)
 
     global stopOptimizeButton
-    stopOptimizeButton = Button(bottomFrame, text="Stop Optimizing", padx=3, pady=3, background="grey")
+    stopOptimizeButton = Button(bottomFrame, text="Stop Optimizing", padx=3, pady=3, background="grey", relief=FLAT)
     stopOptimizeButton.grid(column=2, row=1)
 
     progressFrame = Frame(bottomFrame, height=(1-relativeHeight)*height, width=width*0.80)
@@ -419,7 +418,7 @@ def generateSaveFolderInput(circuitFrame, entryCharacterWidth):
     saveFolderEntry = Entry(saveFolderFrameInner, state="readonly", width=45, readonlybackground="white", textvariable=resultFolderPath)
     saveFolderEntry.pack(side=LEFT)
 
-    saveFolderButton = Button(saveFolderFrameInner, text="Select Folder", command=selectSaveFolder, background="#21e4d7")
+    saveFolderButton = Button(saveFolderFrameInner, text="Select Folder", command=selectSaveFolder, background="#21e4d7", relief=FLAT)
     saveFolderButton.pack(side=LEFT)
 
     numOfSessionsFrameOuter = Frame(circuitFrame, height=50, width=relativeWidth*width*0.40)  # , background="red")
@@ -515,16 +514,16 @@ def generateCircuitInputControls(circuitFrame):
     controlsInputFrameInner = Frame(controlsInputFrameOuter)
     controlsInputFrameInner.place(anchor='center', relx=0.5, rely=0.5)
 
-    loadCircuitButton = Button(controlsInputFrameInner, text="Load Circuit", command=loadCircuit, padx=3, pady=3, background="#21e4d7")
+    loadCircuitButton = Button(controlsInputFrameInner, text="Load Circuit", command=loadCircuit, padx=3, pady=3, background="#21e4d7", relief=FLAT)
     loadCircuitButton.grid(row=0, column=0, padx=4, pady=4)
 
-    changeDefaultCircuitButton = Button(controlsInputFrameInner, text="Save as Default", command=changeDefaultCircuit, padx=3, pady=3, background="#21e4d7")
+    changeDefaultCircuitButton = Button(controlsInputFrameInner, text="Save as Default", command=changeDefaultCircuit, padx=3, pady=3, background="#21e4d7", relief=FLAT)
     changeDefaultCircuitButton.grid(row=0, column=1, padx=4, pady=4)
 
-    useDefaultCircuitButton = Button(controlsInputFrameInner, text="Use Default", command=useDefaultCircuit, padx=3, pady=3, background="#21e4d7")
+    useDefaultCircuitButton = Button(controlsInputFrameInner, text="Use Default", command=useDefaultCircuit, padx=3, pady=3, background="#21e4d7", relief=FLAT)
     useDefaultCircuitButton.grid(row=0, column=2, padx=4, pady=4)
 
-    generateCircuitButton = Button(controlsInputFrameInner, text="Export", command=exportCircuit, padx=3, pady=3, background="#21e4d7")
+    generateCircuitButton = Button(controlsInputFrameInner, text="Export", command=exportCircuit, padx=3, pady=3, background="#21e4d7", relief=FLAT)
     generateCircuitButton.grid(row=0, column=3, padx=4, pady=4)
 
 
@@ -754,13 +753,13 @@ def generateBoundaryControls(settingsBoundaryFrame):
     boundaryControlsFrameInner = Frame(boundaryControlsFrameOuter)
     boundaryControlsFrameInner.place(anchor='center', relx=0.5, rely=0.5)
 
-    setDefaultBoundaryConditionButton = Button(boundaryControlsFrameInner, text="Save as Default", command=setBoundaryDefault, padx=3, pady=3, background="#21e4d7")
+    setDefaultBoundaryConditionButton = Button(boundaryControlsFrameInner, text="Save as Default", command=setBoundaryDefault, padx=3, pady=3, background="#21e4d7", relief=FLAT)
     setDefaultBoundaryConditionButton.grid(row=0, column=0, padx=4, pady=4)
 
-    useDefaultBoundaryConditionButton = Button(boundaryControlsFrameInner, text="Use Default", command=useBoundaryDefault, padx=3, pady=3, background="#21e4d7")
+    useDefaultBoundaryConditionButton = Button(boundaryControlsFrameInner, text="Use Default", command=useBoundaryDefault, padx=3, pady=3, background="#21e4d7", relief=FLAT)
     useDefaultBoundaryConditionButton.grid(row=0, column=1, padx=4, pady=4)
 
-    presetBoundaryConditionsButton = Button(boundaryControlsFrameInner, text="Preset Boundary Conditions", command=presetBoundaryConditions, padx=3, pady=3, background="#21e4d7")
+    presetBoundaryConditionsButton = Button(boundaryControlsFrameInner, text="Preset Boundary Conditions", command=presetBoundaryConditions, padx=3, pady=3, background="#21e4d7", relief=FLAT)
     presetBoundaryConditionsButton.grid(row=0, column=2, padx=4, pady=4)
 
 
