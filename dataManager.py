@@ -23,6 +23,7 @@ import os
 import json
 import numpy as np
 from datetime import *
+import copy
 
 ######################################################################################################################################################################
 # Functions that handle data loading and dumping to json-files.
@@ -51,7 +52,7 @@ def createSolName(ymd, gateType, solNumber):
     return ymd + "_" + gateType + "_" + str(solNumber)
 
 
-def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), folder='solutions_qubitPair01', circuitFile='circuit files/qubitPair01.json', circuitData=None, riseTime=25):
+def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), folder='Demo Circuit', circuitFile=None, circuitData=None, riseTime=25):
     ymd = creationTime.strftime('%Y%m%d')[2:]
     creationTime = creationTime.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -61,13 +62,15 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
 
     filePath = "./" + folder + "/" + solName + ".json"
 
-    if circuitData is None:
-        solDict = getFromjson(circuitFile)
-    else:
+    if circuitData is not None:
         solDict = {}
         circuitDataKeys = ['frequencies', 'anharmonicities', 'couplings']
         for key in circuitDataKeys:
             solDict[key] = [item/(2*np.pi) for item in circuitData[key]]
+    else:
+        if circuitFile is None:
+            circuitFile = folder + '/circuit.json'
+        solDict = getFromjson(circuitFile)
 
     while (solNumber < 1000):
         if not os.path.isfile(filePath):
@@ -102,7 +105,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
             try:
                 existingSolDict = getFromjson(filePath)
                 if (existingSolDict['creationTime'] == creationTime):
-                    print("Can't add solution: Solution already exists in solutions.json")
+                    print("Can't add solution: Solution already exists!")
                     return
             except FileNotFoundError:
                 pass

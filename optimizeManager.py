@@ -79,7 +79,7 @@ def optimize2QubitGate(iSWAP=False, SWAP=False, CZ=False, energyLevels=3, runSHG
     ---------------------------------------------------------
     """
     # Denna ska tas in mha gui:t
-    solutionsFolder = "solutions_qubitPair01"
+    solutionsFolder = "Qubit Pair 03/Solutions"
 
     findMinimum(cost, parameterBounds, argumentsToOptimizer=(energyLevels, iSWAP, SWAP, CZ, circuitData), runSHG=runSHG, runDA=runDA, runDE=runDE, solutionsFolder=solutionsFolder)
     gui.enableStopButton()
