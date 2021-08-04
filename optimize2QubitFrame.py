@@ -203,8 +203,8 @@ def setBoundaryValues(boundaryValues):
     thetaLower.set(boundaryValues[2][0])
     thetaUpper.set(boundaryValues[2][1])
 
-    deltaUpper.set(boundaryValues[3][1])
     deltaLower.set(boundaryValues[3][0])
+    deltaUpper.set(boundaryValues[3][1])
 
     omegaPhiLower.set(boundaryValues[4][0])
     omegaPhiUpper.set(boundaryValues[4][1])
