@@ -19,8 +19,10 @@
 
 ######################################################################################################################################################################
 
+import json
 from tkinter import *
 import math
+import numpy as np
 
 import dataManager
 import optimize2QubitFrame as gui
@@ -102,7 +104,62 @@ def getPreviewVariableValues():
 
 
 ######################################################################################################################################################################
-# The pop up window that let's the user select a preset boundary condition.
+# Functions for dynamically updating certain default presets
+
+
+def getCrossings():
+    lowFrequency = np.minimum(gui.frequencyQ1.get(), gui.frequencyQ2.get())
+    highFrequency = np.maximum(gui.frequencyQ1.get(), gui.frequencyQ2.get())
+
+    nearCrossing = np.arccos((highFrequency/gui.frequencyCoupler.get())**2) / np.pi
+    farCrossing = np.arccos((lowFrequency/gui.frequencyCoupler.get())**2) / np.pi
+    return [nearCrossing, farCrossing]
+
+
+def updateStaticPresets():
+    configData = dataManager.getFromjson("config.json")
+    presetList = configData["boundaryPresets"]
+    crossings = getCrossings()
+
+    maxTheta = 0.48
+    minThetaSWAP = 0.3
+    tradFreqDeviation = 0.02
+    tradFreq_iSWAP = abs(gui.frequencyQ1.get() - gui.frequencyQ2.get())
+    tradFreq_CZ_20 = abs(gui.frequencyQ1.get() + gui.anharmonicityQ1.get() - gui.frequencyQ2.get())
+    tradFreq_CZ_02 = abs(gui.frequencyQ1.get() - gui.frequencyQ2.get() - gui.anharmonicityQ2.get())
+
+    for p in presetList:
+        if p[0] == "Traditional iSWAP":
+            p[2] = [-crossings[0], 0]
+            p[3] = [0, 0.25]
+            p[4] = [tradFreq_iSWAP - tradFreqDeviation, tradFreq_iSWAP + tradFreqDeviation]
+            p[5] = [50, 100]
+        elif p[0] == "Traditional CZ (|11> <-> |20>)":
+            p[2] = [-maxTheta, 0]
+            p[3] = [0, 0.25]
+            p[4] = [tradFreq_CZ_20 - tradFreqDeviation, tradFreq_CZ_20 + tradFreqDeviation]
+            p[5] = [50, 120]
+        elif p[0] == "Traditional CZ (|11> <-> |02>)":
+            p[2] = [-maxTheta, 0]
+            p[3] = [0, 0.25]
+            p[4] = [tradFreq_CZ_02 - tradFreqDeviation, tradFreq_CZ_02 + tradFreqDeviation]
+            p[5] = [50, 120]
+        elif p[0] == "Intercrossing iSWAP":
+            p[2] = [-crossings[1], -crossings[0]]
+            p[3] = [0, 0.15]
+            p[4] = [tradFreq_iSWAP - tradFreqDeviation, tradFreq_iSWAP + tradFreqDeviation]
+            p[5] = [50, 100]
+        elif p[0] == "Constrained SWAP":
+            p[2] = [-maxTheta, -minThetaSWAP]
+            p[3] = [0, 0.15]
+            p[4] = [tradFreq_iSWAP - 2*tradFreqDeviation, tradFreq_iSWAP + 2*tradFreqDeviation]
+            p[5] = [50, 150]
+    
+    dataManager.dumpTojson(configData,'config.json')
+
+
+######################################################################################################################################################################
+# The pop up window that lets the user select a preset boundary condition.
 
 
 def selectPresetWindow(root):
@@ -114,7 +171,7 @@ def selectPresetWindow(root):
     pop.title("Boundary condition manager")
 
     height = 500
-    width = 350
+    width = 450
 
     pop.geometry(str(width)+"x"+str(height))
     pop.resizable(width=False, height=False)

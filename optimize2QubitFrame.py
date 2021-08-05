@@ -301,6 +301,7 @@ def setDefaultBoundaryValues():
 
 
 def presetBoundaryConditions():
+    boundaryWindow.updateStaticPresets()
     boundaryWindow.selectPresetWindow(root)
 
 
