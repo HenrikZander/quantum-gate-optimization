@@ -23,6 +23,7 @@ import json
 from tkinter import *
 import math
 import numpy as np
+from numpy.core.numeric import cross
 
 import dataManager
 import optimize2QubitFrame as gui
@@ -108,47 +109,86 @@ def getPreviewVariableValues():
 
 
 def getCrossings():
-    lowFrequency = np.minimum(gui.frequencyQ1.get(), gui.frequencyQ2.get())
-    highFrequency = np.maximum(gui.frequencyQ1.get(), gui.frequencyQ2.get())
+    freq1 = gui.frequencyQ1.get()
+    freq2 = gui.frequencyQ2.get()
+    freqTB0 = gui.frequencyCoupler.get()
+    anh1 = gui.anharmonicityQ1.get()
+    anh2 = gui.anharmonicityQ2.get()
 
-    nearCrossing = np.arccos((highFrequency/gui.frequencyCoupler.get())**2) / np.pi
-    farCrossing = np.arccos((lowFrequency/gui.frequencyCoupler.get())**2) / np.pi
-    return [nearCrossing, farCrossing]
+    if freq1 > freq2:
+        highFrequency = freq1
+        highAnh = anh1
+        lowFrequency = freq2
+        lowAnh = anh2
+
+        upperCZ = 'CZ_20'
+        lowerCZ = 'CZ_02'
+    else:
+        highFrequency = freq2
+        highAnh = anh2
+        lowFrequency = freq1
+        lowAnh = anh1
+
+        upperCZ = 'CZ_02'
+        lowerCZ = 'CZ_20'
+
+    nearCrossing_iSWAP = np.arccos((highFrequency/freqTB0)**2) / np.pi
+    farCrossing_iSWAP = np.arccos((lowFrequency/freqTB0)**2) / np.pi
+
+    nearCrossing_upperCZ = np.arccos(((highFrequency + highAnh)/freqTB0)**2) / np.pi
+
+    farCrossing_lowerCZ = np.arccos(((lowFrequency + lowAnh)/freqTB0)**2) / np.pi
+
+    crossingsDict = {}
+    crossingsDict['iSWAP'] = [nearCrossing_iSWAP, farCrossing_iSWAP]
+    crossingsDict[upperCZ] = [nearCrossing_upperCZ, farCrossing_iSWAP]
+    crossingsDict[lowerCZ] = [nearCrossing_iSWAP, farCrossing_lowerCZ]
+    return crossingsDict
 
 
 def updateStaticPresets():
     configData = dataManager.getFromjson("config.json")
     presetList = configData["boundaryPresets"]
-    crossings = getCrossings()
+    crossingsDict = getCrossings()
 
     maxTheta = 0.48
     minThetaSWAP = 0.3
-    tradFreqDeviation = 0.02
+    tradFreqDeviation = 0.04
     tradFreq_iSWAP = abs(gui.frequencyQ1.get() - gui.frequencyQ2.get())
     tradFreq_CZ_20 = abs(gui.frequencyQ1.get() + gui.anharmonicityQ1.get() - gui.frequencyQ2.get())
     tradFreq_CZ_02 = abs(gui.frequencyQ1.get() - gui.frequencyQ2.get() - gui.anharmonicityQ2.get())
 
     for p in presetList:
         if p[0] == "Traditional iSWAP":
-            p[2] = [-crossings[0], 0]
+            p[2] = [-crossingsDict['iSWAP'][0], 0]
             p[3] = [0, 0.25]
-            p[4] = [tradFreq_iSWAP - tradFreqDeviation, tradFreq_iSWAP + tradFreqDeviation]
+            p[4] = [tradFreq_iSWAP - 2*tradFreqDeviation, tradFreq_iSWAP + tradFreqDeviation]
             p[5] = [50, 100]
         elif p[0] == "Traditional CZ (|11> <-> |20>)":
-            p[2] = [-maxTheta, 0]
+            p[2] = [-crossingsDict['CZ_20'][0], 0]
             p[3] = [0, 0.25]
-            p[4] = [tradFreq_CZ_20 - tradFreqDeviation, tradFreq_CZ_20 + tradFreqDeviation]
+            p[4] = [tradFreq_CZ_20 - 2*tradFreqDeviation, tradFreq_CZ_20 + tradFreqDeviation]
             p[5] = [50, 120]
         elif p[0] == "Traditional CZ (|11> <-> |02>)":
-            p[2] = [-maxTheta, 0]
+            p[2] = [-crossingsDict['CZ_02'][0], 0]
             p[3] = [0, 0.25]
-            p[4] = [tradFreq_CZ_02 - tradFreqDeviation, tradFreq_CZ_02 + tradFreqDeviation]
+            p[4] = [tradFreq_CZ_02 - 2*tradFreqDeviation, tradFreq_CZ_02 + tradFreqDeviation]
             p[5] = [50, 120]
         elif p[0] == "Intercrossing iSWAP":
-            p[2] = [-crossings[1], -crossings[0]]
+            p[2] = [-crossingsDict['iSWAP'][1], -crossingsDict['iSWAP'][0]]
             p[3] = [0, 0.15]
-            p[4] = [tradFreq_iSWAP - tradFreqDeviation, tradFreq_iSWAP + tradFreqDeviation]
+            p[4] = [tradFreq_iSWAP - 0.5*tradFreqDeviation, tradFreq_iSWAP + 2*tradFreqDeviation]
             p[5] = [50, 100]
+        elif p[0] == "Intercrossing CZ (|11> <-> |20>)":
+            p[2] = [-crossingsDict['CZ_20'][1], -crossingsDict['CZ_20'][0]]
+            p[3] = [0, 0.15]
+            p[4] = [tradFreq_CZ_20 - 0.5*tradFreqDeviation, tradFreq_CZ_20 + 2*tradFreqDeviation]
+            p[5] = [50, 120]
+        elif p[0] == "Intercrossing CZ (|11> <-> |02>)":
+            p[2] = [-crossingsDict['CZ_02'][1], -crossingsDict['CZ_02'][0]]
+            p[3] = [0, 0.15]
+            p[4] = [tradFreq_CZ_02 - 0.5*tradFreqDeviation, tradFreq_CZ_02 + 2*tradFreqDeviation]
+            p[5] = [50, 120]
         elif p[0] == "Constrained SWAP":
             p[2] = [-maxTheta, -minThetaSWAP]
             p[3] = [0, 0.15]

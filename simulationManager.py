@@ -447,7 +447,7 @@ def plotEigenenergies(solutionPath, eigenenergiesPath, N=3, simPoints=200, numOf
 
     plt.plot([x[0], x[0]], [-200, 200], 'r--')
     plt.xlabel('Magnetic Flux [$\Phi$]', fontsize=16)
-    plt.ylabel('Energi', fontsize=16)
+    plt.ylabel('Energy [$\hbar$ rad/ns]', fontsize=16)
     plt.xlim([-0.5, 0])
     plt.ylim([-1, 100])
     plt.xticks(fontsize=12)
