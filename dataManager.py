@@ -24,6 +24,7 @@ import json
 import numpy as np
 from datetime import *
 import copy
+from pathlib import Path
 
 ######################################################################################################################################################################
 # Functions that handle data loading and dumping to json-files.
@@ -60,7 +61,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
 
     # print(solName)
 
-    filePath = folder + "\\" + solName + ".json"
+    filePath = Path(folder,solName + ".json")
 
     if circuitData is not None:
         solDict = {}
@@ -112,7 +113,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
 
             solNumber += 1
             solName = createSolName(ymd, gateType, solNumber)
-            filePath = folder + "\\" + solName + ".json"
+            filePath = Path(folder,solName + ".json")
 
 
 def saveSolutionsTojson(results, gateType, N, folder, circuitFile=None, circuitData=None, dateAndTime=datetime.today()):

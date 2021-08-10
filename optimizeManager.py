@@ -263,7 +263,7 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
     # Optimization using the Differential Evolution algorithm.
     if runDE:
         startTime = time.time()
-        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred', maxiter=2, args=argumentsToOptimizer, polish=False)
+        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred', maxiter=100000, args=argumentsToOptimizer, polish=True)
         timeDE = time.time() - startTime
         message += f'The optimizaton using the \"Differential Evolution\"-algorithm took {round(timeDE,2)}s to execute and ended on a minimum of {resDE.fun} at the point {resDE.x}.\n'
         message += f'Function evaluations performed: {resDE.nfev}\n'
