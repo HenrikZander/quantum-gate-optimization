@@ -24,6 +24,7 @@ import tkinter.ttk as ttk
 import tkinter.font as tkFont
 import time
 import math
+import platform
 import optimize2QubitFrame
 import simulate2QubitFrame
 
@@ -63,8 +64,18 @@ def calculateWindowSize(root):
     screen_height = root.winfo_screenheight()
     screen_width = root.winfo_screenwidth()
 
-    height = math.ceil(screen_height*0.9) # 0.6944444) # 
-    width = math.ceil(screen_width*0.78) # 0.6328125) # 
+    operatingSystem = platform.system()
+    print(operatingSystem)
+    
+    if operatingSystem == "Windows":
+        height = math.ceil(screen_height*0.6944444)
+        width = math.ceil(screen_width*0.6328125)
+    elif operatingSystem == "Darwin":
+        height = math.ceil(screen_height*0.9)
+        width = math.ceil(screen_width*0.78)
+    else:
+        height = math.ceil(screen_height*0.8)
+        width = math.ceil(screen_width*0.73)
 
     return height, width
 
