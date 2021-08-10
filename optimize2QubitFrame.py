@@ -26,6 +26,7 @@ import tkinter.font as tkFont
 import time
 from threading import Thread
 import numpy as np
+import os
 
 import dataManager
 import optimizeManager
@@ -73,7 +74,7 @@ def initiateGlobalVariables(rootWindow, givenHeight):
     global resultFolderPath
     global numberOfConsecutiveSessions
     resultFolderPath = StringVar(root)
-    resultFolderPath.set("C:/GateSide/Results")
+    resultFolderPath.set(os.path.abspath("") + "\Results")
     numberOfConsecutiveSessions = IntVar(root)
 
     global runDifferentialEvolution
@@ -170,7 +171,7 @@ def callOptimizeGate():
     dataFromUser = getAllVariablesForTheOptimizer()
     iSWAP, SWAP, CZ = identifyGate(dataFromUser)
 
-    optimizeManager.optimize2QubitGate(iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, energyLevels=dataFromUser["energy-levels"], runSHG=dataFromUser["runSHG"], runDA=dataFromUser["runDA"], runDE=dataFromUser["runDE"], parameterBounds=(dataFromUser["theta"], dataFromUser["delta"], dataFromUser["omegaPhi"], dataFromUser["modulationTime"]), circuitData=dataFromUser)
+    optimizeManager.optimize2QubitGate(iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, userData=dataFromUser)
 
 
 def scheduleOptimizingSessions():
@@ -314,7 +315,7 @@ def useBoundaryDefault():
 
 
 def selectSaveFolder():
-    folderPath = filedialog.askdirectory(title="Choose folder to save results in", initialdir="C:/")
+    folderPath = filedialog.askdirectory(title="Choose folder to save results in", initialdir=resultFolderPath.get())
     if folderPath:
         resultFolderPath.set(folderPath)
 

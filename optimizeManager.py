@@ -44,7 +44,7 @@ def averageFidelity(F, gateTimeWeight=2):
 
 
 def cost(x, N, iSWAP, SWAP, CZ, circuitData):
-    F, _ = model.getGateFidelity(x, N=N, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, circuitData=circuitData, printResults=True)
+    F, _ = model.getGateFidelity(x, N=N, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, circuitData=circuitData, printResults=False)
     return -averageFidelity(F)
 
 
@@ -52,7 +52,7 @@ def cost(x, N, iSWAP, SWAP, CZ, circuitData):
 # Optimize gate function
 
 
-def optimize2QubitGate(iSWAP=False, SWAP=False, CZ=False, energyLevels=3, runSHG=False, runDA=False, runDE=False, parameterBounds=None, circuitData=None):
+def optimize2QubitGate(iSWAP=False, SWAP=False, CZ=False, userData=None):
     """
     The function tries to optimize the choosen gate for the
     choosen parameters, using the optimization algorithms 
@@ -78,10 +78,20 @@ def optimize2QubitGate(iSWAP=False, SWAP=False, CZ=False, energyLevels=3, runSHG
             No output.
     ---------------------------------------------------------
     """
-    # Denna ska tas in mha gui:t
-    solutionsFolder = "Qubit Pair 03/Solutions"
+    #
+    # Divide data from user into variables
+    #
 
-    findMinimum(cost, parameterBounds, argumentsToOptimizer=(energyLevels, iSWAP, SWAP, CZ, circuitData), runSHG=runSHG, runDA=runDA, runDE=runDE, solutionsFolder=solutionsFolder)
+    parameterBounds = (userData["theta"], userData["delta"], userData["omegaPhi"], userData["modulationTime"])
+    energyLevels = userData["energy-levels"]
+    runSHG=userData["runSHG"]
+    runDA=userData["runDA"]
+    runDE=userData["runDE"]
+
+    # Denna ska tas in mha gui:t
+    solutionsFolder = userData["save-folder"]
+
+    findMinimum(cost, parameterBounds, argumentsToOptimizer=(energyLevels, iSWAP, SWAP, CZ, userData), runSHG=runSHG, runDA=runDA, runDE=runDE, solutionsFolder=solutionsFolder)
     gui.enableStopButton()
     if gui.getRunOptimizer():
         gui.processFinished()
@@ -119,7 +129,7 @@ def callbackDE(x, convergence=None):
 
     gui.setProgressValue(convergence)
 
-    if convergence>1:
+    if convergence > 1:
         gui.setStatus("Status: Finished! Polishing solution.")
         gui.disableStartStopButtons()
     
@@ -253,7 +263,7 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
     # Optimization using the Differential Evolution algorithm.
     if runDE:
         startTime = time.time()
-        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred', maxiter=100000, args=argumentsToOptimizer)
+        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred', maxiter=2, args=argumentsToOptimizer, polish=False)
         timeDE = time.time() - startTime
         message += f'The optimizaton using the \"Differential Evolution\"-algorithm took {round(timeDE,2)}s to execute and ended on a minimum of {resDE.fun} at the point {resDE.x}.\n'
         message += f'Function evaluations performed: {resDE.nfev}\n'
@@ -264,7 +274,11 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
     print("")
     print(message + "##################################################")
     dateAndTime = datetime.today()
+
+    ############ Saving to result.txt (this should be removed later) ############
     saveAllFinalResults(result, algorithmsUsed, runtime, dateAndTime=dateAndTime)
+    #############################################################################
+    
     if solutionsFolder is not None:
         N, iSWAP, SWAP, CZ, circuitData = argumentsToOptimizer
         if iSWAP:

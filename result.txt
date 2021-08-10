@@ -4687,3 +4687,27 @@ Total runtime: 7123.553244113922 seconds
  success: True
        x: array([-4.16244814e-01,  3.94472365e-03,  2.55994294e-01,  8.26958200e+01])
 ##################################################
+##################################################
+Result (full) from: 2021-08-10 17:01:07.765200
+Algorithm: Differential Evolution
+Total runtime: 559.1372628211975 seconds
+##################################################
+     fun: -0.5536402416084779
+ message: 'Maximum number of iterations has been exceeded.'
+    nfev: 180
+     nit: 2
+ success: False
+       x: array([-0.40396445,  0.13442701,  0.72552662, 86.29820642])
+##################################################
+##################################################
+Result (full) from: 2021-08-10 17:15:25.077443
+Algorithm: Differential Evolution
+Total runtime: 354.39019799232483 seconds
+##################################################
+     fun: -0.6218820224387289
+ message: 'Maximum number of iterations has been exceeded.'
+    nfev: 180
+     nit: 2
+ success: False
+       x: array([4.21943311e-01, 6.54199351e-02, 2.79652536e-01, 1.21481985e+02])
+##################################################

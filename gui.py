@@ -65,8 +65,7 @@ def calculateWindowSize(root):
     screen_width = root.winfo_screenwidth()
 
     operatingSystem = platform.system()
-    print(operatingSystem)
-    
+
     if operatingSystem == "Windows":
         height = math.ceil(screen_height*0.6944444)
         width = math.ceil(screen_width*0.6328125)

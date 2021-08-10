@@ -60,7 +60,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
 
     # print(solName)
 
-    filePath = "./" + folder + "/" + solName + ".json"
+    filePath = folder + "\\" + solName + ".json"
 
     if circuitData is not None:
         solDict = {}
@@ -69,7 +69,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
             solDict[key] = [item/(2*np.pi) for item in circuitData[key]]
     else:
         if circuitFile is None:
-            circuitFile = folder + '/circuit.json'
+            circuitFile = folder + '\circuit.json'
         solDict = getFromjson(circuitFile)
 
     while (solNumber < 1000):
@@ -112,7 +112,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
 
             solNumber += 1
             solName = createSolName(ymd, gateType, solNumber)
-            filePath = "./" + folder + "/" + solName + ".json"
+            filePath = folder + "\\" + solName + ".json"
 
 
 def saveSolutionsTojson(results, gateType, N, folder, circuitFile=None, circuitData=None, dateAndTime=datetime.today()):
