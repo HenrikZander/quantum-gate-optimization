@@ -62,7 +62,7 @@ def getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex):
     return usedLabels
 
 
-def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=1, highestProjectionIndex=12, N=4):
+def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=True, rotatingFrame=True, initialStateIndex=1, highestProjectionIndex=12, N=4):
     """
     This function simulates the population transfers between 
     different eigenstates of the 4-level hamiltonian from 
@@ -70,7 +70,7 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinStepHamiltonian
     ---------------------------------------------------------
     INPUT:
             solutionPath (string): The path to the solution file that the simulation is be performed for.
-            sinStepHamiltonian (boolean) {Optional}: If True the amplitude of AC part of the flux signal that is applied to the tunable bus will be sinusodially modulated.
+            sinBoxHamiltonian (boolean) {Optional}: If True the amplitude of AC part of the flux signal that is applied to the tunable bus will be sinusodially modulated.
             rotatingFrame (boolean) {Optional}: If True the states will be transformed into the rotating frame after the time evolution has been completed.
             initialStateIndex (int) {Optional}: This parameter determines which eigenstate will be the initial state in the time evolution. If initialStateIndex=0,
                 the eigenstate with the lowest associated energy will be the initial state.
@@ -86,7 +86,17 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinStepHamiltonian
 
     # Load a solution from a file and create a list x defining the control signal, converting omegaPhi from GHz to Grad/s.
     solutionDict = getFromjson(fileName=solutionPath)
-    x = [solutionDict['theta'], solutionDict['delta'], 2*np.pi*solutionDict['omegaPhi'], solutionDict['modulationTime']]
+
+    if solutionDict['signalType'] == 'arccos':
+        x0name = 'dcAmplitude'
+        x1name = 'acAmplitude'
+        arccosSignal = True
+    elif solutionDict['signalType'] == 'cos':
+        x0name = 'theta'
+        x1name = 'delta'
+        arccosSignal = False
+    
+    x = [solutionDict[x0name], solutionDict[x1name], 2*np.pi*solutionDict['omegaPhi'], solutionDict['modulationTime']]
 
     # Load circuit data into a dictionary and change units from GHz to Grad/s.
     circuitData = getCircuitData(solutionDict)
@@ -96,22 +106,22 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinStepHamiltonian
     simulationTime = int(x[-1]) + 10
 
     # Calculate the eigenstates and eigenenergies of the bare basis hamiltonian.
-    hamiltonianBareBasis = model.getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData)
+    hamiltonianBareBasis = model.getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData, useArccosSignal=arccosSignal)
 
     # Calculate the tunable bus frequency when only the DC part of the flux is active.
-    omegaTBDC = model.coeffomegaTB(circuitData['frequencies'][2], x[0])
+    omegaTBDC = model.coeffomegaTB(circuitData['frequencies'][2], x[0], useArccosSignal=arccosSignal)
 
     # Calculate eigenstates and eigenenergies of the hamiltonian in the bare basis when the flux only has its DC part.
-    eigenStatesAndEnergies = model.getThetaEigenstates(x, hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
+    eigenStatesAndEnergies = model.getThetaEigenstates(hamiltonianBareBasis[0]+hamiltonianBareBasis[1], hamiltonianBareBasis[2], omegaTBDC)
 
     # Get eigenindices.
     eigIndices = model.getIndices(N, eigenStatesAndEnergies[1])
 
     # Calculate the unitary for transforming the hamiltonian to the eigen basis.
-    eigenBasisUnitary = model.getEBUnitary(x, eigenStatesAndEnergies, N, D)
+    eigenBasisUnitary = model.getEBUnitary(eigenStatesAndEnergies, N, D)
 
     # Get the hamiltonian that has a sinusodially modulated AC flux and also is in the eigen basis.
-    hamiltonian = model.getHamiltonian(x, N=N, eigEs=eigenStatesAndEnergies[0], U_e=eigenBasisUnitary, sinStepHamiltonian=sinStepHamiltonian, circuitData=circuitData)
+    hamiltonian = model.getHamiltonian(x, N=N, eigEs=eigenStatesAndEnergies[0], U_e=eigenBasisUnitary, sinBoxHamiltonian=sinBoxHamiltonian, circuitData=circuitData, useArccosSignal=arccosSignal)
 
     # Change the simulation settings and create the timestamps for where the evolution is to be evaluated.
     options = solver.Options()
@@ -122,7 +132,7 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinStepHamiltonian
     initialState = Qobj(basis(D, initialStateIndex), dims=[[N, N, N], [1, 1, 1]])
 
     # Time evolve the initial state.
-    result = sesolve(hamiltonian, initialState, timeStamps, [], options=options, args={'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': circuitData['frequencies'][2], 'operationTime': x[3], 'omegaTBTh': omegaTBDC, 'riseTime': solutionDict['riseTime']})
+    result = sesolve(hamiltonian, initialState, timeStamps, [], options=options, args={x0name: x[0], x1name: x[1], 'omegaphi': x[2], 'omegatb0': circuitData['frequencies'][2], 'operationTime': x[3], 'omegaTBTh': omegaTBDC, 'riseTime': solutionDict['riseTime']})
     states = result.states
 
     # Transform into the rotating frame.
@@ -149,7 +159,10 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinStepHamiltonian
     plt.figure(figsize=(8, 7))
     
     eigenEnergyDict = getFromjson(eigenenergiesPath)
-    theta = x[0]
+    if arccosSignal:
+        theta = np.arccos(x[0] ** 2) / np.pi
+    else:
+        theta = x[0]
     maxUsedIndex = highestProjectionIndex
     labels = getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex)
 
@@ -173,7 +186,17 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinStepHamiltonian
 
 def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False):
     solutionDict = getFromjson(fileName=solutionPath)
-    x = (solutionDict['theta'], solutionDict['delta'], solutionDict['omegaPhi'], solutionDict['modulationTime'])
+
+    if solutionDict['signalType'] == 'arccos':
+        x0name = 'dcAmplitude'
+        x1name = 'acAmplitude'
+        arccosSignal = True
+    elif solutionDict['signalType'] == 'cos':
+        x0name = 'theta'
+        x1name = 'delta'
+        arccosSignal = False
+    
+    x = (solutionDict[x0name], solutionDict[x1name], solutionDict['omegaPhi'], solutionDict['modulationTime'])
     
     circuitData = getCircuitData(solutionDict)
 
@@ -195,7 +218,7 @@ def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False):
         times = solutionDict['times']
     else:
         indices = np.linspace(-116, -1, 116).astype(int)
-        F, times = model.getGateFidelity(x, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=indices, circuitData=circuitData)
+        F, times = model.getGateFidelity(x, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=indices, circuitData=circuitData, useArccosSignal=arccosSignal)
 
     plt.figure(figsize=(8, 7))
     plt.plot(times, F)
@@ -219,10 +242,31 @@ def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False):
         dumpTojson(solutionDict,solutionPath)
 
 
-def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[5e-4, 1e-3, 2e-3, 4e0], useSavedPlot=False, saveToFile=False):
+def getRobustnessPlot(solutionPath, checkX0=False, checkX1=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[5e-4, 1e-3, 2e-3, 4e0], useSavedPlot=False, saveToFile=False):
     solDict = getFromjson(solutionPath)
-    x = [solDict['theta'], solDict['delta'], solDict['omegaPhi'], solDict['modulationTime']]
+    
+    if solDict['signalType'] == 'arccos':
+        x0name = 'dcAmplitude'
+        x1name = 'acAmplitude'
+        arccosSignal = True
+        axlabel_x0 = "Avvikelse från hittat $A$"
+        axlabel_x1 = "Avvikelse från hittat $B$"
+    elif solDict['signalType'] == 'cos':
+        x0name = 'theta'
+        x1name = 'delta'
+        arccosSignal = False
+        axlabel_x0 = "Avvikelse från hittat $\Theta$ [$\Phi_0$]"
+        axlabel_x1 = "Avvikelse från hittat $\delta$ [$\Phi_0$]"
+    
+    x = [solDict[x0name], solDict[x1name], solDict['omegaPhi'], solDict['modulationTime']]
     circuitData = getCircuitData(solDict)
+
+    if arccosSignal:
+        legendStr_x0 = "$A = %.4f$" %x[0]
+        legendStr_x1 = "$B = %.4f$" %x[1]
+    else:
+        legendStr_x0 = "$\Theta = %.4f$" %x[0]
+        legendStr_x1 = "$\delta = %.4f$" %x[1]
 
     if solDict['gateType'] == 'iSWAP':
         iSWAP = True
@@ -241,7 +285,7 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
         print("Re-saving data in a file where that data is already saved is rather pointless, don't ya think?")
         saveToFile = False
 
-    checkList = [checkTheta, checkDelta, checkOmegaPhi, checkOpTime]
+    checkList = [checkX0, checkX1, checkOmegaPhi, checkOpTime]
     if (sum(checkList) < 1):
         print("You need to specify at least one parameter to check")
     elif (sum(checkList) > 2):
@@ -256,14 +300,14 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
         plt.xticks(fontsize=16)
         plt.yticks(fontsize=16)
 
-        axlabels = ["Avvikelse från hittat $\Theta$ [$\Phi_0$]", "Avvikelse från hittat $\delta$ [$\Phi_0$]", "Avvikelse från hittat $\omega_\Phi$ [MHz]", "Avvikelse från hittat $t_{MOD}$ [ns]"]
-        legendStrs = ["$\Theta = %.4f$" %x[0], "$\delta = %.4f$" %x[1], "$\omega_\Phi = %.1f$" %(x[2]*1000), "$t_{MOD} = %.1f$" %x[3]]
+        axlabels = [axlabel_x0, axlabel_x1, "Avvikelse från hittat $\omega_\Phi$ [MHz]", "Avvikelse från hittat $t_{MOD}$ [ns]"]
+        legendStrs = [legendStr_x0, legendStr_x1, "$\omega_\Phi = %.1f$" %(x[2]*1000), "$t_{MOD} = %.1f$" %x[3]]
         # maxDevs = [3e-4, 1e-3, 2*np.pi * 8e-3, 40e0] # Testing extended bounds, looking for chevrony stuff
 
         xIndices = []
-        if (checkTheta):
+        if (checkX0):
             xIndices.append(0)
-        if (checkDelta):
+        if (checkX1):
             xIndices.append(1)
         if (checkOmegaPhi):
             xIndices.append(2)
@@ -280,7 +324,7 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
                 fidelities = []
                 for i, d in enumerate(deviations):
                     xDev[xIndex] = x[xIndex] + d
-                    fidelity, _ = model.getGateFidelity(xDev, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData)
+                    fidelity, _ = model.getGateFidelity(xDev, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData, useArccosSignal=arccosSignal)
                     fidelities.append(fidelity[0])
                     statusBar((i+1)*100/nPointsList[0])
 
@@ -316,21 +360,11 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
             iLegendStr = legendStrs[xIndices[0]]
             jLegendStr = legendStrs[xIndices[1]]
 
-            if (xIndices == [0,1]):
-                listName = "fidelities2D_Theta_delta"
-            elif (xIndices == [0,2]):
-                listName = "fidelities2D_Theta_omegaPhi"
-            elif (xIndices == [0,3]):
-                listName = "fidelities2D_Theta_opTime"
-            elif (xIndices == [1,2]):
-                listName = "fidelities2D_delta_omegaPhi"
-            elif (xIndices == [1,3]):
-                listName = "fidelities2D_delta_opTime"
-            elif (xIndices == [2,3]):
-                listName = "fidelities2D_omegaPhi_opTime"
+            if arccosSignal:
+                xParts = ['dcAmplitude', 'acAmplitude', 'omegaPhi', 'opTime']
             else:
-                print("Error: If you see this, something went wrong")
-                return
+                xParts = ['Theta', 'delta', 'omegaPhi', 'opTime']
+            listName = "fidelities2D_" + xParts[xIndices[0]] + "_" + xParts[xIndices[1]]
 
             if (useSavedPlot):
                 fidelities2D = np.array(solDict[listName][0])
@@ -345,7 +379,7 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
                     xDev[xIndices[1]] = x[xIndices[1]] + jDev
                     for i, iDev in enumerate(iDeviations):
                         xDev[xIndices[0]] = x[xIndices[0]] + iDev
-                        fidelity, _ = model.getGateFidelity(xDev, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData)
+                        fidelity, _ = model.getGateFidelity(xDev, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData, useArccosSignal=arccosSignal)
                         fidelities.append(fidelity[0])
                         statusBar((j*nPointsList[0] + (i+1))*100/(nPointsList[0]*nPointsList[1]))
                 fidelities2D = np.array(fidelities).reshape(nPointsList[1], nPointsList[0])
@@ -390,10 +424,23 @@ def getRobustnessPlot(solutionPath, checkTheta=False, checkDelta=False, checkOme
 
 def plotEigenenergies(solutionPath, eigenenergiesPath, N=3, simPoints=200, numOfEnergyLevels=None, useSavedPlot=False, saveToFile=False):
     solDict = getFromjson(solutionPath)
-    x = [solDict['theta'], solDict['delta'], solDict['omegaPhi'], solDict['modulationTime']]
+
+    if solDict['signalType'] == 'arccos':
+        x0name = 'dcAmplitude'
+        x1name = 'acAmplitude'
+        arccosSignal = True
+    elif solDict['signalType'] == 'cos':
+        x0name = 'theta'
+        x1name = 'delta'
+        arccosSignal = False
+    
+    x = [solDict[x0name], solDict[x1name], solDict['omegaPhi'], solDict['modulationTime']]
     circuitData = getCircuitData(solDict)
 
-    x[0] = - abs(x[0])
+    if arccosSignal:
+        th = - np.arccos(x[0] ** 2) / np.pi
+    else:
+        th = - abs(x[0])
 
     if (useSavedPlot and saveToFile):
         print("Re-saving something in a json file that's already saved there is rather pointless, don't ya think?")
@@ -406,7 +453,7 @@ def plotEigenenergies(solutionPath, eigenenergiesPath, N=3, simPoints=200, numOf
         if numOfEnergyLevels is None:
             numOfEnergyLevels = N**3
         
-        energyOfEigenstate = [ [ [], [], (x, x, x), [] ] for x in range(N**3)]
+        energyOfEigenstate = [ [ [], [], (k, k, k), [] ] for k in range(N**3)]
 
         i = 0
         for q1 in range(N):
@@ -415,12 +462,12 @@ def plotEigenenergies(solutionPath, eigenenergiesPath, N=3, simPoints=200, numOf
                     energyOfEigenstate[i][2] = (q1,q2,qTB)
                     i = i + 1
 
-        HBareBasisComponents = model.getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData)
+        HBareBasisComponents = model.getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData, useArccosSignal=arccosSignal)
         thetas = np.linspace(-0.5, 0, simPoints)
         
         for i, theta in enumerate(thetas):
-            omegaTBTh = model.coeffomegaTB(circuitData['frequencies'][2], theta)
-            eigenStatesAndEnergiesBareBasis = model.getThetaEigenstates(x, HBareBasisComponents[0]+HBareBasisComponents[1], HBareBasisComponents[2], omegaTBTh)
+            omegaTBTh = model.coeffomegaTB(circuitData['frequencies'][2], theta, useArccosSignal=arccosSignal)
+            eigenStatesAndEnergiesBareBasis = model.getThetaEigenstates(HBareBasisComponents[0]+HBareBasisComponents[1], HBareBasisComponents[2], omegaTBTh)
             order = model.eigenstateOrder(eigenStatesAndEnergiesBareBasis[1][0:numOfEnergyLevels], N) # eigenStatesAndEnergiesBareBasis[0][0:numOfEnergyLevels],
 
             for entry in order:
@@ -442,14 +489,14 @@ def plotEigenenergies(solutionPath, eigenenergiesPath, N=3, simPoints=200, numOf
     for index, item in enumerate(energyOfEigenstate):
         flux, energy, state, _ = item
         if not (len(flux) == 0):
-            plt.plot(flux, energy, ls=linestyle[math.floor(index / 10) % 4])
+            plt.plot(flux, [e/(2*np.pi) for e in energy], ls=linestyle[math.floor(index / 10) % 4])
             labels.append(indexToString(state))
 
-    plt.plot([x[0], x[0]], [-200, 200], 'r--')
+    plt.plot([th, th], [-30, 30], 'r--')
     plt.xlabel('Magnetic Flux [$\Phi$]', fontsize=16)
-    plt.ylabel('Energy [$\hbar$ rad/ns]', fontsize=16)
+    plt.ylabel('Energy [GHz]', fontsize=16)
     plt.xlim([-0.5, 0])
-    plt.ylim([-1, 100])
+    plt.ylim([-1, 15])
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
     leg = plt.legend(labels, bbox_to_anchor=(1.1, 1), fontsize=10, loc="upper right")

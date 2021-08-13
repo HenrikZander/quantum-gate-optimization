@@ -42,15 +42,15 @@ def initiateGlobalVariables(root):
     global presetName
     presetName = StringVar(root)
 
-    global thetaLowerNew
-    global thetaUpperNew
-    thetaLowerNew = DoubleVar(root)
-    thetaUpperNew = DoubleVar(root)
+    global x0LowerNew
+    global x0UpperNew
+    x0LowerNew = DoubleVar(root)
+    x0UpperNew = DoubleVar(root)
 
-    global deltaLowerNew
-    global deltaUpperNew
-    deltaLowerNew = DoubleVar(root)
-    deltaUpperNew = DoubleVar(root)
+    global x1LowerNew
+    global x1UpperNew
+    x1LowerNew = DoubleVar(root)
+    x1UpperNew = DoubleVar(root)
 
     global omegaPhiLowerNew
     global omegaPhiUpperNew
@@ -66,11 +66,11 @@ def initiateGlobalVariables(root):
 def setVariablesToZero():
     presetName.set("")
 
-    thetaLowerNew.set(0)
-    thetaUpperNew.set(0)
+    x0LowerNew.set(0)
+    x0UpperNew.set(0)
 
-    deltaLowerNew.set(0)
-    deltaUpperNew.set(0)
+    x1LowerNew.set(0)
+    x1UpperNew.set(0)
 
     omegaPhiLowerNew.set(0)
     omegaPhiUpperNew.set(0)
@@ -87,11 +87,34 @@ def setVariablesToPreset(index, copy=False):
     else:
         presetName.set(parameterValues[0])
 
-    thetaLowerNew.set(parameterValues[2][0])
-    thetaUpperNew.set(parameterValues[2][1])
+    print("Hello")
+    print(gui.signalShape.get())
+    print(gui.getArccosSignalBoolean())
+    if gui.getArccosSignalBoolean():
+        if parameterValues[2][0] * parameterValues[2][1] > 0:
+            dcAmplitudeLower = getAfromTheta(max(parameterValues[2], key=abs))
+            dcAmplitudeUpper = getAfromTheta(min(parameterValues[2], key=abs))
+        else:
+            dcAmplitudeLower = getAfromTheta(max(parameterValues[2], key=abs))
+            dcAmplitudeUpper = 1
 
-    deltaLowerNew.set(parameterValues[3][0])
-    deltaUpperNew.set(parameterValues[3][1])
+        # OBS: Detta är egentligen ass, men det blir typ det rimligaste iom att
+        # det inte går att begränsa B dynamiskt beroende på A (vilket egentligen 
+        # är vad man vill göra):
+        acAmplitudeLower = parameterValues[3][0]
+        acAmplitudeUpper = parameterValues[3][1]
+        
+        x0LowerNew.set(dcAmplitudeLower)
+        x0UpperNew.set(dcAmplitudeUpper)
+
+        x1LowerNew.set(acAmplitudeLower)
+        x1UpperNew.set(acAmplitudeUpper)
+    else:
+        x0LowerNew.set(parameterValues[2][0])
+        x0UpperNew.set(parameterValues[2][1])
+
+        x1LowerNew.set(parameterValues[3][0])
+        x1UpperNew.set(parameterValues[3][1])
 
     omegaPhiLowerNew.set(parameterValues[4][0])
     omegaPhiUpperNew.set(parameterValues[4][1])
@@ -101,8 +124,27 @@ def setVariablesToPreset(index, copy=False):
 
 
 def getPreviewVariableValues():
-    return presetName.get(), [[thetaLowerNew.get(), thetaUpperNew.get()], [deltaLowerNew.get(), deltaUpperNew.get()], [omegaPhiLowerNew.get(), omegaPhiUpperNew.get()], [modulationTimeLowerNew.get(), modulationTimeUpperNew.get()]]
+    return presetName.get(), [[x0LowerNew.get(), x0UpperNew.get()], [x1LowerNew.get(), x1UpperNew.get()], [omegaPhiLowerNew.get(), omegaPhiUpperNew.get()], [modulationTimeLowerNew.get(), modulationTimeUpperNew.get()]]
 
+
+def getAfromTheta(theta):
+    dcAmplitude = np.sqrt(np.abs(np.cos(np.pi * theta)))
+    return dcAmplitude
+
+
+def getBfromThetaDelta(theta,delta):
+    '''
+    This function assumes that theta ± delta lies within [-1,1] Phi_0, and that delta is positive.
+    '''
+    if theta + delta > 0.5:
+        acAmplitude = -1/2 * np.sqrt(np.abs(np.cos(np.pi * (theta - delta))))
+    elif theta - delta < -0.5:
+        acAmplitude = 1/2 * np.sqrt(np.abs(np.cos(np.pi * (theta + delta))))
+    else:
+        if abs(theta) + abs(delta) > 0.5:
+            print("Weird input in getBfromThetaDelta.")
+        acAmplitude = 1/2 * ( np.sqrt(np.abs(np.cos(np.pi * (theta + delta)))) - np.sqrt(np.abs(np.cos(np.pi * (theta - delta)))) )
+    return acAmplitude
 
 ######################################################################################################################################################################
 # Functions for dynamically updating certain default presets
@@ -319,8 +361,8 @@ def generateBoundaryPresetPreview(parentWidget, height, width, edit=False):
     parameterFrame = LabelFrame(parentWidget, text="Preset parameters: ")
     parameterFrame.pack(pady=(8,0))
 
-    generateThetaInputWidgets(parameterFrame, height, width, entryCharacterWidth)
-    generateDeltaInputWidgets(parameterFrame, height, width, entryCharacterWidth)
+    generateX0InputWidgets(parameterFrame, height, width, entryCharacterWidth)
+    generateX1InputWidgets(parameterFrame, height, width, entryCharacterWidth)
     generateOmegaInputWidgets(parameterFrame, height, width, entryCharacterWidth)
     generateModulationTimeInputWidgets(parameterFrame, height, width, entryCharacterWidth)
 
@@ -392,6 +434,12 @@ def selectPreset():
         selectedPresetIndex = selectedPresetIndex[0]
 
         boundaryValues = getPreset(selectedPresetIndex)
+
+        if gui.getArccosSignalBoolean():
+            for i in range(2):
+                boundaryValues[2][i] = getAfromTheta(boundaryValues[2][i])
+            # OBS: Jag laddar här in deltaBounds som om de vore BBounds.
+        
         gui.setBoundaryValues(boundaryValues)
         # print(boundaryValues)
 
@@ -440,6 +488,10 @@ def loadAllPresets():
 
 
 def addPreset(name, boundaryValues):
+    if gui.getArccosSignalBoolean():
+        for i in range(2):
+            boundaryValues[0][i] = - 1/np.pi * np.arccos(boundaryValues[0][i] ** 2)
+        # OBS: Jag sparar här BBounds som om de vore deltaBounds, eftersom jag ovan valde att använda ett preset:s deltaBounds som BBounds rakt av.
     configData = dataManager.getFromjson("config.json")
     configData["boundaryPresets"].append([name, True, *boundaryValues])
     dataManager.dumpTojson(configData, "config.json")
@@ -453,6 +505,10 @@ def getPreset(index):
 
 
 def changePreset(index, newBoundaryValues):
+    if gui.getArccosSignalBoolean():
+        for i in range(2):
+            newBoundaryValues[0][i] = - 1/np.pi * np.arccos(newBoundaryValues[0][i] ** 2)
+        # OBS: Jag sparar här BBounds som om de vore deltaBounds, eftersom jag ovan valde att använda ett preset:s deltaBounds som BBounds rakt av.
     configData = dataManager.getFromjson("config.json")
     oldBoundaryValues = configData["boundaryPresets"][index]
     configData["boundaryPresets"][index] = [oldBoundaryValues[0], oldBoundaryValues[1], *newBoundaryValues]
@@ -475,50 +531,50 @@ def deletePreset(index):
 # Functions that help generate the widgets in the creator/editor window.
 
 
-def generateThetaInputWidgets(parentWidget, height, width, entryCharacterWidth):
-    thetaInputFrameOuter = Frame(parentWidget, height=35, width=width)# , background="yellow")
-    thetaInputFrameOuter.grid(row=0, column=0)
+def generateX0InputWidgets(parentWidget, height, width, entryCharacterWidth):
+    x0InputFrameOuter = Frame(parentWidget, height=35, width=width)# , background="yellow")
+    x0InputFrameOuter.grid(row=0, column=0)
 
-    thetaInputFrameInner = Frame(thetaInputFrameOuter)  # , background="blue")
-    thetaInputFrameInner.place(anchor="e", relx=0.9, rely=0.5)
+    x0InputFrameInner = Frame(x0InputFrameOuter)  # , background="blue")
+    x0InputFrameInner.place(anchor="e", relx=0.9, rely=0.5)
 
-    thetaLabel = Label(thetaInputFrameInner, text="Strength of DC-flux \u0398 [\u03A6"+subscriptZero+"]:")
-    thetaLabel.pack(side=LEFT, padx=(0, 5))
+    x0Label = Label(x0InputFrameInner, textvariable=gui.x0LabelVar)
+    x0Label.pack(side=LEFT, padx=(0, 5))
 
-    lowerThetaLabel = Label(thetaInputFrameInner, text="Lower limit:")
-    lowerThetaLabel.pack(side=LEFT)
+    lowerX0Label = Label(x0InputFrameInner, text="Lower limit:")
+    lowerX0Label.pack(side=LEFT)
 
-    lowerThetaEntry = Entry(thetaInputFrameInner, width=entryCharacterWidth, textvariable=thetaLowerNew)
-    lowerThetaEntry.pack(side=LEFT, padx=(0, 5))
+    lowerX0Entry = Entry(x0InputFrameInner, width=entryCharacterWidth, textvariable=x0LowerNew)
+    lowerX0Entry.pack(side=LEFT, padx=(0, 5))
 
-    upperThetaLabel = Label(thetaInputFrameInner, text="Upper limit:")
-    upperThetaLabel.pack(side=LEFT)
+    upperX0Label = Label(x0InputFrameInner, text="Upper limit:")
+    upperX0Label.pack(side=LEFT)
 
-    upperThetaEntry = Entry(thetaInputFrameInner, width=entryCharacterWidth, textvariable=thetaUpperNew)
-    upperThetaEntry.pack(side=LEFT)
+    upperX0Entry = Entry(x0InputFrameInner, width=entryCharacterWidth, textvariable=x0UpperNew)
+    upperX0Entry.pack(side=LEFT)
 
 
-def generateDeltaInputWidgets(parentWidget, height, width, entryCharacterWidth):
-    deltaInputFrameOuter = Frame(parentWidget, height=35, width=width)# , background="green")
-    deltaInputFrameOuter.grid(row=1, column=0)
+def generateX1InputWidgets(parentWidget, height, width, entryCharacterWidth):
+    x1InputFrameOuter = Frame(parentWidget, height=35, width=width)# , background="green")
+    x1InputFrameOuter.grid(row=1, column=0)
 
-    deltaInputFrameInner = Frame(deltaInputFrameOuter)  # , background="blue")
-    deltaInputFrameInner.place(anchor="e", relx=0.9, rely=0.5)
+    x1InputFrameInner = Frame(x1InputFrameOuter)  # , background="blue")
+    x1InputFrameInner.place(anchor="e", relx=0.9, rely=0.5)
 
-    deltaLabel = Label(deltaInputFrameInner, text="Amplitude of \u03B4(t) [\u03A6"+subscriptZero+"]:")
-    deltaLabel.pack(side=LEFT, padx=(0, 5))
+    x1Label = Label(x1InputFrameInner, textvariable=gui.x1LabelVar)
+    x1Label.pack(side=LEFT, padx=(0, 5))
 
-    lowerDeltaLabel = Label(deltaInputFrameInner, text="Lower limit:")
-    lowerDeltaLabel.pack(side=LEFT)
+    lowerX1Label = Label(x1InputFrameInner, text="Lower limit:")
+    lowerX1Label.pack(side=LEFT)
 
-    lowerDeltaEntry = Entry(deltaInputFrameInner, width=entryCharacterWidth, textvariable=deltaLowerNew)
-    lowerDeltaEntry.pack(side=LEFT, padx=(0, 5))
+    lowerX1Entry = Entry(x1InputFrameInner, width=entryCharacterWidth, textvariable=x1LowerNew)
+    lowerX1Entry.pack(side=LEFT, padx=(0, 5))
 
-    upperDeltaLabel = Label(deltaInputFrameInner, text="Upper limit:")
-    upperDeltaLabel.pack(side=LEFT)
+    upperX1Label = Label(x1InputFrameInner, text="Upper limit:")
+    upperX1Label.pack(side=LEFT)
 
-    upperDeltaEntry = Entry(deltaInputFrameInner, width=entryCharacterWidth, textvariable=deltaUpperNew)
-    upperDeltaEntry.pack(side=LEFT)
+    upperX1Entry = Entry(x1InputFrameInner, width=entryCharacterWidth, textvariable=x1UpperNew)
+    upperX1Entry.pack(side=LEFT)
 
 
 def generateOmegaInputWidgets(parentWidget, height, width, entryCharacterWidth):

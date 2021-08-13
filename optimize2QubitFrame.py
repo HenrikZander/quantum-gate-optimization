@@ -26,6 +26,7 @@ import tkinter.font as tkFont
 import time
 from threading import Thread
 import numpy as np
+import os
 
 import dataManager
 import optimizeManager
@@ -73,7 +74,7 @@ def initiateGlobalVariables(rootWindow, givenHeight):
     global resultFolderPath
     global numberOfConsecutiveSessions
     resultFolderPath = StringVar(root)
-    resultFolderPath.set("C:/GateSide/Results")
+    resultFolderPath.set(os.path.abspath("") + "/Results")
     numberOfConsecutiveSessions = IntVar(root)
 
     global runDifferentialEvolution
@@ -93,15 +94,15 @@ def initiateGlobalVariables(rootWindow, givenHeight):
     signalShape = StringVar(root)
     riseTime = IntVar(root)
 
-    global thetaLower
-    global thetaUpper
-    thetaLower = DoubleVar(root)
-    thetaUpper = DoubleVar(root)
+    global x0Lower
+    global x0Upper
+    x0Lower = DoubleVar(root)
+    x0Upper = DoubleVar(root)
 
-    global deltaLower
-    global deltaUpper
-    deltaLower = DoubleVar(root)
-    deltaUpper = DoubleVar(root)
+    global x1Lower
+    global x1Upper
+    x1Lower = DoubleVar(root)
+    x1Upper = DoubleVar(root)
 
     global omegaPhiLower
     global omegaPhiUpper
@@ -117,6 +118,11 @@ def initiateGlobalVariables(rootWindow, givenHeight):
     global statusString
     progressValue = DoubleVar(root)
     statusString = StringVar(root)
+
+    global x0LabelVar
+    global x1LabelVar
+    x0LabelVar = StringVar(root)
+    x1LabelVar = StringVar(root)
 
 
 ######################################################################################################################################################################
@@ -170,7 +176,7 @@ def callOptimizeGate():
     dataFromUser = getAllVariablesForTheOptimizer()
     iSWAP, SWAP, CZ = identifyGate(dataFromUser)
 
-    optimizeManager.optimize2QubitGate(iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, energyLevels=dataFromUser["energy-levels"], runSHG=dataFromUser["runSHG"], runDA=dataFromUser["runDA"], runDE=dataFromUser["runDE"], parameterBounds=(dataFromUser["theta"], dataFromUser["delta"], dataFromUser["omegaPhi"], dataFromUser["modulationTime"]), circuitData=dataFromUser)
+    optimizeManager.optimize2QubitGate(iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, userData=dataFromUser, useArccosSignal=getArccosSignalBoolean())
 
 
 def scheduleOptimizingSessions():
@@ -199,12 +205,32 @@ def scheduleOptimizingSessions():
 # Functions to interact with the global variables.
 
 
-def setBoundaryValues(boundaryValues):
-    thetaLower.set(boundaryValues[2][0])
-    thetaUpper.set(boundaryValues[2][1])
+def getX0X1names():
+    if signalShape.get() == '\u03A6 = 1 / \u03C0 \u2022 arccos[ (A + B(t) \u2022 cos(\u03C9t))\u00B2 ]':
+        x0name = "dcAmplitude"
+        x1name = "acAmplitude"
+    elif signalShape.get() == '\u03A6 = \u0398 + \u03B4(t) \u2022 cos(\u03C9t)':
+        x0name = "theta"
+        x1name = "delta"
+    
+    return x0name, x1name
 
-    deltaLower.set(boundaryValues[3][0])
-    deltaUpper.set(boundaryValues[3][1])
+
+def getArccosSignalBoolean():
+    if signalShape.get() == '\u03A6 = 1 / \u03C0 \u2022 arccos[ (A + B(t) \u2022 cos(\u03C9t))\u00B2 ]':
+        arccosSignal = True
+    elif signalShape.get() == '\u03A6 = \u0398 + \u03B4(t) \u2022 cos(\u03C9t)':
+        arccosSignal = False
+    
+    return arccosSignal
+
+
+def setBoundaryValues(boundaryValues):
+    x0Lower.set(boundaryValues[2][0])
+    x0Upper.set(boundaryValues[2][1])
+
+    x1Lower.set(boundaryValues[3][0])
+    x1Upper.set(boundaryValues[3][1])
 
     omegaPhiLower.set(boundaryValues[4][0])
     omegaPhiUpper.set(boundaryValues[4][1])
@@ -233,8 +259,10 @@ def getAllVariablesForTheOptimizer():
 
     data["rise-time"] = riseTime.get()
 
-    data["theta"] = (thetaLower.get(), thetaUpper.get())
-    data["delta"] = (deltaLower.get(), deltaUpper.get())
+    x0name, x1name = getX0X1names()
+
+    data[x0name] = (x0Lower.get(), x0Upper.get())
+    data[x1name] = (x1Lower.get(), x1Upper.get())
     data["omegaPhi"] = (omegaPhiLower.get(), omegaPhiUpper.get())
     data["modulationTime"] = (modulationTimeLower.get(), modulationTimeUpper.get())
 
@@ -292,9 +320,17 @@ def setDefaultCircuitValuesFromVariables(configData, newCircuitData):
 
 
 def setDefaultBoundaryValues():
-    newValues = [[thetaLower.get(), thetaUpper.get()], [deltaLower.get(), deltaUpper.get()], [omegaPhiLower.get(), omegaPhiUpper.get()], [modulationTimeLower.get(), modulationTimeUpper.get()]]
+    newValues = [[x0Lower.get(), x0Upper.get()], [x1Lower.get(), x1Upper.get()], [omegaPhiLower.get(), omegaPhiUpper.get()], [modulationTimeLower.get(), modulationTimeUpper.get()]]
     boundaryWindow.changePreset(0, newValues)
 
+
+def updateX0X1Labels(event):
+    if getArccosSignalBoolean():
+        x0LabelVar.set("DC signal strength A [Coupler frequency]:")
+        x1LabelVar.set("Amplitude of B(t) [Coupler frequency]:")
+    else:
+        x0LabelVar.set("Strength of DC-flux \u0398 [\u03A6"+subscriptZero+"]:")
+        x1LabelVar.set("Amplitude of \u03B4(t) [\u03A6"+subscriptZero+"]:")
 
 ######################################################################################################################################################################
 # Button callbacks
@@ -314,7 +350,7 @@ def useBoundaryDefault():
 
 
 def selectSaveFolder():
-    folderPath = filedialog.askdirectory(title="Choose folder to save results in", initialdir="C:/")
+    folderPath = filedialog.askdirectory(title="Choose folder to save results in", initialdir=resultFolderPath.get())
     if folderPath:
         resultFolderPath.set(folderPath)
 
@@ -606,50 +642,52 @@ def generateOmegaPhiBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
     upperOmegaPhiEntry.pack(side=LEFT)
 
 
-def generateDeltaBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
-    deltaInputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60)  # , background="green")
-    deltaInputFrameOuter.grid(row=2, column=0, columnspan=3)
+def generateX1BoundaryInput(inputBoundaryFrame, entryCharacterWidth):
+    x1InputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60)  # , background="green")
+    x1InputFrameOuter.grid(row=2, column=0, columnspan=3)
 
-    deltaInputFrameInner = Frame(deltaInputFrameOuter)  # , background="blue")
-    deltaInputFrameInner.place(anchor="e", relx=0.82, rely=0.5)
+    x1InputFrameInner = Frame(x1InputFrameOuter)  # , background="blue")
+    x1InputFrameInner.place(anchor="e", relx=0.82, rely=0.5)
 
-    deltaLabel = Label(deltaInputFrameInner, text="Amplitude of \u03B4(t) [\u03A6"+subscriptZero+"]:")
-    deltaLabel.pack(side=LEFT, padx=(0, 5))
+    x1LabelVar.set("Amplitude of \u03B4(t) [\u03A6"+subscriptZero+"]:")
+    x1Label = Label(x1InputFrameInner, textvariable=x1LabelVar)
+    x1Label.pack(side=LEFT, padx=(0, 5))
 
-    lowerDeltaLabel = Label(deltaInputFrameInner, text="Lower limit:")
-    lowerDeltaLabel.pack(side=LEFT)
+    lowerX1Label = Label(x1InputFrameInner, text="Lower limit:")
+    lowerX1Label.pack(side=LEFT)
 
-    lowerDeltaEntry = Entry(deltaInputFrameInner, width=entryCharacterWidth, textvariable=deltaLower)
-    lowerDeltaEntry.pack(side=LEFT, padx=(0, 5))
+    lowerX1Entry = Entry(x1InputFrameInner, width=entryCharacterWidth, textvariable=x1Lower)
+    lowerX1Entry.pack(side=LEFT, padx=(0, 5))
 
-    upperDeltaLabel = Label(deltaInputFrameInner, text="Upper limit:")
-    upperDeltaLabel.pack(side=LEFT)
+    upperX1Label = Label(x1InputFrameInner, text="Upper limit:")
+    upperX1Label.pack(side=LEFT)
 
-    upperDeltaEntry = Entry(deltaInputFrameInner, width=entryCharacterWidth, textvariable=deltaUpper)
-    upperDeltaEntry.pack(side=LEFT)
+    upperX1Entry = Entry(x1InputFrameInner, width=entryCharacterWidth, textvariable=x1Upper)
+    upperX1Entry.pack(side=LEFT)
 
 
-def generateThetaBoundaryInput(inputBoundaryFrame, entryCharacterWidth):
-    thetaInputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60)  # , background="yellow")
-    thetaInputFrameOuter.grid(row=1, column=0, columnspan=3)
+def generateX0BoundaryInput(inputBoundaryFrame, entryCharacterWidth):
+    x0InputFrameOuter = Frame(inputBoundaryFrame, height=35, width=relativeWidth*width*0.60)  # , background="yellow")
+    x0InputFrameOuter.grid(row=1, column=0, columnspan=3)
 
-    thetaInputFrameInner = Frame(thetaInputFrameOuter)  # , background="blue")
-    thetaInputFrameInner.place(anchor="e", relx=0.82, rely=0.5)
+    x0InputFrameInner = Frame(x0InputFrameOuter)  # , background="blue")
+    x0InputFrameInner.place(anchor="e", relx=0.82, rely=0.5)
 
-    thetaLabel = Label(thetaInputFrameInner, text="Strength of DC-flux \u0398 [\u03A6"+subscriptZero+"]:")
-    thetaLabel.pack(side=LEFT, padx=(0, 5))
+    x0LabelVar.set("Strength of DC-flux \u0398 [\u03A6"+subscriptZero+"]:")
+    x0Label = Label(x0InputFrameInner, textvariable=x0LabelVar)
+    x0Label.pack(side=LEFT, padx=(0, 5))
 
-    lowerThetaLabel = Label(thetaInputFrameInner, text="Lower limit:")
-    lowerThetaLabel.pack(side=LEFT)
+    lowerX0Label = Label(x0InputFrameInner, text="Lower limit:")
+    lowerX0Label.pack(side=LEFT)
 
-    lowerThetaEntry = Entry(thetaInputFrameInner, width=entryCharacterWidth, textvariable=thetaLower)
-    lowerThetaEntry.pack(side=LEFT, padx=(0, 5))
+    lowerX0Entry = Entry(x0InputFrameInner, width=entryCharacterWidth, textvariable=x0Lower)
+    lowerX0Entry.pack(side=LEFT, padx=(0, 5))
 
-    upperThetaLabel = Label(thetaInputFrameInner, text="Upper limit:")
-    upperThetaLabel.pack(side=LEFT)
+    upperX0Label = Label(x0InputFrameInner, text="Upper limit:")
+    upperX0Label.pack(side=LEFT)
 
-    upperThetaEntry = Entry(thetaInputFrameInner, width=entryCharacterWidth, textvariable=thetaUpper)
-    upperThetaEntry.pack(side=LEFT)
+    upperX0Entry = Entry(x0InputFrameInner, width=entryCharacterWidth, textvariable=x0Upper)
+    upperX0Entry.pack(side=LEFT)
 
 
 def generateBoundaryInput(inputBoundaryFrame):
@@ -668,8 +706,8 @@ def generateBoundaryInput(inputBoundaryFrame):
     riseTimeEntry.set(25)
     riseTimeEntry.pack(side=LEFT)
 
-    generateThetaBoundaryInput(inputBoundaryFrame, entryCharacterWidth)
-    generateDeltaBoundaryInput(inputBoundaryFrame, entryCharacterWidth)
+    generateX0BoundaryInput(inputBoundaryFrame, entryCharacterWidth)
+    generateX1BoundaryInput(inputBoundaryFrame, entryCharacterWidth)
     generateOmegaPhiBoundaryInput(inputBoundaryFrame, entryCharacterWidth)
     generateModulationTimeBoundaryInput(inputBoundaryFrame, entryCharacterWidth)
 
@@ -736,7 +774,8 @@ def generateBoundarySettings(settingsBoundaryFrame):
     selectSignalTitle = Label(selectSignalFrameInner, text="Shape of magnetic flux signal (\u03A6):")
     selectSignalTitle.pack(side=LEFT, padx=(0, 5))
 
-    selectSignal = ttk.Combobox(selectSignalFrameInner, state="readonly", values=('\u03A6 = \u0398 + \u03B4(t) \u2022 cos(\u03C9t)', 'Arccos-signal (not implemented)'), textvariable=signalShape)
+    selectSignal = ttk.Combobox(selectSignalFrameInner, state="readonly", values=('\u03A6 = \u0398 + \u03B4(t) \u2022 cos(\u03C9t)', '\u03A6 = 1 / \u03C0 \u2022 arccos[ (A + B(t) \u2022 cos(\u03C9t))\u00B2 ]'), textvariable=signalShape, width=30)
+    selectSignal.bind("<<ComboboxSelected>>", updateX0X1Labels)
     selectSignal.current(0)
     selectSignal.pack(side=LEFT)
 

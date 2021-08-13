@@ -7,57 +7,20 @@ from variables import *
 from functions import *
 from plotting import *
 from dataManager import *
+import os
 
-solsDict = getFromjson('solutions.json')
-for solName in solsDict:
-    testSolutionNew = getFromjson('circuit files/qubitPair01.json')
+dirPath = "Results/Qubit Pair 01/Solutions"
+directory = os.fsencode(dirPath)
 
-    for key in solsDict[solName]:
-        if key != 'x':
-            testSolutionNew[key] = solsDict[solName][key]
-        else:
-            testSolutionNew['riseTime'] = 25
-            testSolutionNew['theta'] = solsDict[solName]['x'][0]
-            testSolutionNew['delta'] = solsDict[solName]['x'][1]
-            testSolutionNew['omegaPhi'] = solsDict[solName]['x'][2] / (2 * np.pi)
-            testSolutionNew['modulationTime'] = solsDict[solName]['x'][3]
-    
-    dumpTojson(testSolutionNew, "solutions/" + solName[2:-5] + ".json")
+for file in os.listdir(directory):
+    filename = os.fsdecode(file)
 
-'''
-def getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex):
-    labelsList = []
-    eigenIndices = []
-    for label in eigenEnergyDict:
-        knownThetas = eigenEnergyDict[label][0]
-        knownEigInds = eigenEnergyDict[label][3]
-        for i, kTh in enumerate(knownThetas):
-            if (kTh > theta):
-                iAfter = i
-                iBefore = i-1
-                break
-        if (knownEigInds[iBefore] == knownEigInds[iAfter]):
-            eigenIndices.append(knownEigInds[iAfter])
-        else:
-            eigenIndices.append(-knownEigInds[iAfter])
-        labelsList.append(label)
-    usedLabels = ["" for _ in range(maxUsedIndex+1)]
-    #print(eigenIndices)
-    for i, ei in enumerate(eigenIndices):
-        if abs(ei) > maxUsedIndex:
-            pass
-        elif ei >= 0:
-            usedLabels[ei] = labelsList[i]
-        else:
-            usedLabels[abs(ei)] = "|???>"
-    return usedLabels
+    if filename.endswith(".json"):
+        filePath = dirPath + "/" + filename
+        solDict = getFromjson(filePath)
 
-maxProjIndex = 16
-theta = -0.49
-eigenEnergyDict = getFromjson('eigenenergies.json')
+        if solDict['delta'] > .18:
+            print(filename)
+        #print(solDict['delta'])
 
-labelsUsed = getEigenstateLabels(eigenEnergyDict, theta, maxProjIndex)
-
-print(labelsUsed)
-'''
 
