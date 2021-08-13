@@ -74,7 +74,11 @@ def initiateGlobalVariables(rootWindow, givenHeight):
     global resultFolderPath
     global numberOfConsecutiveSessions
     resultFolderPath = StringVar(root)
+<<<<<<< HEAD
     resultFolderPath.set(os.path.abspath("") + "/Results")
+=======
+    resultFolderPath.set(os.path.abspath("") + "\Results")
+>>>>>>> 5d24dd1112bc866a7212fe98867ffdc5f47cd06d
     numberOfConsecutiveSessions = IntVar(root)
 
     global runDifferentialEvolution
@@ -176,7 +180,11 @@ def callOptimizeGate():
     dataFromUser = getAllVariablesForTheOptimizer()
     iSWAP, SWAP, CZ = identifyGate(dataFromUser)
 
+<<<<<<< HEAD
     optimizeManager.optimize2QubitGate(iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, userData=dataFromUser, useArccosSignal=getArccosSignalBoolean())
+=======
+    optimizeManager.optimize2QubitGate(iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, userData=dataFromUser)
+>>>>>>> 5d24dd1112bc866a7212fe98867ffdc5f47cd06d
 
 
 def scheduleOptimizingSessions():

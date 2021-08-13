@@ -23,6 +23,10 @@ import os
 import json
 import numpy as np
 from datetime import *
+<<<<<<< HEAD
+=======
+import copy
+>>>>>>> 5d24dd1112bc866a7212fe98867ffdc5f47cd06d
 from pathlib import Path
 
 ######################################################################################################################################################################
@@ -60,7 +64,11 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
 
     # print(solName)
 
+<<<<<<< HEAD
     filePath = Path(folder, solName + ".json") #folder + "/" + solName + ".json"
+=======
+    filePath = Path(folder,solName + ".json")
+>>>>>>> 5d24dd1112bc866a7212fe98867ffdc5f47cd06d
 
     if circuitData is not None:
         solDict = {}
@@ -69,7 +77,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
             solDict[key] = [item/(2*np.pi) for item in circuitData[key]]
     else:
         if circuitFile is None:
-            circuitFile = folder + '/circuit.json'
+            circuitFile = folder + '\circuit.json'
         solDict = getFromjson(circuitFile)
 
     if arccosSignal:
@@ -123,7 +131,11 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
 
             solNumber += 1
             solName = createSolName(ymd, gateType, solNumber)
+<<<<<<< HEAD
             filePath = Path(folder, solName + ".json") # folder + "/" + solName + ".json"
+=======
+            filePath = Path(folder,solName + ".json")
+>>>>>>> 5d24dd1112bc866a7212fe98867ffdc5f47cd06d
 
 
 def saveSolutionsTojson(results, gateType, N, folder, circuitFile=None, circuitData=None, dateAndTime=datetime.today(), arccosSignal=False):

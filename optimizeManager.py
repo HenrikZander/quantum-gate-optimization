@@ -275,7 +275,7 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
     # Optimization using the Differential Evolution algorithm.
     if runDE: #  constraints=(nlc),
         startTime = time.time()
-        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred', maxiter=100000, args=argumentsToOptimizer)
+        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred', maxiter=100000, args=argumentsToOptimizer, polish=True)
         timeDE = time.time() - startTime
         message += f'The optimizaton using the \"Differential Evolution\"-algorithm took {round(timeDE,2)}s to execute and ended on a minimum of {resDE.fun} at the point {resDE.x}.\n'
         message += f'Function evaluations performed: {resDE.nfev}\n'
@@ -290,7 +290,7 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
     ############ Saving to result.txt (this should be removed later) ############
     saveAllFinalResults(result, algorithmsUsed, runtime, dateAndTime=dateAndTime)
     #############################################################################
-
+    
     if solutionsFolder is not None:
         N, iSWAP, SWAP, CZ, circuitData, arccosSignal = argumentsToOptimizer
         if iSWAP:
