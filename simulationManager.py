@@ -28,8 +28,10 @@ import math
 from plotting import *
 from pathlib import Path
 from threading import Thread
+import simulate2QubitFrame as gui
 
 ######################################################################################################################################################################
+
 
 def simulate(solutionData, guiData):
     ###################### Assign the given data to variables ######################
@@ -40,11 +42,34 @@ def simulate(solutionData, guiData):
     eigenenergiesPath = solutionPath.parents[1]
     eigenenergiesPath = eigenenergiesPath.joinpath(Path("eigenenergies.json"))
 
+    eigenstateIndex = guiData["eigenstateIndex"]
 
+    ############################## Generate the plots ##############################
+
+    if guiData["populationTransferPlot"]:
+        simulatePopTransfer(solutionPath, eigenenergiesPath, initialStateIndex=eigenstateIndex, highestProjectionIndex=eigenstateIndex+5, N=energyLevels)
+    elif guiData["fidelityPlot"]:
+        try:
+            plotFidelity(solutionPath, useSavedPlot=True, saveToFile=False)
+        except:
+            process = Thread(target=generateFidelityData, args=((solutionPath,)))
+            process.start()
+    elif guiData["stabilityPlot"]:
+        pass
+    
     ################################################################################
 
-    for index in range(8):
-        simulatePopTransfer(solutionPath, eigenenergiesPath, True, True, index, 12, energyLevels)
+
+def generateFidelityData(solutionPath):
+    gui.disableStartSimulationButton()
+    gui.writeStatus("Fidelity data not available. Generating fidelity data!")
+
+    process = Thread(target=plotFidelity, args=((solutionPath, False, True, False)))
+    process.start()
+    process.join()
+
+    gui.enableStartSimulationButton()
+    gui.writeStatus("Fidelity data generated! Restart simulation!")
 
 
 def getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex):
@@ -170,7 +195,8 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
     expectationValues = expect(projectionOperators, states)
 
     # Plot the expectation values.
-    plt.figure(figsize=(8, 7))
+    fig = plt.figure(figsize=(8, 7))
+    ax = fig.add_subplot()
     
     eigenEnergyDict = getFromjson(eigenenergiesPath)
     if arccosSignal:
@@ -182,23 +208,23 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
 
     linestyle = ['-', '--', '-.', ':']
     for index, values in enumerate(expectationValues):
-        plt.plot(timeStamps, values, ls=linestyle[math.floor(index / 10) % 4])
+        ax.plot(timeStamps, values, ls=linestyle[math.floor(index / 10) % 4])
 
-    plt.grid()
-    plt.ylim([0, 1.1])
-    plt.xlim([0, timeStamps[-1]])
-    leg = plt.legend(labels, fontsize=19, loc='center right')
-    plt.xlabel("Tid efter grindstart [ns]", fontsize=26)
-    plt.ylabel("Population", fontsize=26)
-    plt.xticks(fontsize=16)
-    plt.yticks(fontsize=16)
+    ax.grid()
+    ax.set_ylim([0, 1.1])
+    ax.set_xlim([0, timeStamps[-1]])
+    leg = ax.legend(labels, fontsize=19, loc='center right')
+    ax.set_xlabel("Tid efter grindstart [ns]", fontsize=26)
+    ax.set_ylabel("Population", fontsize=26)
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.tick_params(axis='both', which='minor', labelsize=16)
     plt.tight_layout()
     for legobj in leg.legendHandles:
         legobj.set_linewidth(5.0)
     plt.show()
 
 
-def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False):
+def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False, plot=True):
     solutionDict = getFromjson(fileName=solutionPath)
 
     if solutionDict['signalType'] == 'arccos':
@@ -230,24 +256,30 @@ def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False):
     if useSavedPlot:
         F = solutionDict['fidelitiesAtTimes']
         times = solutionDict['times']
+
+        if len(F) == 0:
+            raise Exception("Fidelities not previously generated.")
     else:
         indices = np.linspace(-116, -1, 116).astype(int)
         F, times = model.getGateFidelity(x, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=indices, circuitData=circuitData, useArccosSignal=arccosSignal)
+    
+    if plot:
+        fig = plt.figure(figsize=(8, 7))
+        ax = fig.add_subplot()
 
-    plt.figure(figsize=(8, 7))
-    plt.plot(times, F)
-    plt.plot([x[-1], x[-1]], [0, 1], 'r--')
-    plt.grid()
-    plt.ylim([0.99, 1])
-    plt.xlim([times[0], times[-1]])
-    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=19, loc="lower right")
-    #plt.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
-    plt.xlabel("Tid efter grindstart [ns]", fontsize=26)
-    plt.ylabel("Fidelitet", fontsize=26)
-    plt.xticks(fontsize=16)
-    plt.yticks(fontsize=16)
-    plt.tight_layout()
-    plt.show()
+        ax.plot(times, F)
+        ax.plot([x[-1], x[-1]], [0, 1], 'r--')
+        ax.grid()
+        ax.set_ylim([0.99, 1])
+        ax.set_xlim([times[0], times[-1]])
+        ax.legend(["Fidelitet", "$t_{MOD}$"], fontsize=19, loc="lower right")
+        #ax.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
+        ax.set_xlabel("Tid efter grindstart [ns]", fontsize=26)
+        ax.set_ylabel("Fidelitet", fontsize=26)
+        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.tick_params(axis='both', which='minor', labelsize=16)
+        plt.tight_layout()
+        plt.show()
 
     if (saveToFile == True):
         solutionDict['times'] = times

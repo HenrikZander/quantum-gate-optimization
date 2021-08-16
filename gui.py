@@ -83,6 +83,10 @@ def calculateWindowSize(root):
 # Functions that are used to generate different windows.
 
 
+def mainMenu():
+    pass
+    
+
 def twoQubit(root, height, width):
     twoQubitNotepad = ttk.Notebook(root, height=height, width=width)
     twoQubitNotepad.pack()

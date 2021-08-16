@@ -326,8 +326,8 @@ def setDefaultBoundaryValues():
 
 def updateX0X1Labels(event):
     if getArccosSignalBoolean():
-        x0LabelVar.set("DC signal strength A [Coupler frequency]:")
-        x1LabelVar.set("Amplitude of B(t) [Coupler frequency]:")
+        x0LabelVar.set("DC signal strength A [1]:")
+        x1LabelVar.set("Amplitude of B(t) [1]:")
     else:
         x0LabelVar.set("Strength of DC-flux \u0398 [\u03A6"+subscriptZero+"]:")
         x1LabelVar.set("Amplitude of \u03B4(t) [\u03A6"+subscriptZero+"]:")
@@ -774,7 +774,7 @@ def generateBoundarySettings(settingsBoundaryFrame):
     selectSignalTitle = Label(selectSignalFrameInner, text="Shape of magnetic flux signal (\u03A6):")
     selectSignalTitle.pack(side=LEFT, padx=(0, 5))
 
-    selectSignal = ttk.Combobox(selectSignalFrameInner, state="readonly", values=('\u03A6 = \u0398 + \u03B4(t) \u2022 cos(\u03C9t)', '\u03A6 = 1 / \u03C0 \u2022 arccos[ (A + B(t) \u2022 cos(\u03C9t))\u00B2 ]'), textvariable=signalShape, width=30)
+    selectSignal = ttk.Combobox(selectSignalFrameInner, state="readonly", values=('\u03A6 = \u0398 + \u03B4(t) \u2022 cos(\u03C9t)', '\u03A6 = 1 / \u03C0 \u2022 arccos[ (A + B(t) \u2022 cos(\u03C9t))\u00B2 ]'), textvariable=signalShape, width=38)
     selectSignal.bind("<<ComboboxSelected>>", updateX0X1Labels)
     selectSignal.current(0)
     selectSignal.pack(side=LEFT)

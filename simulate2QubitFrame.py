@@ -71,21 +71,42 @@ def initiateGlobalVariables(root, givenHeight):
     solutionPath = StringVar(root)
     resultFolderPath = StringVar(root)
     resultFolderPath.set("C:/Gateside/Results")
+    
+    global selectedSimulationOutput
+    selectedSimulationOutput = StringVar(root)
 
     global energyLevels
+    global eigenstateIndex
     energyLevels = IntVar(root)
+    eigenstateIndex = IntVar(root)
 
 
 ######################################################################################################################################################################
 # High level functions.
 
+
 def simulateSolution(solutionData):
     writeStatus("Simulation started! Please wait.")
+    popTransfer, fidelityPlot, stabilityPlot = identifySimulationPlot()
     guiData = getAllVariables()
-    process = Thread(target=simulationManager.simulate, args=((solutionData,guiData)))
-    process.start()
-    process.join()
+
+    guiData["populationTransferPlot"] = popTransfer
+    guiData["fidelityPlot"] = fidelityPlot
+    guiData["stabilityPlot"] = stabilityPlot
+
+    simulationManager.simulate(solutionData,guiData)
     writeStatus("Simulation complete.")
+
+
+def identifySimulationPlot():
+    if selectedSimulationOutput.get() == "popTrans":
+        return (True, False, False)
+    elif selectedSimulationOutput.get() == "fidelity":
+        return (False, True, False)
+    elif selectedSimulationOutput.get() == "stability":
+        return (False, False, True)
+    else:
+        return (False, False, False)
 
 
 ######################################################################################################################################################################
@@ -127,6 +148,7 @@ def getAllVariables():
 
     data["energy-levels"] = energyLevels.get()
     data["solution-path"] = solutionPath.get()
+    data["eigenstateIndex"] = int(eigenstateIndex.get())
 
     return data
 
@@ -176,9 +198,7 @@ def disableStartSimulationButton():
 
 def startSimulation():
     solutionData = dataManager.getFromjson(solutionPath.get())
-
-    process = Thread(target=simulateSolution, args=(solutionData,))
-    process.start()
+    simulateSolution(solutionData)
 
 
 def loadSolution():
@@ -236,10 +256,10 @@ def exportCircuit():
 
 def generateSaveFolderInput(circuitFrame, entryCharacterWidth):
     separator = ttk.Separator(circuitFrame, orient='horizontal')
-    separator.grid(row=5, column=0, columnspan=3, sticky="nesw", pady=(10,0))
+    separator.grid(row=8, column=0, columnspan=3, sticky="nesw", pady=(10,0))
 
     saveFolderTitleFrame = Frame(circuitFrame, height=50, width=relativeWidth*width*0.40)  # , background="red")
-    saveFolderTitleFrame.grid(row=6, column=0, columnspan=3)
+    saveFolderTitleFrame.grid(row=9, column=0, columnspan=3)
 
     saveFolderTitle = Label(saveFolderTitleFrame, text='Configure result output', font=('Helvetica', 12))
     titleFont = tkFont.Font(saveFolderTitle, saveFolderTitle.cget("font"))
@@ -248,7 +268,7 @@ def generateSaveFolderInput(circuitFrame, entryCharacterWidth):
     saveFolderTitle.place(anchor='center', relx=0.5, rely=0.5)
 
     saveFolderFrameOuter = Frame(circuitFrame, height=50, width=relativeWidth*width*0.40)  # , background="orange")
-    saveFolderFrameOuter.grid(row=7, column=0, columnspan=3)
+    saveFolderFrameOuter.grid(row=10, column=0, columnspan=3)
 
     saveFolderFrameInner = Frame(saveFolderFrameOuter)
     saveFolderFrameInner.place(anchor='center', relx=0.5, rely=0.5)
@@ -258,6 +278,54 @@ def generateSaveFolderInput(circuitFrame, entryCharacterWidth):
 
     saveFolderButton = Button(saveFolderFrameInner, text="Select Folder", command=selectSaveFolder, background="#21e4d7")
     saveFolderButton.pack(side=LEFT)
+
+
+def generateSimulationOutputSelection(parent):
+    separator = ttk.Separator(parent, orient='horizontal')
+    separator.grid(row=4, column=0, columnspan=3, sticky="nesw", pady=(10,0))
+
+    selectSimulationOutputTitleFrame = Frame(parent, height=50, width=relativeWidth*width*0.40)  # , background="red")
+    selectSimulationOutputTitleFrame.grid(row=5, column=0, columnspan=3)
+
+    selectSimulationOutputTitle = Label(selectSimulationOutputTitleFrame, text='Simulation Output', font=('Helvetica', 12))
+    titleFont = tkFont.Font(selectSimulationOutputTitle, selectSimulationOutputTitle.cget("font"))
+    titleFont.configure(underline=True)
+    selectSimulationOutputTitle.configure(font=titleFont)
+    selectSimulationOutputTitle.place(anchor='center', relx=0.5, rely=0.5)
+
+    selectSimulationOutputFrameOuter = Frame(parent, height=55, width=relativeWidth*width*0.40)  # , background="orange")
+    selectSimulationOutputFrameOuter.grid(row=6, column=0, columnspan=3)
+    selectSimulationOutputFrameOuter.pack_propagate(0)
+
+    selectSimulationOutputFrameInner = LabelFrame(selectSimulationOutputFrameOuter, text="Simulation output: ")
+    selectSimulationOutputFrameInner.place(anchor='n', relx=0.5, rely=0)
+
+    selectPopulationTransfer = Radiobutton(selectSimulationOutputFrameInner, text="Population Transfer", value="popTrans", variable=selectedSimulationOutput)
+    selectPopulationTransfer.select()
+    selectPopulationTransfer.pack(side=LEFT)
+
+    selectFidelityPlot = Radiobutton(selectSimulationOutputFrameInner, text="Fidelity Plot", value="fidelity", variable=selectedSimulationOutput)
+    selectFidelityPlot.pack(side=LEFT)
+
+    selectStabilityPlot = Radiobutton(selectSimulationOutputFrameInner, text="Stability Plot", value="stability", variable=selectedSimulationOutput)
+    selectStabilityPlot.pack(side=LEFT)
+
+    ######################### Select eigenstate index #########################
+    
+    selectEigenstateIndexFrameOuter = Frame(parent, height=55, width=relativeWidth*width*0.40)  # , background="blue")
+    selectEigenstateIndexFrameOuter.grid(row=7, column=0, columnspan=3)
+
+    selectEigenstateIndexFrameInner = Frame(selectEigenstateIndexFrameOuter)  # , background="orange")
+    selectEigenstateIndexFrameInner.place(anchor="center", relx=0.5, rely=0.5)
+
+    selectEigenstateIndexTitle = Label(selectEigenstateIndexFrameInner, text="Initial eigenstate index (used for population transfer):")
+    selectEigenstateIndexTitle.pack(side=LEFT, padx=(0, 5))
+
+    selectEigenstateIndex = ttk.Spinbox(selectEigenstateIndexFrameInner, from_=0, to=100000, textvariable=eigenstateIndex, width=6)
+    selectEigenstateIndex.set(0)
+    selectEigenstateIndex.pack(side=LEFT)
+
+    ###########################################################################
 
 
 def generateCouplingInputs(circuitFrame, entryCharacterWidth):
@@ -347,6 +415,7 @@ def generateCircuitInputs(circuitFrame):
     generateFrequencyInputs(circuitFrame, entryCharacterWidth)
     generateAnharmonicityInputs(circuitFrame, entryCharacterWidth)
     generateCouplingInputs(circuitFrame, entryCharacterWidth)
+    generateSimulationOutputSelection(circuitFrame)
     generateSaveFolderInput(circuitFrame, entryCharacterWidth)
 
 
@@ -371,7 +440,7 @@ def generateSolutionPreviewField(solutionFrame):
     solutionPreviewFrameInner.place(anchor='n', relx=0.5, rely=0)
 
     global solutionPreviewField
-    solutionPreviewField = Text(solutionPreviewFrameInner, height=22, width=65, state="disabled", background="lightgray", font=("Helvetica", 11), spacing1=5)
+    solutionPreviewField = Text(solutionPreviewFrameInner, height=17, width=65, state="disabled", background="lightgray", font=("Helvetica", 11), spacing1=5)
     solutionPreviewField.pack(anchor="center")
 
 
