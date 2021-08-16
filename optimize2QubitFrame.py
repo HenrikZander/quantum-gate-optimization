@@ -35,7 +35,7 @@ import boundaryConditionPopUpWindow as boundaryWindow
 ######################################################################################################################################################################
 # Global variables and function to initiate global variables
 
-relativeHeight = 0.85 # 0.8
+relativeHeight = 0.85 #0.8
 relativeWidth = 1
 
 SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
