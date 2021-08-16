@@ -26,11 +26,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 from plotting import *
+from pathlib import Path
+from threading import Thread
 
 ######################################################################################################################################################################
 
-def simulate():
-    pass
+def simulate(solutionData, guiData):
+    ###################### Assign the given data to variables ######################
+
+    energyLevels = guiData["energy-levels"]
+    solutionPath = Path(guiData["solution-path"])
+
+    eigenenergiesPath = solutionPath.parents[1]
+    eigenenergiesPath = eigenenergiesPath.joinpath(Path("eigenenergies.json"))
+
+
+    ################################################################################
+
+    for index in range(8):
+        simulatePopTransfer(solutionPath, eigenenergiesPath, True, True, index, 12, energyLevels)
 
 
 def getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex):

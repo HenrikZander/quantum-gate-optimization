@@ -29,8 +29,7 @@ import numpy as np
 
 import dataManager
 import functions
-import model
-#import simulateManager
+import simulationManager
 
 ######################################################################################################################################################################
 # Global variables and function to initiate global variables
@@ -82,8 +81,8 @@ def initiateGlobalVariables(root, givenHeight):
 
 def simulateSolution(solutionData):
     writeStatus("Simulation started! Please wait.")
-    circuitData = getAllVariables()
-    process = Thread(target=model.getGateFidelity, args=((solutionData["theta"], solutionData["delta"], solutionData["omegaPhi"], solutionData["modulationTime"]), 4, True, False, False, False, [-76, -61, -23, -1], circuitData, 25.0))
+    guiData = getAllVariables()
+    process = Thread(target=simulationManager.simulate, args=((solutionData,guiData)))
     process.start()
     process.join()
     writeStatus("Simulation complete.")
@@ -110,7 +109,7 @@ def invalidSolutionStatus():
 def writeSolutionParameterStatus(solutionData):
     solutionPreviewField.config(state="normal")
     solutionPreviewField.delete("1.0", "end")
-    solutionPreviewField.insert("1.0", f'Resulting gate: CZ, iSWAP or SWAP. This needs to be implemented!\n\n')
+    solutionPreviewField.insert("1.0", f'Resulting gate: {solutionData["gateType"]}\n\n')
     solutionPreviewField.insert("3.0", f'Strength of DC-flux \u0398 [\u03A6{subscriptZero}]: {solutionData["theta"]}\n')
     solutionPreviewField.insert("4.0", f'Amplitude of \u03B4(t) [\u03A6{subscriptZero}]: {solutionData["delta"]}\n')
     solutionPreviewField.insert("5.0", f'Frequency \u03C9 of AC-flux [GHz]: {solutionData["omegaPhi"]}\n')
@@ -123,10 +122,11 @@ def getAllVariables():
     data = {}
 
     data["frequencies"] = (2*np.pi*frequencyQ1.get(), 2*np.pi*frequencyQ2.get(), 2*np.pi*frequencyCoupler.get())
-
     data["anharmonicities"] = (2*np.pi*anharmonicityQ1.get(), 2*np.pi*anharmonicityQ2.get(), 2*np.pi*anharmonicityCoupler.get())
-
     data["couplings"] = (2*np.pi*couplingQ1.get(), 2*np.pi*couplingQ2.get())
+
+    data["energy-levels"] = energyLevels.get()
+    data["solution-path"] = solutionPath.get()
 
     return data
 
@@ -188,12 +188,11 @@ def loadSolution():
             solutionData = dataManager.getFromjson(solutionFilePath)
             setCircuitVariables(solutionData)
             writeSolutionParameterStatus(solutionData)
-            solutionPath.set(solutionFilePath)
             enableStartSimulationButton()
         except:
             disableStartSimulationButton()
             invalidSolutionStatus()
-            solutionPath.set(solutionFilePath)
+        solutionPath.set(solutionFilePath)
 
 
 def selectSaveFolder():
@@ -372,7 +371,7 @@ def generateSolutionPreviewField(solutionFrame):
     solutionPreviewFrameInner.place(anchor='n', relx=0.5, rely=0)
 
     global solutionPreviewField
-    solutionPreviewField = Text(solutionPreviewFrameInner, height=22, width=65, state="disabled", background="lightgray", font=("Helvetica", 11) )
+    solutionPreviewField = Text(solutionPreviewFrameInner, height=22, width=65, state="disabled", background="lightgray", font=("Helvetica", 11), spacing1=5)
     solutionPreviewField.pack(anchor="center")
 
 

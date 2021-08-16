@@ -89,9 +89,9 @@ x_210715_CZ_1_4lvl = [4.28265258e-01, 2.28050495e-02, 4.28583819e+00, 1.15226156
 x_210716_CZ_2_4lvl = [4.03140410e-01, 2.95892756e-02, 4.14970423e+00, 1.06035386e+02]
 
 # Solution to use in simulations:
-solName = "210808_CZ_2_modified"
+solName = "210728_iSWAP_1"
 
-circuitFolder = 'Qubit Pair 03'
+circuitFolder = 'Results/Qubit Pair 01'
 solPath = circuitFolder + '/Solutions/' + solName + '.json'
 eigEnPath = circuitFolder + '/eigenenergies.json'
 solDict = getFromjson(solPath)
@@ -111,14 +111,14 @@ def main():
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
     # simulateHamiltonian(xName=xName, sinStepHamiltonian=True, rotatingFrame=True, initialStateIndex=3, N=4, highestProjectionIndex=12, circuitData=getFromjson('./circuit files/qubitPair01.json'))
-    # simulatePopTransfer(solutionPath=solPath, eigenenergiesPath=eigEnPath, initialStateIndex=7, highestProjectionIndex=12)
+    simulatePopTransfer(solutionPath=solPath, eigenenergiesPath=eigEnPath, initialStateIndex=1, highestProjectionIndex=12)
     # plotFidelityOld(xName=xName, iSWAP=True, useSavedPlot=False, saveTojson=False, circuitData=solDict)
-    # plotFidelity(solutionPath=solPath, useSavedPlot=False, saveToFile=True)
+    plotFidelity(solutionPath=solPath, useSavedPlot=True, saveToFile=False)
     # deltaPulsePlot()
     # testPlotStates()
     # testEigenstateOrder()
     # plotEigenenergiesOld(xName=xName, N=4, simPoints=500, numOfEnergyLevels=None, useSavedPlot=True, saveTojson=False)
-    # plotEigenenergies(solutionPath=solPath, eigenenergiesPath=eigEnPath, N=4, simPoints=500, numOfEnergyLevels=None, useSavedPlot=True, saveToFile=False)
+    plotEigenenergies(solutionPath=solPath, eigenenergiesPath=eigEnPath, N=4, simPoints=500, numOfEnergyLevels=None, useSavedPlot=True, saveToFile=False)
     # test()
     # getRobustnessPlot(solutionPath=solPath, useSavedPlot=False, saveToFile=True, checkOpTime=True, nPointsList=[33], maxDevs=[0.003, 0.005, 0.002, 5])
     # print(getFromjson('solutions.json'))
