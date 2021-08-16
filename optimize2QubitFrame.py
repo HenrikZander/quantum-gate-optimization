@@ -35,7 +35,7 @@ import boundaryConditionPopUpWindow as boundaryWindow
 ######################################################################################################################################################################
 # Global variables and function to initiate global variables
 
-relativeHeight = 0.85
+relativeHeight = 0.85 #0.8
 relativeWidth = 1
 
 SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
@@ -410,11 +410,11 @@ def exportCircuit():
 def optimizeStatusFrame(bottomFrame):
     global startOptimizeButton
     startOptimizeButton = Button(bottomFrame, text="Start Optimizing", command=startOptimizing, padx=3, pady=3, background="#00FF00", relief=FLAT)
-    startOptimizeButton.grid(column=2, row=0)
+    startOptimizeButton.grid(column=2, row=0, sticky='s')
 
     global stopOptimizeButton
     stopOptimizeButton = Button(bottomFrame, text="Stop Optimizing", padx=3, pady=3, background="grey", relief=FLAT)
-    stopOptimizeButton.grid(column=2, row=1)
+    stopOptimizeButton.grid(column=2, row=1, sticky='n')
 
     progressFrame = Frame(bottomFrame, height=(1-relativeHeight)*height, width=width*0.80)
     progressFrame.grid(column=0, row=0, rowspan=2, columnspan=2)
