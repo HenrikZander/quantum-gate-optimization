@@ -70,8 +70,8 @@ def calculateWindowSize(root):
         height = math.ceil(screen_height*0.6944444)
         width = math.ceil(screen_width*0.6328125)
     elif operatingSystem == "Darwin":
-        height = math.ceil(screen_height*0.9)
-        width = math.ceil(screen_width*0.78)
+        height = math.ceil(screen_height*0.75)
+        width = math.ceil(screen_width*0.75)
     else:
         height = math.ceil(screen_height*0.8)
         width = math.ceil(screen_width*0.73)
