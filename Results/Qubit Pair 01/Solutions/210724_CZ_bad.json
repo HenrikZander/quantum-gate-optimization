@@ -14,6 +14,7 @@
         0.05552
     ],
     "creationTime": "2021-07-24 15:22:04",
+    "signalType": "cos",
     "gateType": "CZ",
     "nOptimizationLvls": 4,
     "riseTime": 25,

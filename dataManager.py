@@ -23,7 +23,6 @@ import os
 import json
 import numpy as np
 from datetime import *
-import copy
 from pathlib import Path
 
 ######################################################################################################################################################################
@@ -53,7 +52,7 @@ def createSolName(ymd, gateType, solNumber):
     return ymd + "_" + gateType + "_" + str(solNumber)
 
 
-def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), folder='Demo Circuit', circuitFile=None, circuitData=None, riseTime=25):
+def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), folder='Demo Circuit', circuitFile=None, circuitData=None, riseTime=25, arccosSignal=False):
     ymd = creationTime.strftime('%Y%m%d')[2:]
     creationTime = creationTime.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -61,7 +60,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
 
     # print(solName)
 
-    filePath = Path(folder,solName + ".json")
+    filePath = Path(folder, solName + ".json") #folder + "/" + solName + ".json"
 
     if circuitData is not None:
         solDict = {}
@@ -70,18 +69,28 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
             solDict[key] = [item/(2*np.pi) for item in circuitData[key]]
     else:
         if circuitFile is None:
-            circuitFile = folder + '\circuit.json'
+            circuitFile = folder + '/circuit.json'
         solDict = getFromjson(circuitFile)
 
+    if arccosSignal:
+        signalType = 'arccos'
+        x0name = 'dcAmplitude'
+        x1name = 'acAmplitude'
+    else:
+        signalType = 'cos'
+        x0name = 'theta'
+        x1name = 'delta'
+    
     while (solNumber < 1000):
         if not os.path.isfile(filePath):
             newInfoDict = {
                 "creationTime": creationTime,
+                "signalType": signalType,
                 "gateType": gateType,
                 "nOptimizationLvls": N,
                 "riseTime": riseTime,
-                "theta": x[0],
-                "delta": x[1],
+                x0name: x[0],
+                x1name: x[1],
                 "omegaPhi": x[2],
                 "modulationTime": x[3],
                 'gateFidelity': None,
@@ -98,6 +107,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
                 'fidelities2D_delta_opTime': None,
                 'fidelities2D_omegaPhi_opTime': None
             }
+            
             solDict.update(newInfoDict)
 
             dumpTojson(solDict, filePath)
@@ -113,13 +123,13 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
 
             solNumber += 1
             solName = createSolName(ymd, gateType, solNumber)
-            filePath = Path(folder,solName + ".json")
+            filePath = Path(folder, solName + ".json") # folder + "/" + solName + ".json"
 
 
-def saveSolutionsTojson(results, gateType, N, folder, circuitFile=None, circuitData=None, dateAndTime=datetime.today()):
+def saveSolutionsTojson(results, gateType, N, folder, circuitFile=None, circuitData=None, dateAndTime=datetime.today(), arccosSignal=False):
     for i in range(len(results)):
         x = results[i].x.tolist()
-        addNewSolution(x, gateType, N, folder=folder, circuitFile=circuitFile, circuitData=circuitData, creationTime=dateAndTime)
+        addNewSolution(x, gateType, N, folder=folder, circuitFile=circuitFile, circuitData=circuitData, creationTime=dateAndTime, arccosSignal=arccosSignal)
 
 
 def saveResToFile(result, algorithmName, iterations, runtime, algorithmDE=False, algorithmSHG=False, fileName="result.txt", dateAndTime=datetime.today()):

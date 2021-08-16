@@ -43,8 +43,8 @@ def averageFidelity(F, gateTimeWeight=2):
     return np.sum(F)/(len(F)+gateTimeWeight-1)
 
 
-def cost(x, N, iSWAP, SWAP, CZ, circuitData):
-    F, _ = model.getGateFidelity(x, N=N, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, circuitData=circuitData, printResults=False)
+def cost(x, N, iSWAP, SWAP, CZ, circuitData, useArccosSignal):
+    F, _ = model.getGateFidelity(x, N=N, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, circuitData=circuitData, printResults=True, useArccosSignal=useArccosSignal)
     return -averageFidelity(F)
 
 
@@ -52,7 +52,7 @@ def cost(x, N, iSWAP, SWAP, CZ, circuitData):
 # Optimize gate function
 
 
-def optimize2QubitGate(iSWAP=False, SWAP=False, CZ=False, userData=None):
+def optimize2QubitGate(iSWAP=False, SWAP=False, CZ=False, userData=None, useArccosSignal=False):
     """
     The function tries to optimize the choosen gate for the
     choosen parameters, using the optimization algorithms 
@@ -81,17 +81,21 @@ def optimize2QubitGate(iSWAP=False, SWAP=False, CZ=False, userData=None):
     #
     # Divide data from user into variables
     #
+    if useArccosSignal:
+        x0name, x1name = "dcAmplitude", "acAmplitude"
+    else:
+        x0name, x1name = "theta", "delta"
 
-    parameterBounds = (userData["theta"], userData["delta"], userData["omegaPhi"], userData["modulationTime"])
+    parameterBounds = (userData[x0name], userData[x1name], userData["omegaPhi"], userData["modulationTime"])
     energyLevels = userData["energy-levels"]
     runSHG=userData["runSHG"]
     runDA=userData["runDA"]
     runDE=userData["runDE"]
 
-    # Denna ska tas in mha gui:t
-    solutionsFolder = userData["save-folder"]
+    # Dessa ska tas in mha gui:t
+    solutionsFolder = userData["save-folder"] # "Qubit Pair 03/Solutions"
 
-    findMinimum(cost, parameterBounds, argumentsToOptimizer=(energyLevels, iSWAP, SWAP, CZ, userData), runSHG=runSHG, runDA=runDA, runDE=runDE, solutionsFolder=solutionsFolder)
+    findMinimum(cost, parameterBounds, argumentsToOptimizer=(energyLevels, iSWAP, SWAP, CZ, userData, useArccosSignal), runSHG=runSHG, runDA=runDA, runDE=runDE, solutionsFolder=solutionsFolder)
     gui.enableStopButton()
     if gui.getRunOptimizer():
         gui.processFinished()
@@ -234,6 +238,14 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
     algorithmsUsed = []
     runtime = []
 
+    '''
+    if argumentsToOptimizer[5]:
+        # Constraining A + B to be \in [0,1] when an arccos signal is used.
+        def constraintFunction(x):
+            return np.array(x[0] + x[1])
+        nlc = scipy.optimize.NonlinearConstraint(constraintFunction, 0, 1)
+    '''
+    
     # Optimization using the Simplicial Homology Global algorithm.
     if runSHG:
         startTime = time.time()
@@ -261,7 +273,7 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
     i = 0
 
     # Optimization using the Differential Evolution algorithm.
-    if runDE:
+    if runDE: #  constraints=(nlc),
         startTime = time.time()
         resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred', maxiter=100000, args=argumentsToOptimizer, polish=True)
         timeDE = time.time() - startTime
@@ -280,14 +292,14 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
     #############################################################################
     
     if solutionsFolder is not None:
-        N, iSWAP, SWAP, CZ, circuitData = argumentsToOptimizer
+        N, iSWAP, SWAP, CZ, circuitData, arccosSignal = argumentsToOptimizer
         if iSWAP:
             gateType = "iSWAP"
         elif SWAP:
             gateType = "SWAP"
         elif CZ:
             gateType = "CZ"
-        dataManager.saveSolutionsTojson(result, gateType, N, solutionsFolder, circuitData=circuitData, dateAndTime=dateAndTime)
+        dataManager.saveSolutionsTojson(result, gateType, N, solutionsFolder, circuitData=circuitData, dateAndTime=dateAndTime, arccosSignal=arccosSignal)
     return result, dateAndTime
 
 

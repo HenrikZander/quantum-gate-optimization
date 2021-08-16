@@ -35,8 +35,8 @@ def unpackCircuitParameters(circuitData):
     return frequencies, anharmonicities, couplings
 
 ######################################################################################################################################################################
-# Parameter function.
-
+# Parameter function (DEPRECATED).
+'''
 def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=False, wantCZ_20=False):
     """
     This function gets the bounds for the different
@@ -82,10 +82,53 @@ def getParameterBounds(maxAllowedGateTime=240, wantTradCZ=False, wantTradiSWAP=F
         return [(-phi_crossing, phi_crossing), (0, 0.25), (omegaPhiMin, omegaPhiMax), (50, maxAllowedGateTime)]
     else:
         return [(-0.5, 0.5), (0, 0.25), (0, 8), (50, maxAllowedGateTime)]
+'''
+
+######################################################################################################################################################################
+# Functions used to create a sinBox-envelope.
+
+@njit
+def sinstep(x, x_min, x_max):
+    """
+    This function calculates the function value of a sinusoidal step function,
+    that starts at x_min and assumes the value 1 after x_max, at the point x.
+    """
+    x = (x - x_min)/(x_max - x_min)
+    if x < 0:
+        x = 0
+    elif x > 1:
+        x = 1
+    result = 0.5 - 0.5*np.cos(np.pi*x)
+    return result
+
+
+def sinBox(t, operationTime, tRise):
+    """
+    This function calculates the value of a box function with a sinusoidal rise
+    and fall, with a total length of operationTime, at the time t.
+    A rise time of tRise (usually 25 ns) is used.
+    """
+    tWait = operationTime - 2*tRise
+    funVal = sinstep(t, 0, tRise) - sinstep(t, tWait + tRise, tWait + 2*tRise)
+    return funVal
 
 
 ######################################################################################################################################################################
 # Functions that define the tunable bus flux signal.
+
+@njit
+def coeffomegaTB(omegaTB0, signalVal, useArccosSignal):
+    """
+    This function calculates the tunable bus frequency at a given flux Phi, 
+        or at a given fraction of omegaTB0, when an arccos signal is used.
+    """
+    if useArccosSignal:
+        return omegaTB0*signalVal
+    else:
+        return omegaTB0*np.sqrt(np.abs(np.cos(np.pi*signalVal)))
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Functions specific to cos signals
 
 @njit
 def Phi(t, theta, delta, omegaphi):
@@ -120,33 +163,7 @@ def omegaTB(t, args):
 
 
 @njit
-def sinstep(x, x_min, x_max):
-    """
-    This function calculates the function value of a sinusoidal step function,
-    that starts at x_min and assumes the value 1 after x_max, at the point x.
-    """
-    x = (x - x_min)/(x_max - x_min)
-    if x < 0:
-        x = 0
-    elif x > 1:
-        x = 1
-    result = 0.5 - 0.5*np.cos(np.pi*x)
-    return result
-
-
-def sinBox(t, operationTime, tRise):
-    """
-    This function calculates the value of a box function with a sinusoidal rise
-    and fall, with a total length of operationTime, at the time t.
-    A rise time of 25 ns is used.
-    """
-    tWait = operationTime - 2*tRise
-    funVal = sinstep(t, 0, tRise) - sinstep(t, tWait + tRise, tWait + 2*tRise)
-    return funVal
-
-
-@njit
-def PhiSinStep(t, theta, delta, omegaphi, sinBoxVal):
+def PhiSinBox(t, theta, delta, omegaphi, sinBoxVal):
     """
     This function calculates the magnetic flux when the AC part of the flux has
     a sinusoidal box envelope.
@@ -156,18 +173,18 @@ def PhiSinStep(t, theta, delta, omegaphi, sinBoxVal):
 
 
 @njit
-def tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal):
+def tunableBusSinBox(t, theta, delta, omegaphi, omegatb0, sinBoxVal):
     """
     This function calculates the frequency for the tunable bus, in the case
     where the AC part of the flux has a sinusoidal box envelope.
     """
-    oTB = omegatb0 * np.sqrt(np.abs(np.cos(np.pi*PhiSinStep(t, theta, delta, omegaphi, sinBoxVal))))
+    oTB = omegatb0 * np.sqrt(np.abs(np.cos(np.pi*PhiSinBox(t, theta, delta, omegaphi, sinBoxVal))))
     return oTB
 
 
-def omegaTBSinStep(t, args):
+def omegaTBSinBox(t, args):
     """
-    Wrapper function for tunableBusSinStep that handles the variable assignments.
+    Wrapper function for tunableBusSinBox that handles the variable assignments.
     """
     theta = args['theta']
     delta = args['delta']
@@ -177,22 +194,42 @@ def omegaTBSinStep(t, args):
     omegaTBTh = args['omegaTBTh']
     tRise = args['riseTime']
     sinBoxVal = sinBox(t, operationTime, tRise)
-    return tunableBusSinStep(t, theta, delta, omegaphi, omegatb0, sinBoxVal) - omegaTBTh
+    return tunableBusSinBox(t, theta, delta, omegaphi, omegatb0, sinBoxVal) - omegaTBTh
 
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Functions specific to arccos signals
 
 @njit
-def coeffomegaTB(omegaTB0, Phi):
+def tunableBusArccosSinBox(t, dcAmplitude, acAmplitude, omegaphi, omegatb0, sinBoxVal):
     """
-    This function calculates the tunable bus frequency at a given flux Phi.
+    This function calculates the frequency for the tunable bus, in the case
+    where the AC part of the flux has a sinusoidal box envelope (and an arccos-signal is used).
     """
-    return omegaTB0*np.sqrt(np.abs(np.cos(np.pi*Phi)))
+    oTB = omegatb0 * (dcAmplitude + sinBoxVal * acAmplitude * np.cos(omegaphi*t))
+    return oTB
+
+
+def omegaTBArccosSinBox(t, args):
+    """
+    Wrapper function for tunableBusArccosSinBox that handles the variable assignments.
+    """
+    dcAmplitude = args['dcAmplitude']
+    acAmplitude = args['acAmplitude']
+    omegaphi = args['omegaphi']
+    omegatb0 = args['omegatb0']
+    operationTime = args['operationTime']
+    omegaTBTh = args['omegaTBTh']
+    tRise = args['riseTime']
+    sinBoxVal = sinBox(t, operationTime, tRise)
+    return tunableBusArccosSinBox(t, dcAmplitude, acAmplitude, omegaphi, omegatb0, sinBoxVal) - omegaTBTh
 
 
 ######################################################################################################################################################################
-# Hamiltomnian function.
+# Hamiltonian function.
 
 
-def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB=False, getEigenEnergies=False, sinStepHamiltonian=False, circuitData=None):
+def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB=False, getEigenEnergies=False, sinBoxHamiltonian=False, useArccosSignal=False, circuitData=None):
     """
     This function creates the hamiltonian for the specified number
     of energy levels. It also has the ability to return the hamiltonian
@@ -205,7 +242,7 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
             N (int) {Optional}: Specifies the number of energy levels that should be used in the hamiltonian. Defaults to 2 energy levels.
             eigEs (array(float)) {Optional}: An array of the eigenenergies that has been calculated for the bare basis hamiltonian.
             U_e (Qobj) {Optional}: A QuTiP quantum operator that changes the basis from the bare basis to the eigenbasis.
-            sinStepHamiltonian (boolean) {Optional}: Chooses whether the AC part of the flux affecting the tunable coupler frequency should use a sinusoidal box envelope. Defaults to False.
+            sinBoxHamiltonian (boolean) {Optional}: Chooses whether the AC part of the flux affecting the tunable coupler frequency should use a sinusoidal box envelope. Defaults to False.
 
         Set only ONE of these to True!:
             getBBHamiltonianComps (boolean) {Optional}: Get the hamiltonian in the bare basis without the time dependent coefficient. Defaults to False.
@@ -285,14 +322,14 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
         return [H0BB, HiBB, H1BB]
     elif getEigenStatesBB:
 
-        # Get the hamiltonian in the bare basis, where the time dependent coefficient is constant with a flux phi that is equal to the current theta parameter in x.
+        # Get the hamiltonian in the bare basis, where the time dependent coefficient is constant with a flux phi that is equal to the current theta/DC-amplitude parameter in x.
         # This hamiltonian is used to calculate the relevant eigenstates.
-        return H0BB + HiBB + coeffomegaTB(omegas[2], x[0]) * H1BB
+        return H0BB + HiBB + coeffomegaTB(omegas[2], x[0], useArccosSignal=useArccosSignal) * H1BB
     elif getEigenEnergies:
 
-        # Get the hamiltonian in the bare basis, that will be specified as a function so that the hamiltonian can be calculated for a dynamic constant flux phi.
-        def hamiltonian(currentPhi):
-            return H0BB + HiBB + coeffomegaTB(omegas[2], currentPhi) * H1BB
+        # Get the hamiltonian in the bare basis, specified as a function so that the hamiltonian can be calculated at a flux phi (or at a certain signal amplitude, when an arccos signal is used).
+        def hamiltonian(signalVal):
+            return H0BB + HiBB + coeffomegaTB(omegas[2], signalVal, useArccosSignal=useArccosSignal) * H1BB
         return hamiltonian
     else:
 
@@ -300,19 +337,23 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
         HThEB = Qobj(np.diag(eigEs), dims=[[N, N, N], [N, N, N]])
         H1EB = U_e*H1BB*U_e.dag()
 
-        if sinStepHamiltonian:
-            # The time dependent coefficient will be specified with an AC part of the flux that will be sinusoidally modulated.
-            return [HThEB, [H1EB, omegaTBSinStep]]
+        if sinBoxHamiltonian:
+            # The AC part of the signal will be multiplied by a sinBox envelope.
+            if useArccosSignal:
+                omegaTBfun = omegaTBArccosSinBox
+            else:
+                omegaTBfun = omegaTBSinBox
         else:
-            # The time dependent coefficient will be specified with an AC part of the flux that will be constant.
-            return [HThEB, [H1EB, omegaTB]]
+            # The AC part of the signal will be multiplied by a constant envelope.
+            omegaTBfun = omegaTB
+        return [HThEB, [H1EB, omegaTBfun]]
 
 
 ######################################################################################################################################################################
 # Helper functions for calculating the gate fidelity.
 
 
-def getThetaEigenstates(x, H_const, H_omegaTB, omegaTBTh):
+def getThetaEigenstates(H_const, H_omegaTB, omegaTBTh):
     """
     This function calculates the eigenstates and eigenenergies
     for a hamiltonian in the bare basis, using the tunable
@@ -322,7 +363,7 @@ def getThetaEigenstates(x, H_const, H_omegaTB, omegaTBTh):
     return H.eigenstates()
 
 
-def getEBUnitary(x, eigStsBB, nLevels, Dimension):
+def getEBUnitary(eigStsBB, nLevels, Dimension):
     """
     This function returns the unitary that is used for transforming
     the bare basis hamiltonian into the eigenbasis hamiltonian.
@@ -473,7 +514,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I):
 # Gate fidelity function.
 
 
-def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices=[-76, -61, -23, -1], circuitData=None, riseTime=25.0, printResults=False):
+def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices=[-76, -61, -23, -1], circuitData=None, riseTime=25.0, useArccosSignal=False, printResults=False):
     """
     This function calculates the gate fidelity for the
     iSWAP and CZ quantum gates given a parameter set x.
@@ -498,6 +539,25 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
                 evaluated at times corresponding to the tIndices input, as well as those times.
     ---------------------------------------------------------
     """
+
+    # Determine the time stamps for which the evolution will be solved.
+    opTime = x[-1]
+    nExtraSteps = 75
+
+    ts1, stepSize = np.linspace(0, opTime, 3*int(opTime), retstep=True)
+    ts2 = np.linspace(opTime + stepSize, opTime + nExtraSteps*stepSize, nExtraSteps)
+    ts = np.append(ts1, ts2)
+
+    # Signals with |A| + |B| > 1 are impossible in practice. Thus, we return bad fidelity at all times for such gates.
+    if useArccosSignal and (abs(x[0]) + abs(x[1]) > 1):
+        fidelities = []
+        fidelityTimes = []
+        for ti in tIndices:
+            fidelities.append(1 - (abs(x[0]) + abs(x[1])))
+            fidelityTimes.append(ts[ti])
+            
+        return fidelities, fidelityTimes
+
     
     # Change the units of omegaPhi from GHz to Grad/s
     omegaphi = x[2] * 2*np.pi
@@ -506,17 +566,18 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
     omegas, _, _ = unpackCircuitParameters(circuitData)
 
     # Get all parts of the hamiltonian in the bare basis.
-    HBBComps = getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData)
+    HBBComps = getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData, useArccosSignal=useArccosSignal)
 
     # Given the number of considered energy levels for each qubit, the dimension of the combined tensor state is calculated.
     D = N**3
     # From here on, unless otherwise stated, every state is considered a tensor state.
 
     # Calculate omegaTB at Phi = Theta
-    omegaTBTh = coeffomegaTB(omegas[2], x[0])
+    # (or at the DC-amplitude x[0], in the case of an arccos signal)
+    omegaTBTh = coeffomegaTB(omegas[2], x[0], useArccosSignal=useArccosSignal)
 
     # Calculate eigenstates and eigenenergies in the bare basis at Phi = Theta
-    eigStsBB = getThetaEigenstates(x, HBBComps[0]+HBBComps[1], HBBComps[2], omegaTBTh)
+    eigStsBB = getThetaEigenstates(HBBComps[0]+HBBComps[1], HBBComps[2], omegaTBTh)
 
     # We are especially interested in |000>, |010>, |100> and |110> since these make up the computational basis.
     # These states correspond (most closely) to the eigenstates with the following eigenindices:
@@ -530,22 +591,14 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
             r.append(Qobj(basis(D, ei), dims=[[N, N, N], [1, 1, 1]]))
 
         # Get unitary for transformation into eigenbasis
-        U_e = getEBUnitary(x, eigStsBB, N, D)
+        U_e = getEBUnitary(eigStsBB, N, D)
 
         # NB: r and U_e are ordered based on eigenenergies
 
     # Simulate evolution of eigenstates:
 
-    # Determine the time stamps for which the evolution will be solved.
-    opTime = x[-1]
-    nExtraSteps = 75
-
-    ts1, stepSize = np.linspace(0, opTime, 3*int(opTime), retstep=True)
-    ts2 = np.linspace(opTime+stepSize, opTime + nExtraSteps*stepSize, nExtraSteps)
-    ts = np.append(ts1, ts2)
-
     # If eigenindices couldn't be generated, the function returns fidelity 0.2 at all examined timestamps.
-    if (eigIndices is None):
+    if eigIndices is None:
         fidelities = []
         fidelityTimes = []
         for ti in tIndices:
@@ -556,12 +609,17 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
         return fidelities, fidelityTimes
 
     # Calculate the eigenbasis hamiltonian
-    HEB = getHamiltonian(x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinStepHamiltonian=True, circuitData=circuitData)
+    HEB = getHamiltonian(x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinBoxHamiltonian=True, circuitData=circuitData, useArccosSignal=useArccosSignal)
 
     # Initialise a list c of the time-evolved eigenstates
     c = [stateToBeEvolved for stateToBeEvolved in r]
+    
     # Calculate final states and store them in c
-    args = {'theta': x[0], 'delta': x[1], 'omegaphi': omegaphi, 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBTh, 'riseTime': riseTime}
+    if useArccosSignal:
+        args = {'dcAmplitude': x[0], 'acAmplitude': x[1], 'omegaphi': omegaphi, 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBTh, 'riseTime': riseTime}
+    else:
+        args = {'theta': x[0], 'delta': x[1], 'omegaphi': omegaphi, 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBTh, 'riseTime': riseTime}
+    
     for i in range(len(c)):
         output = sesolve(HEB, c[i], ts, args=args)
         c[i] = output.states
@@ -574,8 +632,8 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
 
     res = fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I)
     if printResults:
-        #print(f'Energy levels: {N}')
         print('--------------------------------------------------')
+        #print(f'Energy levels: {N}')
         print(f'Solution: {x}')
         print(f'Fidelities: {res[0]}')
         print(f'Times [ns]: {res[1]}')

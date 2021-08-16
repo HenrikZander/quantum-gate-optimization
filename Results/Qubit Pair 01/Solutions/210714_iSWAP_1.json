@@ -14,6 +14,7 @@
         0.05552
     ],
     "creationTime": "2021-07-14 00:11:45",
+    "signalType": "cos",
     "gateType": "iSWAP",
     "nOptimizationLvls": 4,
     "riseTime": 25,
