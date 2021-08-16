@@ -47,7 +47,7 @@ def simulate(solutionData, guiData):
     ############################## Generate the plots ##############################
 
     if guiData["populationTransferPlot"]:
-        simulatePopTransfer(solutionPath, eigenenergiesPath, initialStateIndex=eigenstateIndex, highestProjectionIndex=eigenstateIndex+5, N=energyLevels)
+        simulatePopTransfer(solutionPath, eigenenergiesPath, initialStateIndex=eigenstateIndex, highestProjectionIndex=max(12, eigenstateIndex+5), N=energyLevels)
     elif guiData["fidelityPlot"]:
         try:
             plotFidelity(solutionPath, useSavedPlot=True, saveToFile=False)
