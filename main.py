@@ -89,9 +89,9 @@ x_210715_CZ_1_4lvl = [4.28265258e-01, 2.28050495e-02, 4.28583819e+00, 1.15226156
 x_210716_CZ_2_4lvl = [4.03140410e-01, 2.95892756e-02, 4.14970423e+00, 1.06035386e+02]
 
 # Solution to use in simulations:
-solName = "210706_iSWAP_1"
+solName = "210817_SWAP_1"
 
-circuitFolder = 'Results/Qubit Pair 01'
+circuitFolder = 'Results/Qubit Pair 03'
 solPath = circuitFolder + '/Solutions/' + solName + '.json'
 eigEnPath = circuitFolder + '/eigenenergies.json'
 solDict = getFromjson(solPath)
