@@ -85,7 +85,7 @@ def calculateWindowSize(root):
 
 def mainMenu():
     pass
-    
+
 
 def twoQubit(root, height, width):
     twoQubitNotepad = ttk.Notebook(root, height=height, width=width)
