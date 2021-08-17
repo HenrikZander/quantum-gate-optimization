@@ -128,15 +128,28 @@ def invalidSolutionStatus():
 
 
 def writeSolutionParameterStatus(solutionData):
-    solutionPreviewField.config(state="normal")
-    solutionPreviewField.delete("1.0", "end")
-    solutionPreviewField.insert("1.0", f'Resulting gate: {solutionData["gateType"]}\n\n')
-    solutionPreviewField.insert("3.0", f'Strength of DC-flux \u0398 [\u03A6{subscriptZero}]: {solutionData["theta"]}\n')
-    solutionPreviewField.insert("4.0", f'Amplitude of \u03B4(t) [\u03A6{subscriptZero}]: {solutionData["delta"]}\n')
-    solutionPreviewField.insert("5.0", f'Frequency \u03C9 of AC-flux [GHz]: {solutionData["omegaPhi"]}\n')
-    solutionPreviewField.insert("6.0", f'Total modulation time of AC-flux [ns]: {solutionData["modulationTime"]}\n\n')
-    solutionPreviewField.insert("8.0", "Status: Solution format valid! Ready to simulate.")
-    solutionPreviewField.config(state="disabled")
+    if solutionData["signalType"] == "arccos":
+        solutionPreviewField.config(state="normal")
+        solutionPreviewField.delete("1.0", "end")
+        solutionPreviewField.insert("1.0", f'Resulting gate: {solutionData["gateType"]}\n')
+        solutionPreviewField.insert("2.0", f'Signal type: \u03A6 = 1 / \u03C0 \u2022 arccos[ (A + B(t) \u2022 cos(\u03C9t))\u00B2 ]\n\n')
+        solutionPreviewField.insert("4.0", f'Strength of DC-part A [1]: {solutionData["dcAmplitude"]}\n')
+        solutionPreviewField.insert("5.0", f'Amplitude of B(t) [1]: {solutionData["acAmplitude"]}\n')
+        solutionPreviewField.insert("6.0", f'Frequency \u03C9 of AC-flux [GHz]: {solutionData["omegaPhi"]}\n')
+        solutionPreviewField.insert("7.0", f'Total modulation time of AC-flux [ns]: {solutionData["modulationTime"]}\n\n')
+        solutionPreviewField.insert("9.0", "Status: Solution format valid! Ready to simulate.")
+        solutionPreviewField.config(state="disabled")
+    else:
+        solutionPreviewField.config(state="normal")
+        solutionPreviewField.delete("1.0", "end")
+        solutionPreviewField.insert("1.0", f'Resulting gate: {solutionData["gateType"]}\n')
+        solutionPreviewField.insert("2.0", f'Signal type: \u03A6 = \u0398 + \u03B4(t) \u2022 cos(\u03C9t)\n\n')
+        solutionPreviewField.insert("4.0", f'Strength of DC-flux \u0398 [\u03A6{subscriptZero}]: {solutionData["theta"]}\n')
+        solutionPreviewField.insert("5.0", f'Amplitude of \u03B4(t) [\u03A6{subscriptZero}]: {solutionData["delta"]}\n')
+        solutionPreviewField.insert("6.0", f'Frequency \u03C9 of AC-flux [GHz]: {solutionData["omegaPhi"]}\n')
+        solutionPreviewField.insert("7.0", f'Total modulation time of AC-flux [ns]: {solutionData["modulationTime"]}\n\n')
+        solutionPreviewField.insert("9.0", "Status: Solution format valid! Ready to simulate.")
+        solutionPreviewField.config(state="disabled")
 
 
 def getAllVariables():
@@ -208,8 +221,10 @@ def loadSolution():
             solutionData = dataManager.getFromjson(solutionFilePath)
             setCircuitVariables(solutionData)
             writeSolutionParameterStatus(solutionData)
+            print("Fine so far!")
             enableStartSimulationButton()
         except:
+            print("Exception!")
             disableStartSimulationButton()
             invalidSolutionStatus()
         solutionPath.set(solutionFilePath)
