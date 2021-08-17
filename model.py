@@ -118,14 +118,14 @@ def sinBox(t, operationTime, tRise):
 # Functions that define the tunable bus flux signal.
 
 @njit
-def coeffomegaTB(omegaTB0, signalVal, useArccosSignal):
+def coeffomegaTB(omegaTB0, signalVal, signalType):
     """
     This function calculates the tunable bus frequency at a given flux Phi, 
         or at a given fraction of omegaTB0, when an arccos signal is used.
     """
-    if useArccosSignal:
+    if signalType == 'arccos':
         return omegaTB0*signalVal
-    else:
+    elif signalType == 'cos':
         return omegaTB0*np.sqrt(np.abs(np.cos(np.pi*signalVal)))
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -230,7 +230,7 @@ def omegaTBArccosSinBox(t, args):
 # Hamiltonian function.
 
 
-def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB=False, getEigenEnergies=False, sinBoxHamiltonian=False, useArccosSignal=False, circuitData=None):
+def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB=False, getEigenEnergies=False, sinBoxHamiltonian=False, signalType=None, circuitData=None):
     """
     This function creates the hamiltonian for the specified number
     of energy levels. It also has the ability to return the hamiltonian
@@ -325,12 +325,12 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
 
         # Get the hamiltonian in the bare basis, where the time dependent coefficient is constant with a flux phi that is equal to the current theta/DC-amplitude parameter in x.
         # This hamiltonian is used to calculate the relevant eigenstates.
-        return H0BB + HiBB + coeffomegaTB(omegas[2], x[0], useArccosSignal=useArccosSignal) * H1BB
+        return H0BB + HiBB + coeffomegaTB(omegas[2], x[0], signalType) * H1BB
     elif getEigenEnergies:
 
         # Get the hamiltonian in the bare basis, specified as a function so that the hamiltonian can be calculated at a flux phi (or at a certain signal amplitude, when an arccos signal is used).
         def hamiltonian(signalVal):
-            return H0BB + HiBB + coeffomegaTB(omegas[2], signalVal, useArccosSignal=useArccosSignal) * H1BB
+            return H0BB + HiBB + coeffomegaTB(omegas[2], signalVal, signalType) * H1BB
         return hamiltonian
     else:
 
@@ -340,9 +340,9 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
 
         if sinBoxHamiltonian:
             # The AC part of the signal will be multiplied by a sinBox envelope.
-            if useArccosSignal:
+            if signalType == 'arccos':
                 omegaTBfun = omegaTBArccosSinBox
-            else:
+            elif signalType == 'cos':
                 omegaTBfun = omegaTBSinBox
         else:
             # The AC part of the signal will be multiplied by a constant envelope.
@@ -515,7 +515,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, gateType):
 # Gate fidelity function.
 
 
-def getGateFidelity(x, gateType, N=2, tIndices=[-76, -61, -23, -1], circuitData=None, riseTime=25.0, useArccosSignal=False, printResults=False):
+def getGateFidelity(x, gateType, N=2, tIndices=[-76, -61, -23, -1], circuitData=None, riseTime=25.0, signalType=None, printResults=False):
     """
     This function calculates the gate fidelity for a given quantum gate, given a parameter set x.
     ---------------------------------------------------------
@@ -545,7 +545,7 @@ def getGateFidelity(x, gateType, N=2, tIndices=[-76, -61, -23, -1], circuitData=
     ts = np.append(ts1, ts2)
 
     # Signals with |A| + |B| > 1 are impossible in practice. Thus, we return bad fidelity at all times for such gates.
-    if useArccosSignal and (abs(x[0]) + abs(x[1]) > 1):
+    if (signalType == 'arccos') and (abs(x[0]) + abs(x[1]) > 1):
         fidelities = []
         fidelityTimes = []
         for ti in tIndices:
@@ -562,7 +562,7 @@ def getGateFidelity(x, gateType, N=2, tIndices=[-76, -61, -23, -1], circuitData=
     omegas, _, _ = unpackCircuitParameters(circuitData)
 
     # Get all parts of the hamiltonian in the bare basis.
-    HBBComps = getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData, useArccosSignal=useArccosSignal)
+    HBBComps = getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData, signalType=signalType)
 
     # Given the number of considered energy levels for each qubit, the dimension of the combined tensor state is calculated.
     D = N**3
@@ -570,7 +570,7 @@ def getGateFidelity(x, gateType, N=2, tIndices=[-76, -61, -23, -1], circuitData=
 
     # Calculate omegaTB at Phi = Theta
     # (or at the DC-amplitude x[0], in the case of an arccos signal)
-    omegaTBTh = coeffomegaTB(omegas[2], x[0], useArccosSignal=useArccosSignal)
+    omegaTBTh = coeffomegaTB(omegas[2], x[0], signalType)
 
     # Calculate eigenstates and eigenenergies in the bare basis at Phi = Theta
     eigStsBB = getThetaEigenstates(HBBComps[0]+HBBComps[1], HBBComps[2], omegaTBTh)
@@ -605,15 +605,15 @@ def getGateFidelity(x, gateType, N=2, tIndices=[-76, -61, -23, -1], circuitData=
         return fidelities, fidelityTimes
 
     # Calculate the eigenbasis hamiltonian
-    HEB = getHamiltonian(x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinBoxHamiltonian=True, circuitData=circuitData, useArccosSignal=useArccosSignal)
+    HEB = getHamiltonian(x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinBoxHamiltonian=True, circuitData=circuitData, signalType=signalType)
 
     # Initialise a list c of the time-evolved eigenstates
     c = [stateToBeEvolved for stateToBeEvolved in r]
     
     # Calculate final states and store them in c
-    if useArccosSignal:
+    if signalType == 'arccos':
         args = {'dcAmplitude': x[0], 'acAmplitude': x[1], 'omegaphi': omegaphi, 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBTh, 'riseTime': riseTime}
-    else:
+    elif signalType == 'cos':
         args = {'theta': x[0], 'delta': x[1], 'omegaphi': omegaphi, 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBTh, 'riseTime': riseTime}
     
     for i in range(len(c)):

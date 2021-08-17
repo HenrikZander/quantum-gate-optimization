@@ -175,7 +175,7 @@ def identifyGate(userData):
 def callOptimizeGate():
     dataFromUser = getAllVariablesForTheOptimizer()
 
-    optimizeManager.optimize2QubitGate(userData=dataFromUser, useArccosSignal=getArccosSignalBoolean())
+    optimizeManager.optimize2QubitGate(userData=dataFromUser)
 
 
 def scheduleOptimizingSessions():
@@ -215,13 +215,13 @@ def getX0X1names():
     return x0name, x1name
 
 
-def getArccosSignalBoolean():
+def getSignalType():
     if signalShape.get() == '\u03A6 = 1 / \u03C0 \u2022 arccos[ (A + B(t) \u2022 cos(\u03C9t))\u00B2 ]':
-        arccosSignal = True
+        signalType = 'arccos'
     elif signalShape.get() == '\u03A6 = \u0398 + \u03B4(t) \u2022 cos(\u03C9t)':
-        arccosSignal = False
+        signalType = 'cos'
     
-    return arccosSignal
+    return signalType
 
 
 def setBoundaryValues(boundaryValues):
@@ -253,6 +253,7 @@ def getAllVariablesForTheOptimizer():
     data["runSHG"] = runSimplicalHomologyGlobal.get()
     data["runDA"] = runDualAnneling.get()
 
+    data['signalType'] = getSignalType()
     data["gateType"] = selectedGate.get()
     data["energy-levels"] = energyLevels.get()
 
@@ -324,10 +325,11 @@ def setDefaultBoundaryValues():
 
 
 def updateX0X1Labels(event):
-    if getArccosSignalBoolean():
+    signalType = getSignalType()
+    if signalType == 'arccos':
         x0LabelVar.set("DC signal strength A [1]:")
         x1LabelVar.set("Amplitude of B(t) [1]:")
-    else:
+    elif signalType == 'cos':
         x0LabelVar.set("Strength of DC-flux \u0398 [\u03A6"+subscriptZero+"]:")
         x1LabelVar.set("Amplitude of \u03B4(t) [\u03A6"+subscriptZero+"]:")
 

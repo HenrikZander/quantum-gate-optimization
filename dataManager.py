@@ -52,7 +52,7 @@ def createSolName(ymd, gateType, solNumber):
     return ymd + "_" + gateType + "_" + str(solNumber)
 
 
-def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), folder='Demo Circuit', circuitFile=None, circuitData=None, riseTime=25, arccosSignal=False):
+def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), folder='Demo Circuit', circuitFile=None, circuitData=None, riseTime=25, signalType=None):
     ymd = creationTime.strftime('%Y%m%d')[2:]
     creationTime = creationTime.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -63,21 +63,19 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
     filePath = Path(folder, solName + ".json") #folder + "/" + solName + ".json"
 
     if circuitData is not None:
-        solDict = {}
+        solutionDict = {}
         circuitDataKeys = ['frequencies', 'anharmonicities', 'couplings']
         for key in circuitDataKeys:
-            solDict[key] = [item/(2*np.pi) for item in circuitData[key]]
+            solutionDict[key] = [item/(2*np.pi) for item in circuitData[key]]
     else:
         if circuitFile is None:
             circuitFile = folder + '/circuit.json'
-        solDict = getFromjson(circuitFile)
+        solutionDict = getFromjson(circuitFile)
 
-    if arccosSignal:
-        signalType = 'arccos'
+    if signalType == 'arccos':
         x0name = 'dcAmplitude'
         x1name = 'acAmplitude'
-    else:
-        signalType = 'cos'
+    elif signalType == 'cos':
         x0name = 'theta'
         x1name = 'delta'
     
@@ -108,14 +106,14 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
                 'fidelities2D_omegaPhi_opTime': None
             }
             
-            solDict.update(newInfoDict)
+            solutionDict.update(newInfoDict)
 
-            dumpTojson(solDict, filePath)
+            dumpTojson(solutionDict, filePath)
             return
         else:
             try:
-                existingSolDict = getFromjson(filePath)
-                if (existingSolDict['creationTime'] == creationTime):
+                existingSolutionDict = getFromjson(filePath)
+                if (existingSolutionDict['creationTime'] == creationTime):
                     print("Can't add solution: Solution already exists!")
                     return
             except FileNotFoundError:
@@ -126,10 +124,10 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
             filePath = Path(folder, solName + ".json") # folder + "/" + solName + ".json"
 
 
-def saveSolutionsTojson(results, gateType, N, folder, circuitFile=None, circuitData=None, dateAndTime=datetime.today(), arccosSignal=False):
+def saveSolutionsTojson(results, gateType, N, folder, circuitFile=None, circuitData=None, dateAndTime=datetime.today(), signalType=None):
     for i in range(len(results)):
         x = results[i].x.tolist()
-        addNewSolution(x, gateType, N, folder=folder, circuitFile=circuitFile, circuitData=circuitData, creationTime=dateAndTime, arccosSignal=arccosSignal)
+        addNewSolution(x, gateType, N, folder=folder, circuitFile=circuitFile, circuitData=circuitData, creationTime=dateAndTime, signalType=signalType)
 
 
 def saveResToFile(result, algorithmName, iterations, runtime, algorithmDE=False, algorithmSHG=False, fileName="result.txt", dateAndTime=datetime.today()):

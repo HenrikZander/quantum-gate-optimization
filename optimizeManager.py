@@ -43,8 +43,8 @@ def averageFidelity(F, gateTimeWeight=2):
     return np.sum(F)/(len(F)+gateTimeWeight-1)
 
 
-def cost(x, gateType, N, circuitData, useArccosSignal):
-    F, _ = model.getGateFidelity(x, gateType=gateType, N=N, circuitData=circuitData, printResults=True, useArccosSignal=useArccosSignal)
+def cost(x, gateType, N, circuitData, signalType):
+    F, _ = model.getGateFidelity(x, gateType=gateType, N=N, circuitData=circuitData, printResults=True, signalType=signalType)
     return -averageFidelity(F)
 
 
@@ -52,11 +52,11 @@ def cost(x, gateType, N, circuitData, useArccosSignal):
 # Optimize gate function
 
 
-def optimize2QubitGate(userData, useArccosSignal=False):
+def optimize2QubitGate(userData):
     """
-    The function tries to optimize the choosen gate for the
-    choosen parameters, using the optimization algorithms 
-    that the user decide would best fit the problem.
+    The function tries to optimize the selected gate for the
+    supplied parameters, using the optimization algorithms 
+    that the user decides would best fit the problem.
     ---------------------------------------------------------
     INPUT:
             energyLevels (int) {Optional}: How many energy levels that should be accounted for in the simulations.
@@ -81,10 +81,11 @@ def optimize2QubitGate(userData, useArccosSignal=False):
     #
     # Divide data from user into variables
     #
+    signalType = userData['signalType']
 
-    if useArccosSignal:
+    if signalType == 'arccos':
         x0name, x1name = "dcAmplitude", "acAmplitude"
-    else:
+    elif signalType == 'cos':
         x0name, x1name = "theta", "delta"
 
     gateType = userData['gateType']
@@ -97,7 +98,7 @@ def optimize2QubitGate(userData, useArccosSignal=False):
     # Dessa ska tas in mha gui:t
     solutionsFolder = userData["save-folder"] # "Qubit Pair 03/Solutions"
 
-    findMinimum(cost, parameterBounds, argumentsToOptimizer=(gateType, energyLevels, userData, useArccosSignal), runSHG=runSHG, runDA=runDA, runDE=runDE, solutionsFolder=solutionsFolder)
+    findMinimum(cost, parameterBounds, argumentsToOptimizer=(gateType, energyLevels, userData, signalType), runSHG=runSHG, runDA=runDA, runDE=runDE, solutionsFolder=solutionsFolder)
     gui.enableStopButton()
     if gui.getRunOptimizer():
         gui.processFinished()
@@ -294,8 +295,8 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
     #############################################################################
     
     if solutionsFolder is not None:
-        gateType, N, circuitData, arccosSignal = argumentsToOptimizer
-        dataManager.saveSolutionsTojson(result, gateType, N, solutionsFolder, circuitData=circuitData, dateAndTime=dateAndTime, arccosSignal=arccosSignal)
+        gateType, N, circuitData, signalType = argumentsToOptimizer
+        dataManager.saveSolutionsTojson(result, gateType, N, solutionsFolder, circuitData=circuitData, dateAndTime=dateAndTime, signalType=signalType)
     return result, dateAndTime
 
 

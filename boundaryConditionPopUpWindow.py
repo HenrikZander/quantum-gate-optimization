@@ -87,10 +87,10 @@ def setVariablesToPreset(index, copy=False):
     else:
         presetName.set(parameterValues[0])
 
-    print("Hello")
-    print(gui.signalShape.get())
-    print(gui.getArccosSignalBoolean())
-    if gui.getArccosSignalBoolean():
+    signalType = gui.getSignalType()
+    #print(gui.signalShape.get())
+    #print(signalType)
+    if signalType == 'arccos':
         if parameterValues[2][0] * parameterValues[2][1] > 0:
             dcAmplitudeLower = getAfromTheta(max(parameterValues[2], key=abs))
             dcAmplitudeUpper = getAfromTheta(min(parameterValues[2], key=abs))
@@ -109,7 +109,7 @@ def setVariablesToPreset(index, copy=False):
 
         x1LowerNew.set(acAmplitudeLower)
         x1UpperNew.set(acAmplitudeUpper)
-    else:
+    elif signalType == 'cos':
         x0LowerNew.set(parameterValues[2][0])
         x0UpperNew.set(parameterValues[2][1])
 
@@ -435,7 +435,7 @@ def selectPreset():
 
         boundaryValues = getPreset(selectedPresetIndex)
 
-        if gui.getArccosSignalBoolean():
+        if gui.getSignalType() == 'arccos':
             for i in range(2):
                 boundaryValues[2][i] = getAfromTheta(boundaryValues[2][i])
             # OBS: Jag laddar här in deltaBounds som om de vore BBounds.
@@ -488,7 +488,7 @@ def loadAllPresets():
 
 
 def addPreset(name, boundaryValues):
-    if gui.getArccosSignalBoolean():
+    if gui.getSignalType() == 'arccos':
         for i in range(2):
             boundaryValues[0][i] = - 1/np.pi * np.arccos(boundaryValues[0][i] ** 2)
         # OBS: Jag sparar här BBounds som om de vore deltaBounds, eftersom jag ovan valde att använda ett preset:s deltaBounds som BBounds rakt av.
@@ -505,7 +505,7 @@ def getPreset(index):
 
 
 def changePreset(index, newBoundaryValues):
-    if gui.getArccosSignalBoolean():
+    if gui.getSignalType() == 'arccos':
         for i in range(2):
             newBoundaryValues[0][i] = - 1/np.pi * np.arccos(newBoundaryValues[0][i] ** 2)
         # OBS: Jag sparar här BBounds som om de vore deltaBounds, eftersom jag ovan valde att använda ett preset:s deltaBounds som BBounds rakt av.
