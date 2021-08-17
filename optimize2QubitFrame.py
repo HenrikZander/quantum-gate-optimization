@@ -154,7 +154,7 @@ def processFinished():
     statusString.set("Status: Optimization finished. Ready to optimize.")
     progressValue.set(0)
 
-
+'''
 def identifyGate(userData):
     try:
         iSWAP = userData["iSWAP"]
@@ -170,13 +170,12 @@ def identifyGate(userData):
             CZ = True
 
     return (iSWAP, SWAP, CZ)
-
+'''
 
 def callOptimizeGate():
     dataFromUser = getAllVariablesForTheOptimizer()
-    iSWAP, SWAP, CZ = identifyGate(dataFromUser)
 
-    optimizeManager.optimize2QubitGate(iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, userData=dataFromUser, useArccosSignal=getArccosSignalBoolean())
+    optimizeManager.optimize2QubitGate(userData=dataFromUser, useArccosSignal=getArccosSignalBoolean())
 
 
 def scheduleOptimizingSessions():
@@ -254,7 +253,7 @@ def getAllVariablesForTheOptimizer():
     data["runSHG"] = runSimplicalHomologyGlobal.get()
     data["runDA"] = runDualAnneling.get()
 
-    data[selectedGate.get()] = True
+    data["gateType"] = selectedGate.get()
     data["energy-levels"] = energyLevels.get()
 
     data["rise-time"] = riseTime.get()

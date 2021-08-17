@@ -111,7 +111,7 @@ def main():
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
     # simulatePopTransfer(solutionPath=solPath, eigenenergiesPath=eigEnPath, initialStateIndex=2, highestProjectionIndex=12)
-    # plotFidelity(solutionPath=solPath, useSavedPlot=False, saveToFile=True)
+    plotFidelity(solutionPath=solPath, useSavedPlot=False, saveToFile=True)
     # deltaPulsePlot()
     # testPlotStates()
     # testEigenstateOrder()

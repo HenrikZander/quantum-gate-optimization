@@ -22,6 +22,7 @@
 from qutip import *
 import numpy as np
 from numba import njit
+import time as t
 
 ######################################################################################################################################################################
 # Function for unpacking circuit parameters.
@@ -440,7 +441,7 @@ def eigenstateOrder(eigenstates, N):
     return order
 
 
-def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I):
+def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, gateType):
     fidelities = []
     fidelityTimes = []
 
@@ -463,7 +464,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I):
             for j, _ in enumerate(eigIndices):
                 M[i][j] = c_rf[j][ei].item(0)
 
-        if iSWAP:
+        if gateType == 'iSWAP':
             # Calculate phases (iSWAP):
             phi = np.angle(M[0][0])
             theta1 = np.angle(M[1][2]) + np.pi/2 - phi
@@ -471,7 +472,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I):
 
             # Ideal iSWAP gate matrix (with phases):
             U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, 0, np.exp(1j*(-np.pi/2 + theta1 + phi)), 0], [0, np.exp(1j*(-np.pi/2 + theta2 + phi)), 0, 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
-        elif SWAP:
+        elif gateType == 'SWAP':
             # Calculate phases (SWAP):
             phi = np.angle(M[0][0])
             theta1 = np.angle(M[1][2]) - phi
@@ -479,7 +480,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I):
 
             # Ideal SWAP gate matrix (with phases):
             U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, 0, np.exp(1j*(theta1 + phi)), 0], [0, np.exp(1j*(theta2 + phi)), 0, 0], [0, 0, 0, np.exp(1j*(theta1 + theta2 + phi))]])
-        elif CZ:
+        elif gateType == 'CZ':
             # Calculate phases (CZ):
             phi = np.angle(M[0][0])
             theta1 = np.angle(M[1][1]) - phi
@@ -487,7 +488,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I):
 
             # Ideal CZ gate matrix (with phases):
             U = np.matrix([[np.exp(1j*phi), 0, 0, 0], [0, np.exp(1j*(theta1 + phi)), 0, 0], [0, 0, np.exp(1j*(theta2 + phi)), 0], [0, 0, 0, np.exp(1j*(np.pi + theta1 + theta2 + phi))]])
-        elif I:
+        elif gateType == 'I':
             # Calculate phases (I):
             phi = np.angle(M[0][0])
             theta1 = np.angle(M[1][1]) - phi
@@ -514,31 +515,26 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I):
 # Gate fidelity function.
 
 
-def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices=[-76, -61, -23, -1], circuitData=None, riseTime=25.0, useArccosSignal=False, printResults=False):
+def getGateFidelity(x, gateType, N=2, tIndices=[-76, -61, -23, -1], circuitData=None, riseTime=25.0, useArccosSignal=False, printResults=False):
     """
-    This function calculates the gate fidelity for the
-    iSWAP and CZ quantum gates given a parameter set x.
+    This function calculates the gate fidelity for a given quantum gate, given a parameter set x.
     ---------------------------------------------------------
     INPUT:
             x (array(float)): An array containing the parameters needed to time evolve the hamiltonian.
+            gateType (string): Specifies which gate the fidelity is to be calculated for. Currently supported inputs are 'iSWAP', 'SWAP',
+                'CZ' and 'I'.
             N (int) {Optional}: Specifies the amount of energy levels that should be used in the hamiltonian. Defaults to 2 energy levels.
             tIndices (array(int)): Determines at which times to calculate the gate fidelity. Since the time evolution of the computational
                 basis eigenstates is simulated for 75 extra time steps (each roughly 0.33 ns long) after the gate is applied, a time index
                 of -76 corresponds to when the (oscillating part of) gate control signal is shut off, and a time index of -1 corresponds to
                 the final simulated time, roughly 25 ns after the gate is applied. 
-
-        Only change ONE of these to True!:
-            iSWAP (boolean) {Optional}: Specifies that the gate fidelity is to be calculated for the iSWAP gate. Defaults to False.
-            SWAP (boolean) {Optional}: Specifies that the gate fidelity is to be calculated for the SWAP gate. Defaults to False.
-            CZ (boolean) {Optional}: Specifies that the gate fidelity is to be calculated for the CZ gate. Defaults to False.
-            I (boolean) {Optional}: USED IN TESTING ONLY! Specifies that the gate fidelity is to be calculated for the identity gate.
-                Defaults to False.
     ---------------------------------------------------------
     OUTPUT:
             fidelities, fidelityTimes (array(float), array(float)): The gate fidelity for the parameter set x and the selected gate,
                 evaluated at times corresponding to the tIndices input, as well as those times.
     ---------------------------------------------------------
     """
+    #pppStart = t.time()
 
     # Determine the time stamps for which the evolution will be solved.
     opTime = x[-1]
@@ -630,7 +626,12 @@ def getGateFidelity(x, N=2, iSWAP=False, SWAP=False, CZ=False, I=False, tIndices
     Hrot[eigIndices[-1], eigIndices[-1]] = Hrot[eigIndices[-2], eigIndices[-2]] + Hrot[eigIndices[-3], eigIndices[-3]] - Hrot[eigIndices[0], eigIndices[0]]
     Hrot = Qobj(Hrot, dims=[[N, N, N], [N, N, N]])
 
-    res = fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, iSWAP, SWAP, CZ, I)
+    #print(f'Pre-post process time: {t.time() - pppStart} seconds.')
+
+    #ppStart = t.time()
+    res = fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, gateType)
+    #print(f'Post process time: {t.time() - ppStart} seconds.')
+
     if printResults:
         print('--------------------------------------------------')
         #print(f'Energy levels: {N}')

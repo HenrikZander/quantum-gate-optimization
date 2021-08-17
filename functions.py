@@ -539,7 +539,7 @@ def plotFidelityOld(x=None, iSWAP=False, CZ=False, xName=None, useSavedPlot=Fals
             dumpTojson(solsDict,'solutions.json')
 '''
 
-def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False):
+def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False, plot=True):
     solutionDict = getFromjson(fileName=solutionPath)
 
     if solutionDict['signalType'] == 'arccos':
@@ -555,40 +555,33 @@ def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False):
     
     circuitData = getCircuitData(solutionDict)
 
-    if solutionDict['gateType'] == 'iSWAP':
-        iSWAP = True
-    else:
-        iSWAP = False
-    if solutionDict['gateType'] == 'SWAP':
-        SWAP = True
-    else:
-        SWAP = False
-    if solutionDict['gateType'] == 'CZ':
-        CZ = True
-    else:
-        CZ = False
-    
     if useSavedPlot:
         F = solutionDict['fidelitiesAtTimes']
         times = solutionDict['times']
+
+        if len(F) == 0:
+            raise Exception("Fidelities not previously generated.")
     else:
         indices = np.linspace(-116, -1, 116).astype(int)
-        F, times = getGateFidelity(x, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=indices, circuitData=circuitData, useArccosSignal=arccosSignal)
+        F, times = getGateFidelity(x, gateType=solutionDict['gateType'], N=4, tIndices=indices, circuitData=circuitData, useArccosSignal=arccosSignal)
 
-    plt.figure(figsize=(8, 7))
-    plt.plot(times, F)
-    plt.plot([x[-1], x[-1]], [0, 1], 'r--')
-    plt.grid()
-    plt.ylim([0.99, 1])
-    plt.xlim([times[0], times[-1]])
-    plt.legend(["Fidelitet", "$t_{MOD}$"], fontsize=19, loc="lower right")
-    #plt.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
-    plt.xlabel("Tid efter grindstart [ns]", fontsize=26)
-    plt.ylabel("Fidelitet", fontsize=26)
-    plt.xticks(fontsize=16)
-    plt.yticks(fontsize=16)
-    plt.tight_layout()
-    plt.show()
+    if plot:
+        fig = plt.figure(figsize=(8, 7))
+        ax = fig.add_subplot()
+
+        ax.plot(times, F)
+        ax.plot([x[-1], x[-1]], [0, 1], 'r--')
+        ax.grid()
+        ax.set_ylim([0.99, 1])
+        ax.set_xlim([times[0], times[-1]])
+        ax.legend(["Fidelitet", "$t_{MOD}$"], fontsize=19, loc="lower right")
+        #ax.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
+        ax.set_xlabel("Tid efter grindstart [ns]", fontsize=26)
+        ax.set_ylabel("Fidelitet", fontsize=26)
+        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.tick_params(axis='both', which='minor', labelsize=16)
+        plt.tight_layout()
+        plt.show()
 
     if (saveToFile == True):
         solutionDict['times'] = times
@@ -808,19 +801,6 @@ def getRobustnessPlot(solutionPath, checkX0=False, checkX1=False, checkOmegaPhi=
         legendStr_x0 = "$\Theta = %.4f$" %x[0]
         legendStr_x1 = "$\delta = %.4f$" %x[1]
 
-    if solDict['gateType'] == 'iSWAP':
-        iSWAP = True
-    else:
-        iSWAP = False
-    if solDict['gateType'] == 'SWAP':
-        SWAP = True
-    else:
-        SWAP = False
-    if solDict['gateType'] == 'CZ':
-        CZ = True
-    else:
-        CZ = False
-
     if (useSavedPlot and saveToFile):
         print("Re-saving data in a file where that data is already saved is rather pointless, don't ya think?")
         saveToFile = False
@@ -864,7 +844,7 @@ def getRobustnessPlot(solutionPath, checkX0=False, checkX1=False, checkOmegaPhi=
                 fidelities = []
                 for i, d in enumerate(deviations):
                     xDev[xIndex] = x[xIndex] + d
-                    fidelity, _ = getGateFidelity(xDev, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData, useArccosSignal=arccosSignal)
+                    fidelity, _ = getGateFidelity(xDev, gateType=solDict['gateType'], N=4, tIndices=[-76], circuitData=circuitData, useArccosSignal=arccosSignal)
                     fidelities.append(fidelity[0])
                     statusBar((i+1)*100/nPointsList[0])
 
@@ -919,7 +899,7 @@ def getRobustnessPlot(solutionPath, checkX0=False, checkX1=False, checkOmegaPhi=
                     xDev[xIndices[1]] = x[xIndices[1]] + jDev
                     for i, iDev in enumerate(iDeviations):
                         xDev[xIndices[0]] = x[xIndices[0]] + iDev
-                        fidelity, _ = getGateFidelity(xDev, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData, useArccosSignal=arccosSignal)
+                        fidelity, _ = getGateFidelity(xDev, gateType=solDict['gateType'], N=4, tIndices=[-76], circuitData=circuitData, useArccosSignal=arccosSignal)
                         fidelities.append(fidelity[0])
                         statusBar((j*nPointsList[0] + (i+1))*100/(nPointsList[0]*nPointsList[1]))
                 fidelities2D = np.array(fidelities).reshape(nPointsList[1], nPointsList[0])

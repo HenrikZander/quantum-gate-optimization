@@ -240,19 +240,6 @@ def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False, plot=True):
     
     circuitData = getCircuitData(solutionDict)
 
-    if solutionDict['gateType'] == 'iSWAP':
-        iSWAP = True
-    else:
-        iSWAP = False
-    if solutionDict['gateType'] == 'SWAP':
-        SWAP = True
-    else:
-        SWAP = False
-    if solutionDict['gateType'] == 'CZ':
-        CZ = True
-    else:
-        CZ = False
-    
     if useSavedPlot:
         F = solutionDict['fidelitiesAtTimes']
         times = solutionDict['times']
@@ -261,7 +248,7 @@ def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False, plot=True):
             raise Exception("Fidelities not previously generated.")
     else:
         indices = np.linspace(-116, -1, 116).astype(int)
-        F, times = model.getGateFidelity(x, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=indices, circuitData=circuitData, useArccosSignal=arccosSignal)
+        F, times = model.getGateFidelity(x, gateType=solutionDict['gateType'], N=4, tIndices=indices, circuitData=circuitData, useArccosSignal=arccosSignal)
     
     if plot:
         fig = plt.figure(figsize=(8, 7))
@@ -314,19 +301,6 @@ def getRobustnessPlot(solutionPath, checkX0=False, checkX1=False, checkOmegaPhi=
         legendStr_x0 = "$\Theta = %.4f$" %x[0]
         legendStr_x1 = "$\delta = %.4f$" %x[1]
 
-    if solDict['gateType'] == 'iSWAP':
-        iSWAP = True
-    else:
-        iSWAP = False
-    if solDict['gateType'] == 'SWAP':
-        SWAP = True
-    else:
-        SWAP = False
-    if solDict['gateType'] == 'CZ':
-        CZ = True
-    else:
-        CZ = False
-
     if (useSavedPlot and saveToFile):
         print("Re-saving data in a file where that data is already saved is rather pointless, don't ya think?")
         saveToFile = False
@@ -370,7 +344,7 @@ def getRobustnessPlot(solutionPath, checkX0=False, checkX1=False, checkOmegaPhi=
                 fidelities = []
                 for i, d in enumerate(deviations):
                     xDev[xIndex] = x[xIndex] + d
-                    fidelity, _ = model.getGateFidelity(xDev, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData, useArccosSignal=arccosSignal)
+                    fidelity, _ = model.getGateFidelity(xDev, gateType=solDict['gateType'], N=4, tIndices=[-76], circuitData=circuitData, useArccosSignal=arccosSignal)
                     fidelities.append(fidelity[0])
                     statusBar((i+1)*100/nPointsList[0])
 
@@ -425,7 +399,7 @@ def getRobustnessPlot(solutionPath, checkX0=False, checkX1=False, checkOmegaPhi=
                     xDev[xIndices[1]] = x[xIndices[1]] + jDev
                     for i, iDev in enumerate(iDeviations):
                         xDev[xIndices[0]] = x[xIndices[0]] + iDev
-                        fidelity, _ = model.getGateFidelity(xDev, N=4, iSWAP=iSWAP, SWAP=SWAP, CZ=CZ, tIndices=[-76], circuitData=circuitData, useArccosSignal=arccosSignal)
+                        fidelity, _ = model.getGateFidelity(xDev, gateType=solDict['gateType'], N=4, tIndices=[-76], circuitData=circuitData, useArccosSignal=arccosSignal)
                         fidelities.append(fidelity[0])
                         statusBar((j*nPointsList[0] + (i+1))*100/(nPointsList[0]*nPointsList[1]))
                 fidelities2D = np.array(fidelities).reshape(nPointsList[1], nPointsList[0])
