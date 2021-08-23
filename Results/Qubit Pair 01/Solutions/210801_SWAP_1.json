@@ -14,6 +14,7 @@
         0.05552
     ],
     "creationTime": "2021-08-01 01:29:36",
+    "comboSignal": false,
     "signalType": "cos",
     "gateType": "SWAP",
     "nOptimizationLvls": 4,

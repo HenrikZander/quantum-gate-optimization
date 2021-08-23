@@ -89,12 +89,19 @@ x_210715_CZ_1_4lvl = [4.28265258e-01, 2.28050495e-02, 4.28583819e+00, 1.15226156
 x_210716_CZ_2_4lvl = [4.03140410e-01, 2.95892756e-02, 4.14970423e+00, 1.06035386e+02]
 
 # Solution to use in simulations:
-solName = "210812_iSWAP_3_modified"
+solName = "210823_combo_SWAP_1"
 
 circuitFolder = 'Results/Qubit Pair 03'
 solPath = circuitFolder + '/Solutions/' + solName + '.json'
 eigEnPath = circuitFolder + '/eigenenergies.json'
 solDict = getFromjson(solPath)
+
+
+# Additional solution, to be combined with the first one.
+otherSolName = "210823_iSWAP_1"
+
+otherSolPath = circuitFolder + '/Solutions/' + otherSolName + '.json'
+otherSolDict = getFromjson(otherSolPath)
 
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
@@ -110,7 +117,7 @@ def main():
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=200, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
-    # simulatePopTransfer(solutionPath=solPath, eigenenergiesPath=eigEnPath, initialStateIndex=7, highestProjectionIndex=12)
+    # simulatePopTransfer(solutionPath=solPath, eigenenergiesPath=eigEnPath, initialStateIndex=1, highestProjectionIndex=12)
     # plotFidelity(solutionPath=solPath, useSavedPlot=False, saveToFile=True)
     # deltaPulsePlot()
     # testPlotStates()
@@ -118,8 +125,8 @@ def main():
     # plotEigenenergies(solutionPath=solPath, eigenenergiesPath=eigEnPath, N=4, simPoints=500, numOfEnergyLevels=None, useSavedPlot=True, saveToFile=False)
     # test()
     # getRobustnessPlot(solutionPath=solPath, useSavedPlot=False, saveToFile=True, checkOpTime=True, nPointsList=[33], maxDevs=[0.003, 0.006, 0.004, 10])
-    # print(getFromjson('solutions.json'))
-    # print(getSolutionNameList())
+    # generateComboSolutionFile(Path(solPath), Path(otherSolPath), comboGateType='SWAP')
+    # plotOmegaTBvariations(solPath)
 
     print(f'Total running time: {t.time() - start} seconds.')
 
@@ -218,7 +225,7 @@ def testNumbaSpeedup(hamiltonianModule):
     temp = 0
     start = time.time()
     for i in range(10000000):
-        temp = fun(1,{'theta': 0.2467117, 'delta': 0.0433039, 'omegaphi':0.46700076, 'omegatb0': 27.07391683, 'operationTime': 150})
+        temp = fun(1,{'theta': 0.2467117, 'delta': 0.0433039, 'omegaPhi':0.46700076, 'omegatb0': 27.07391683, 'operationTime': 150})
     print(f'Total running time for none-sinstep omegaTB: {time.time() - start} seconds.')
     print("Temp=", temp)
     
@@ -226,7 +233,7 @@ def testNumbaSpeedup(hamiltonianModule):
     temp = 0
     start = time.time()
     for i in range(10000000):
-        temp = fun(1,{'theta': 0.2467117, 'delta': 0.0433039, 'omegaphi':0.46700076, 'omegatb0': 27.07391683, 'operationTime': 150})
+        temp = fun(1,{'theta': 0.2467117, 'delta': 0.0433039, 'omegaPhi':0.46700076, 'omegatb0': 27.07391683, 'operationTime': 150})
     print(f'Total running time for sinstep omegaTB: {time.time() - start} seconds.')
     print("Temp=", temp)
 

@@ -24,6 +24,29 @@ import json
 import numpy as np
 from datetime import *
 from pathlib import Path
+import math
+
+######################################################################################################################################################################
+# Helper function for the callback functions
+
+
+def evaluateResult(x, fun, resultList, N=5):
+    """
+    This function is used to save the N best minima from an optimizer. The 
+    function evaluates if the new minima fun is smaller than any of the 
+    ones in resultList. If the length of resultList is shorter than N, the
+    new minima will just be appended to resultList. 
+    """
+    if len(resultList[1]) < N:
+        resultList[0].append(x)
+        resultList[1].append(fun)
+    else:
+        if np.amax(resultList[1]) > fun:
+            indexOfMax = np.argmax(resultList[1])
+            resultList[0][indexOfMax] = x
+            resultList[1][indexOfMax] = fun
+    return resultList
+
 
 ######################################################################################################################################################################
 # Functions that handle data loading and dumping to json-files.
@@ -38,14 +61,6 @@ def getFromjson(fileName):
 def dumpTojson(data, fileName):
     with open(fileName, 'w') as jsonFile:
         json.dump(data, jsonFile, ensure_ascii=False, indent=4)
-
-
-def getCircuitData(solutionDict):
-    circuitDataKeys = ['frequencies', 'anharmonicities', 'couplings']
-    circuitData = {}
-    for key in circuitDataKeys:
-        circuitData[key] = [2*np.pi*item for item in solutionDict[key]]
-    return circuitData
 
 
 def createSolName(ymd, gateType, solNumber):
@@ -83,6 +98,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
         if not os.path.isfile(filePath):
             newInfoDict = {
                 "creationTime": creationTime,
+                "comboSignal": False,
                 "signalType": signalType,
                 "gateType": gateType,
                 "nOptimizationLvls": N,
@@ -130,6 +146,70 @@ def saveSolutionsTojson(results, gateType, N, folder, circuitFile=None, circuitD
         addNewSolution(x, gateType, N, folder=folder, circuitFile=circuitFile, circuitData=circuitData, creationTime=dateAndTime, signalType=signalType)
 
 
+def generateComboSolutionFile(solPath1, solPath2, comboGateType, comboSolPath=None):
+    solDict1 = getFromjson(solPath1)
+    solDict2 = getFromjson(solPath2)
+
+    if solDict1['signalType'] != solDict2['signalType']:
+        print("The two provided solutions must have the same signal type!")
+        return
+    elif not math.isclose(solDict1['riseTime'], solDict2['riseTime']):
+        print("Currently, superposing two signals with different rise times isn't supported.")
+        return
+
+    circuitData1 = getCircuitData(solDict1, convertToGradPerSecond=False)
+    circuitData2 = getCircuitData(solDict2, convertToGradPerSecond=False)
+
+    for key in circuitData2:
+        for index, value in enumerate(circuitData2[key]):
+            if not math.isclose(value, circuitData1[key][index]):
+                print("The two provided solutions must use the same circuit parameters!")
+                return
+
+    if solDict1['signalType'] == 'arccos':
+        x0name = 'dcAmplitude'
+        x1name = 'acAmplitude'
+    elif solDict1['signalType'] == 'cos':
+        x0name = 'theta'
+        x1name = 'delta'
+
+    if not math.isclose(solDict1[x0name], solDict2[x0name]):
+        print("The two superposed signals need to have the same DC value (Theta or A)")
+        return
+
+    creationTime = datetime.today()
+
+    comboSolDict = {
+        "creationTime": creationTime.strftime('%Y-%m-%d %H:%M:%S'),
+        "comboSignal": True,
+        "signalType": solDict1['signalType'],
+        "gateType": comboGateType,
+        "nOptimizationLvls": max(solDict1['nOptimizationLvls'], solDict2['nOptimizationLvls']),
+        "riseTime": solDict1['riseTime'],
+        x0name: solDict1[x0name],
+        x1name+"s": [solDict1[x1name], solDict2[x1name]],
+        "omegaPhis": [solDict1['omegaPhi'], solDict2['omegaPhi']],
+        "modulationTimes": [solDict1['modulationTime'], solDict2['modulationTime']],
+        'gateFidelity': None,
+        'times': None,
+        'fidelitiesAtTimes': None
+    }
+    circuitData1.update(comboSolDict)
+    
+    if comboSolPath is None:
+        folder = str(solPath1.parent)
+
+        solNumber = 1
+        while solNumber < 1000:
+            comboSolName = creationTime.strftime('%Y%m%d')[2:] + '_' + 'combo' + '_' + comboGateType + '_' + str(solNumber)
+            comboSolPath = Path(folder, comboSolName + ".json")
+
+            if not os.path.isfile(comboSolPath):
+                break
+
+            solNumber += 1
+    dumpTojson(circuitData1, comboSolPath)
+
 def saveResToFile(result, algorithmName, iterations, runtime, algorithmDE=False, algorithmSHG=False, fileName="result.txt", dateAndTime=datetime.today()):
     resultFile = open(fileName, "a")
     
@@ -155,22 +235,17 @@ def saveResToFile(result, algorithmName, iterations, runtime, algorithmDE=False,
     resultFile.write(dividerStr)
     resultFile.close()
 
-
-def evaluateResult(x, fun, resultList, N=5):
-    """
-    This function is used to save the N best minima from an optimizer. The 
-    function evaluates if the new minima fun is smaller than any of the 
-    ones in resultList. If the length of resultList is shorter than N, the
-    new minima will just be appended to resultList. 
-    """
-    if len(resultList[1]) < N:
-        resultList[0].append(x)
-        resultList[1].append(fun)
+def getCircuitData(solutionDict, convertToGradPerSecond=True):
+    if convertToGradPerSecond:
+        koeff = 2*np.pi
     else:
-        if np.amax(resultList[1]) > fun:
-            indexOfMax = np.argmax(resultList[1])
-            resultList[0][indexOfMax] = x
-            resultList[1][indexOfMax] = fun
-    return resultList
+        koeff = 1
+    
+    circuitDataKeys = ['frequencies', 'anharmonicities', 'couplings']
+    circuitData = {}
+    for key in circuitDataKeys:
+        circuitData[key] = [koeff*item for item in solutionDict[key]]
+    return circuitData
+
 
 ######################################################################################################################################################################

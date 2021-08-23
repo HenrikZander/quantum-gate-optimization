@@ -23,6 +23,7 @@ from qutip import *
 import numpy as np
 from numba import njit
 import time as t
+import math
 
 ######################################################################################################################################################################
 # Function for unpacking circuit parameters.
@@ -123,31 +124,32 @@ def coeffomegaTB(omegaTB0, signalVal, signalType):
     This function calculates the tunable bus frequency at a given flux Phi, 
         or at a given fraction of omegaTB0, when an arccos signal is used.
     """
-    if signalType == 'arccos':
+    if (signalType == 'arccos'):
         return omegaTB0*signalVal
-    elif signalType == 'cos':
+    elif (signalType == 'cos'):
         return omegaTB0*np.sqrt(np.abs(np.cos(np.pi*signalVal)))
+
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions specific to cos signals
 
 @njit
-def Phi(t, theta, delta, omegaphi):
+def Phi(t, theta, delta, omegaPhi):
     """
     This function calculates the magnetic flux when the AC part of the flux has
     a constant amplitude.
     """
-    phi = theta + delta*np.cos(omegaphi*t)
+    phi = theta + delta*np.cos(omegaPhi*t)
     return phi
 
 
 @njit
-def tunableBus(t, theta, delta, omegaphi, omegatb0):
+def tunableBus(t, theta, delta, omegaPhi, omegatb0):
     """
     This function calculates the frequency for the tunable bus, for the case
     when the AC part of the flux has a constant amplitude.
     """
-    oTB = omegatb0 * np.sqrt(np.abs(np.cos(np.pi*Phi(t, theta, delta, omegaphi))))
+    oTB = omegatb0 * np.sqrt(np.abs(np.cos(np.pi*Phi(t, theta, delta, omegaPhi))))
     return oTB
 
 
@@ -157,29 +159,29 @@ def omegaTB(t, args):
     """
     theta = args['theta']
     delta = args['delta']
-    omegaphi = args['omegaphi']
+    omegaPhi = args['omegaPhi']
     omegatb0 = args['omegatb0']
     omegaTBTh = args['omegaTBTh']
-    return tunableBus(t, theta, delta, omegaphi, omegatb0) - omegaTBTh
+    return tunableBus(t, theta, delta, omegaPhi, omegatb0) - omegaTBTh
 
 
 @njit
-def PhiSinBox(t, theta, delta, omegaphi, sinBoxVal):
+def PhiSinBox(t, theta, delta, omegaPhi, sinBoxVal):
     """
     This function calculates the magnetic flux when the AC part of the flux has
     a sinusoidal box envelope.
     """
-    phi = theta + sinBoxVal*delta*np.cos(omegaphi*t)
+    phi = theta + sinBoxVal*delta*np.cos(omegaPhi*t)
     return phi
 
 
 @njit
-def tunableBusSinBox(t, theta, delta, omegaphi, omegatb0, sinBoxVal):
+def tunableBusSinBox(t, theta, delta, omegaPhi, omegatb0, sinBoxVal):
     """
     This function calculates the frequency for the tunable bus, in the case
     where the AC part of the flux has a sinusoidal box envelope.
     """
-    oTB = omegatb0 * np.sqrt(np.abs(np.cos(np.pi*PhiSinBox(t, theta, delta, omegaphi, sinBoxVal))))
+    oTB = omegatb0 * np.sqrt(np.abs(np.cos(np.pi*PhiSinBox(t, theta, delta, omegaPhi, sinBoxVal))))
     return oTB
 
 
@@ -189,25 +191,25 @@ def omegaTBSinBox(t, args):
     """
     theta = args['theta']
     delta = args['delta']
-    omegaphi = args['omegaphi']
+    omegaPhi = args['omegaPhi']
     omegatb0 = args['omegatb0']
     operationTime = args['operationTime']
     omegaTBTh = args['omegaTBTh']
     tRise = args['riseTime']
     sinBoxVal = sinBox(t, operationTime, tRise)
-    return tunableBusSinBox(t, theta, delta, omegaphi, omegatb0, sinBoxVal) - omegaTBTh
+    return tunableBusSinBox(t, theta, delta, omegaPhi, omegatb0, sinBoxVal) - omegaTBTh
 
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions specific to arccos signals
 
 @njit
-def tunableBusArccosSinBox(t, dcAmplitude, acAmplitude, omegaphi, omegatb0, sinBoxVal):
+def tunableBusArccosSinBox(t, dcAmplitude, acAmplitude, omegaPhi, omegatb0, sinBoxVal):
     """
     This function calculates the frequency for the tunable bus, in the case
     where the AC part of the flux has a sinusoidal box envelope (and an arccos-signal is used).
     """
-    oTB = omegatb0 * (dcAmplitude + sinBoxVal * acAmplitude * np.cos(omegaphi*t))
+    oTB = omegatb0 * (dcAmplitude + sinBoxVal * acAmplitude * np.cos(omegaPhi*t))
     return oTB
 
 
@@ -217,20 +219,91 @@ def omegaTBArccosSinBox(t, args):
     """
     dcAmplitude = args['dcAmplitude']
     acAmplitude = args['acAmplitude']
-    omegaphi = args['omegaphi']
+    omegaPhi = args['omegaPhi']
     omegatb0 = args['omegatb0']
     operationTime = args['operationTime']
     omegaTBTh = args['omegaTBTh']
     tRise = args['riseTime']
     sinBoxVal = sinBox(t, operationTime, tRise)
-    return tunableBusArccosSinBox(t, dcAmplitude, acAmplitude, omegaphi, omegatb0, sinBoxVal) - omegaTBTh
+    return tunableBusArccosSinBox(t, dcAmplitude, acAmplitude, omegaPhi, omegatb0, sinBoxVal) - omegaTBTh
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Functions for combo cos signals (used in iSWAP/CZ-combo SWAP gates, for example)
+
+
+@njit
+def tunableBusComboCosSinBox(t, theta, delta1, delta2, omegaPhi1, omegaPhi2, omegatb0, sinBoxVal1, sinBoxVal2):
+    """
+    This function calculates the frequency for the tunable bus, in the case
+    where the AC part of the flux has a sinusoidal box envelope (and two superposed
+    signals with the same Theta are used).
+    """
+    oTB = omegatb0 * np.sqrt(np.abs(np.cos(
+        np.pi * ( theta + sinBoxVal1 * delta1 * np.cos(omegaPhi1*t) + sinBoxVal2 * delta2 * np.cos(omegaPhi2*t) )
+    )))
+    return oTB
+
+
+def omegaTBComboCosSinBox(t, args):
+    """
+    Wrapper function for tunableBusComboSinBox that handles the variable assignments.
+    """
+    theta = args['theta']
+    delta1 = args['deltas'][0]
+    delta2 = args['deltas'][1]
+    omegaPhi1 = args['omegaPhis'][0]
+    omegaPhi2 = args['omegaPhis'][1]
+    operationTimes = args['operationTimes']
+
+    omegatb0 = args['omegatb0']
+    omegaTBTh = args['omegaTBTh']
+    tRise = args['riseTime']
+    sinBoxVal1 = sinBox(t, operationTimes[0], tRise)
+    sinBoxVal2 = sinBox(t, operationTimes[1], tRise)
+    # sinBoxVals = [sinBoxVal1, sinBoxVal2]
+    return tunableBusComboCosSinBox(t, theta, delta1, delta2, omegaPhi1, omegaPhi2, omegatb0, sinBoxVal1, sinBoxVal2) - omegaTBTh
+
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Functions for combo arccos signals (used in iSWAP/CZ-combo SWAP gates, for example)
+
+
+@njit
+def tunableBusComboArccosSinBox(t, dcAmp, acAmp1, acAmp2, omegaPhi1, omegaPhi2, omegatb0, sinBoxVal1, sinBoxVal2):
+    """
+    This function calculates the frequency for the tunable bus, in the case
+    where the AC part of the flux has a sinusoidal box envelope (and two superposed
+    signals with the same DC amplitude are used).
+    """
+    oTB = omegatb0 * ( dcAmp + sinBoxVal1 * acAmp1 * np.cos(omegaPhi1*t) + sinBoxVal2 * acAmp2 * np.cos(omegaPhi2*t) )
+    return oTB
+
+
+def omegaTBComboArccosSinBox(t, args):
+    """
+    Wrapper function for tunableBusComboSinBox that handles the variable assignments.
+    """
+    dcAmplitude = args['dcAmplitude']
+    acAmplitude1 = args['acAmplitudes'][0]
+    acAmplitude2 = args['acAmplitudes'][1]
+    omegaPhi1 = args['omegaPhia'][0]
+    omegaPhi2 = args['omegaPhib'][1]
+    operationTimes = args['operationTimes']
+
+    omegatb0 = args['omegatb0']
+    omegaTBTh = args['omegaTBTh']
+    tRise = args['riseTime']
+    sinBoxVal1 = sinBox(t, operationTimes[0], tRise)
+    sinBoxVal2 = sinBox(t, operationTimes[1], tRise)
+    # sinBoxVals = [sinBoxVal1, sinBoxVal2]
+    return tunableBusComboArccosSinBox(t, dcAmplitude, acAmplitude1, acAmplitude2, omegaPhi1, omegaPhi2, omegatb0, sinBoxVal1, sinBoxVal2) - omegaTBTh
 
 
 ######################################################################################################################################################################
 # Hamiltonian function.
 
 
-def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB=False, getEigenEnergies=False, sinBoxHamiltonian=False, signalType=None, circuitData=None):
+def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, getEigenStatesBB=False, getEigenEnergies=False, sinBoxHamiltonian=False, signalType=None, circuitData=None, otherx=None):
     """
     This function creates the hamiltonian for the specified number
     of energy levels. It also has the ability to return the hamiltonian
@@ -256,6 +329,15 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
             Hamiltonian (array(Qobj)): The hamiltonian for the case specified by the input parameters.
     ---------------------------------------------------------
     """
+    if otherx is not None:
+        if math.isclose(otherx[0], x[0]):
+            comboSignal = True
+        else:
+            print("Superposing two signals is only supported when the DC components of the two signals are the same!")
+            return None
+    else:
+        comboSignal = False
+    
     # Unpack the circuit data needed to fully specify the hamiltonian.
     omegas, alphas, gs = unpackCircuitParameters(circuitData)
 
@@ -340,10 +422,16 @@ def getHamiltonian(x, N=2, eigEs=None, U_e=None, getBBHamiltonianComps=False, ge
 
         if sinBoxHamiltonian:
             # The AC part of the signal will be multiplied by a sinBox envelope.
-            if signalType == 'arccos':
-                omegaTBfun = omegaTBArccosSinBox
-            elif signalType == 'cos':
-                omegaTBfun = omegaTBSinBox
+            if signalType == 'cos':
+                if comboSignal:
+                    omegaTBfun = omegaTBComboCosSinBox
+                else:
+                    omegaTBfun = omegaTBSinBox
+            elif signalType == 'arccos':
+                if comboSignal:
+                    omegaTBfun = omegaTBComboArccosSinBox
+                else:
+                    omegaTBfun = omegaTBArccosSinBox
         else:
             # The AC part of the signal will be multiplied by a constant envelope.
             omegaTBfun = omegaTB
@@ -515,7 +603,7 @@ def fidelityPostProcess(Hrot, c, ts, tIndices, eigIndices, gateType):
 # Gate fidelity function.
 
 
-def getGateFidelity(x, gateType, N=2, tIndices=[-76, -61, -23, -1], circuitData=None, riseTime=25.0, signalType=None, printResults=False):
+def getGateFidelity(x, gateType, N=2, tIndices=[-76, -61, -23, -1], circuitData=None, riseTime=25.0, signalType=None, printResults=False, otherx=None):
     """
     This function calculates the gate fidelity for a given quantum gate, given a parameter set x.
     ---------------------------------------------------------
@@ -537,7 +625,10 @@ def getGateFidelity(x, gateType, N=2, tIndices=[-76, -61, -23, -1], circuitData=
     #pppStart = t.time()
 
     # Determine the time stamps for which the evolution will be solved.
-    opTime = x[-1]
+    if otherx is None:
+        opTime = x[-1]
+    else:
+        opTime = max(x[-1], otherx[-1])
     nExtraSteps = 75
 
     ts1, stepSize = np.linspace(0, opTime, 3*int(opTime), retstep=True)
@@ -545,24 +636,30 @@ def getGateFidelity(x, gateType, N=2, tIndices=[-76, -61, -23, -1], circuitData=
     ts = np.append(ts1, ts2)
 
     # Signals with |A| + |B| > 1 are impossible in practice. Thus, we return bad fidelity at all times for such gates.
-    if (signalType == 'arccos') and (abs(x[0]) + abs(x[1]) > 1):
-        fidelities = []
-        fidelityTimes = []
-        for ti in tIndices:
-            fidelities.append(1 - (abs(x[0]) + abs(x[1])))
-            fidelityTimes.append(ts[ti])
-            
-        return fidelities, fidelityTimes
-
-    
-    # Change the units of omegaPhi from GHz to Grad/s
-    omegaphi = x[2] * 2*np.pi
+    if otherx is None:
+        if (signalType == 'arccos') and (abs(x[0]) + abs(x[1]) > 1):
+            fidelities = []
+            fidelityTimes = []
+            for ti in tIndices:
+                fidelities.append(1 - (abs(x[0]) + abs(x[1])))
+                fidelityTimes.append(ts[ti])
+                
+            return fidelities, fidelityTimes
+    else:
+        if (signalType == 'arccos') and (abs(x[0]) + abs(x[1]) + abs(otherx[1]) > 1):
+            fidelities = []
+            fidelityTimes = []
+            for ti in tIndices:
+                fidelities.append(1 - (abs(x[0]) + abs(x[1]) + abs(otherx[1])))
+                fidelityTimes.append(ts[ti])
+                
+            return fidelities, fidelityTimes
     
     # Unpack the circuit data needed to fully specify the hamiltonian.
     omegas, _, _ = unpackCircuitParameters(circuitData)
 
     # Get all parts of the hamiltonian in the bare basis.
-    HBBComps = getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData, signalType=signalType)
+    HBBComps = getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData, signalType=signalType, otherx=otherx)
 
     # Given the number of considered energy levels for each qubit, the dimension of the combined tensor state is calculated.
     D = N**3
@@ -605,16 +702,22 @@ def getGateFidelity(x, gateType, N=2, tIndices=[-76, -61, -23, -1], circuitData=
         return fidelities, fidelityTimes
 
     # Calculate the eigenbasis hamiltonian
-    HEB = getHamiltonian(x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinBoxHamiltonian=True, circuitData=circuitData, signalType=signalType)
-
+    HEB = getHamiltonian(x, N=N, eigEs=eigStsBB[0], U_e=U_e, sinBoxHamiltonian=True, circuitData=circuitData, signalType=signalType, otherx=otherx)
+    
     # Initialise a list c of the time-evolved eigenstates
     c = [stateToBeEvolved for stateToBeEvolved in r]
     
     # Calculate final states and store them in c
-    if signalType == 'arccos':
-        args = {'dcAmplitude': x[0], 'acAmplitude': x[1], 'omegaphi': omegaphi, 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBTh, 'riseTime': riseTime}
-    elif signalType == 'cos':
-        args = {'theta': x[0], 'delta': x[1], 'omegaphi': omegaphi, 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBTh, 'riseTime': riseTime}
+    if signalType == 'cos':
+        if otherx is None:
+            args = {'theta': x[0], 'delta': x[1], 'omegaPhi': x[2] * 2*np.pi, 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBTh, 'riseTime': riseTime}
+        else:
+            args = {'theta': x[0], 'deltas': [x[1], otherx[1]], 'omegaPhis': [x[2] * 2*np.pi, otherx[2] * 2*np.pi], 'omegatb0': omegas[2], 'operationTimes': [x[3], otherx[3]], 'omegaTBTh': omegaTBTh, 'riseTime': riseTime}
+    elif signalType == 'arccos':
+        if otherx is None:
+            args = {'dcAmplitude': x[0], 'acAmplitude': x[1], 'omegaPhi': x[2] * 2*np.pi, 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBTh, 'riseTime': riseTime}
+        else:
+            args = {'dcAmplitude': x[0], 'acAmplitudes': [x[1], otherx[1]], 'omegaPhis': [x[2] * 2*np.pi, otherx[2] * 2*np.pi], 'omegatb0': omegas[2], 'operationTimes': [x[3], otherx[3]], 'omegaTBTh': omegaTBTh, 'riseTime': riseTime}
     
     for i in range(len(c)):
         output = sesolve(HEB, c[i], ts, args=args)

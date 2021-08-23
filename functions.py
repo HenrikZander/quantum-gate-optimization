@@ -75,55 +75,9 @@ def getSolutionNameList():
     return [xName for xName in solsDict]
 '''
 
-'''
-def createSolNameOld(ymd, gateType, solNumberStr, usedNlvls):
-    return "x_" + ymd + "_" + gateType + "_" + solNumberStr + "_" + usedNlvls
-'''
-
 def createSolName(ymd, gateType, solNumber):
     return ymd + "_" + gateType + "_" + str(solNumber)
 
-'''
-def addNewSolutionOld(x, gateType, N, solNumber=1, creationTime=datetime.today(), fileName='solutions.json'):
-    ymd = creationTime.strftime('%Y%m%d')[2:]
-    creationTime = creationTime.strftime('%Y-%m-%d %H:%M:%S')
-    usedNlvls = str(N) + "lvl"
-    solName = createSolName(ymd, gateType, str(solNumber), usedNlvls)
-
-    # print(solName)
-
-    solsDict = getFromjson(fileName)
-    while (solNumber < 1000):
-        if solName not in solsDict:
-            solsDict[solName] = {
-                "creationTime": creationTime,
-                "gateType": gateType,
-                "nOptimizationLvls": N,
-                'x': x,
-                'gateFidelity': None,
-                'times': None,
-                'fidelitiesAtTimes': None,
-                # Listor med avvikelser från korrekt Theta, delta, omegaPhi, opTime
-                'deviations': [[], [], [], []],
-                # Listor med fideliten evaluerad vid dessa avvikelser
-                'fidelities1D_Dev': [[], [], [], []],
-                'fidelities2D_Theta_delta': None,
-                'fidelities2D_Theta_omegaPhi': None,
-                'fidelities2D_Theta_opTime': None,
-                'fidelities2D_delta_omegaPhi': None,
-                'fidelities2D_delta_opTime': None,
-                'fidelities2D_omegaPhi_opTime': None
-            }
-
-            dumpTojson(solsDict, fileName)
-            return None
-        else:
-            if (solsDict[solName]['creationTime'] == creationTime):
-                print("Can't add solution: Solution already exists in solutions.json")
-                return None
-            solNumber += 1
-            solName = createSolName(ymd, gateType, str(solNumber), usedNlvls)
-'''
 
 def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), folder='Demo Circuit', circuitFile=None, circuitData=None, riseTime=25, signalType=None):
     ymd = creationTime.strftime('%Y%m%d')[2:]
@@ -156,6 +110,7 @@ def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), f
         if not os.path.isfile(filePath):
             newInfoDict = {
                 "creationTime": creationTime,
+                "comboSignal": False,
                 "signalType": signalType,
                 "gateType": gateType,
                 "nOptimizationLvls": N,
@@ -201,6 +156,71 @@ def saveSolutionsTojson(results, gateType, N, folder, circuitFile=None, circuitD
     for i in range(len(results)):
         x = results[i].x.tolist()
         addNewSolution(x, gateType, N, folder=folder, circuitFile=circuitFile, circuitData=circuitData, creationTime=dateAndTime, signalType=signalType)
+
+
+def generateComboSolutionFile(solPath1, solPath2, comboGateType, comboSolPath=None):
+    solDict1 = getFromjson(solPath1)
+    solDict2 = getFromjson(solPath2)
+
+    if solDict1['signalType'] != solDict2['signalType']:
+        print("The two provided solutions must have the same signal type!")
+        return
+    elif not math.isclose(solDict1['riseTime'], solDict2['riseTime']):
+        print("Currently, superposing two signals with different rise times isn't supported.")
+        return
+
+    circuitData1 = getCircuitData(solDict1, convertToGradPerSecond=False)
+    circuitData2 = getCircuitData(solDict2, convertToGradPerSecond=False)
+
+    for key in circuitData2:
+        for index, value in enumerate(circuitData2[key]):
+            if not math.isclose(value, circuitData1[key][index]):
+                print("The two provided solutions must use the same circuit parameters!")
+                return
+
+    if solDict1['signalType'] == 'arccos':
+        x0name = 'dcAmplitude'
+        x1name = 'acAmplitude'
+    elif solDict1['signalType'] == 'cos':
+        x0name = 'theta'
+        x1name = 'delta'
+
+    if not math.isclose(solDict1[x0name], solDict2[x0name]):
+        print("The two superposed signals need to have the same DC value (Theta or A)")
+        return
+
+    creationTime = datetime.today()
+
+    comboSolDict = {
+        "creationTime": creationTime.strftime('%Y-%m-%d %H:%M:%S'),
+        "comboSignal": True,
+        "signalType": solDict1['signalType'],
+        "gateType": comboGateType,
+        "nOptimizationLvls": max(solDict1['nOptimizationLvls'], solDict2['nOptimizationLvls']),
+        "riseTime": solDict1['riseTime'],
+        x0name: solDict1[x0name],
+        x1name+"s": [solDict1[x1name], solDict2[x1name]],
+        "omegaPhis": [solDict1['omegaPhi'], solDict2['omegaPhi']],
+        "modulationTimes": [solDict1['modulationTime'], solDict2['modulationTime']],
+        'gateFidelity': None,
+        'times': None,
+        'fidelitiesAtTimes': None
+    }
+    circuitData1.update(comboSolDict)
+    
+    if comboSolPath is None:
+        folder = str(solPath1.parent)
+
+        solNumber = 1
+        while solNumber < 1000:
+            comboSolName = creationTime.strftime('%Y%m%d')[2:] + '_' + 'combo' + '_' + comboGateType + '_' + str(solNumber)
+            comboSolPath = Path(folder, comboSolName + ".json")
+
+            if not os.path.isfile(comboSolPath):
+                break
+
+            solNumber += 1
+    dumpTojson(circuitData1, comboSolPath)
 
 
 ######################################################################################################################################################################
@@ -299,7 +319,7 @@ def simulateHamiltonian(x=None, xName=None, sinBoxHamiltonian=True, rotatingFram
     initialState = Qobj(basis(D, initialStateIndex), dims=[[N, N, N], [1, 1, 1]])
 
     # Time evolve the initial state.
-    result = sesolve(hamiltonian, initialState, timeStamps, e_ops=[], options=options, args={'theta': x[0], 'delta': x[1], 'omegaphi': x[2], 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBDC})
+    result = sesolve(hamiltonian, initialState, timeStamps, e_ops=[], options=options, args={'theta': x[0], 'delta': x[1], 'omegaPhi': x[2], 'omegatb0': omegas[2], 'operationTime': x[3], 'omegaTBTh': omegaTBDC})
     states = result.states
 
     # Transform into the rotating frame.
@@ -361,12 +381,78 @@ def simulateHamiltonian(x=None, xName=None, sinBoxHamiltonian=True, rotatingFram
     return gateFidelity_iSWAP, gateFidelity_CZ
 '''
 
-def getCircuitData(solutionDict):
+def getCircuitData(solutionDict, convertToGradPerSecond=True):
+    if convertToGradPerSecond:
+        koeff = 2*np.pi
+    else:
+        koeff = 1
+    
     circuitDataKeys = ['frequencies', 'anharmonicities', 'couplings']
     circuitData = {}
     for key in circuitDataKeys:
-        circuitData[key] = [2*np.pi*item for item in solutionDict[key]]
+        circuitData[key] = [koeff*item for item in solutionDict[key]]
     return circuitData
+
+
+def plotOmegaTBvariations(solutionPath):
+    solutionDict = getFromjson(fileName=solutionPath)
+    circuitData = getCircuitData(solutionDict)
+
+    if solutionDict['signalType'] == 'cos':
+        x0name = 'theta'
+        x1name = 'delta'
+    elif solutionDict['signalType'] == 'arccos':
+        x0name = 'dcAmplitude'
+        x1name = 'acAmplitude'
+    
+    if solutionDict['comboSignal']:
+        x = [solutionDict[x0name], solutionDict[x1name+'s'][0], solutionDict['omegaPhis'][0], solutionDict['modulationTimes'][0]]
+        otherx = [solutionDict[x0name], solutionDict[x1name+'s'][1], solutionDict['omegaPhis'][1], solutionDict['modulationTimes'][1]]
+        simulationTime = int(max(x[-1], otherx[-1])) + 10
+        omegaTBDC = coeffomegaTB(circuitData['frequencies'][2], x[0], signalType=solutionDict['signalType'])
+        args = {x0name: x[0], x1name+'s': [x[1], otherx[1]], 'omegaPhis': [2*np.pi*x[2], 2*np.pi*otherx[2]], 'omegatb0': circuitData['frequencies'][2], 'operationTimes': [x[3], otherx[3]], 'omegaTBTh': omegaTBDC, 'riseTime': solutionDict['riseTime']}
+        if solutionDict['signalType'] == 'cos':
+            omegaTBfun = omegaTBComboCosSinBox
+        elif solutionDict['signalType'] == 'arccos':
+            omegaTBfun = omegaTBComboArccosSinBox
+    else:
+        x = [solutionDict[x0name], solutionDict[x1name], solutionDict['omegaPhi'], solutionDict['modulationTime']]
+        otherx = None
+        simulationTime = int(x[-1]) + 10
+        omegaTBDC = coeffomegaTB(circuitData['frequencies'][2], x[0], signalType=solutionDict['signalType'])
+        args = {x0name: x[0], x1name: x[1], 'omegaPhi': 2*np.pi*x[2], 'omegatb0': circuitData['frequencies'][2], 'operationTime': x[3], 'omegaTBTh': omegaTBDC, 'riseTime': solutionDict['riseTime']}
+        if solutionDict['signalType'] == 'cos':
+            omegaTBfun = omegaTBSinBox
+        elif solutionDict['signalType'] == 'arccos':
+            omegaTBfun = omegaTBArccosSinBox
+
+    timeStamps = np.linspace(0, simulationTime, simulationTime*20)
+
+    oTBs = []
+    for t in timeStamps:
+        oTBs.append(omegaTBfun(t, args))
+    
+    fig = plt.figure(figsize=(8, 7))
+    ax = fig.add_subplot()
+
+    ax.plot(timeStamps, oTBs)
+    ax.plot([x[-1], x[-1]], [-50, 50], 'r--')
+    if solutionDict['comboSignal']:
+        ax.plot([otherx[-1], otherx[-1]], [-50, 50], 'g--')
+    ax.grid()
+    ax.set_ylim([-20, 20])
+    ax.set_xlim([timeStamps[0], timeStamps[-1]])
+    if solutionDict['comboSignal']:
+        ax.legend(["Deviation in $\omega_{TB}$ [Grad/s]", "$t_{MOD}$ for gate component 1", "$t_{MOD}$ for gate component 2"], fontsize=19, loc="lower right")
+    else:
+        ax.legend(["Deviation in $\omega_{TB}$ [Grad/s]", "$t_{MOD}$"], fontsize=19, loc="lower right")
+    #ax.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
+    ax.set_xlabel("Time elapsed since gate start [ns]", fontsize=26)
+    ax.set_ylabel("$\omega_{TB}$", fontsize=26)
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.tick_params(axis='both', which='minor', labelsize=16)
+    plt.tight_layout()
+    plt.show()
 
 
 def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=True, rotatingFrame=True, initialStateIndex=1, highestProjectionIndex=12, N=4):
@@ -394,24 +480,32 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
     # Load a solution from a file and create a list x defining the control signal, converting omegaPhi from GHz to Grad/s.
     solutionDict = getFromjson(fileName=solutionPath)
 
-    if solutionDict['signalType'] == 'arccos':
-        x0name = 'dcAmplitude'
-        x1name = 'acAmplitude'
-    elif solutionDict['signalType'] == 'cos':
+    if solutionDict['signalType'] == 'cos':
         x0name = 'theta'
         x1name = 'delta'
+    elif solutionDict['signalType'] == 'arccos':
+        x0name = 'dcAmplitude'
+        x1name = 'acAmplitude'
     
-    x = [solutionDict[x0name], solutionDict[x1name], 2*np.pi*solutionDict['omegaPhi'], solutionDict['modulationTime']]
-
+    if solutionDict['comboSignal']:
+        x = [solutionDict[x0name], solutionDict[x1name+'s'][0], solutionDict['omegaPhis'][0], solutionDict['modulationTimes'][0]]
+        otherx = [solutionDict[x0name], solutionDict[x1name+'s'][1], solutionDict['omegaPhis'][1], solutionDict['modulationTimes'][1]]
+    else:
+        x = [solutionDict[x0name], solutionDict[x1name], solutionDict['omegaPhi'], solutionDict['modulationTime']]
+        otherx = None
+    
     # Load circuit data into a dictionary and change units from GHz to Grad/s.
     circuitData = getCircuitData(solutionDict)
-
+    
     # Calculate the dimension of the tensor states and set the simulation time.
     D = N**3
-    simulationTime = int(x[-1]) + 10
+    if solutionDict['comboSignal']:
+        simulationTime = int(max(x[-1], otherx[-1])) + 10
+    else:
+        simulationTime = int(x[-1]) + 10
 
     # Calculate the eigenstates and eigenenergies of the bare basis hamiltonian.
-    hamiltonianBareBasis = getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData, signalType=solutionDict['signalType'])
+    hamiltonianBareBasis = getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData, signalType=solutionDict['signalType'], otherx=otherx)
 
     # Calculate the tunable bus frequency when only the DC part of the flux is active.
     omegaTBDC = coeffomegaTB(circuitData['frequencies'][2], x[0], signalType=solutionDict['signalType'])
@@ -422,11 +516,11 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
     # Get eigenindices.
     eigIndices = getIndices(N, eigenStatesAndEnergies[1])
 
-    # Calculate the unitary for transforming the hamiltonian to the eigen basis.
+    # Calculate the unitary for transforming the hamiltonian to the eigenbasis.
     eigenBasisUnitary = getEBUnitary(eigenStatesAndEnergies, N, D)
 
-    # Get the hamiltonian that has a sinusodially modulated AC flux and also is in the eigen basis.
-    hamiltonian = getHamiltonian(x, N=N, eigEs=eigenStatesAndEnergies[0], U_e=eigenBasisUnitary, sinBoxHamiltonian=sinBoxHamiltonian, circuitData=circuitData, signalType=solutionDict['signalType'])
+    # Get the hamiltonian that has a sinusodially modulated AC flux and also is in the eigenbasis.
+    hamiltonian = getHamiltonian(x, N=N, eigEs=eigenStatesAndEnergies[0], U_e=eigenBasisUnitary, sinBoxHamiltonian=sinBoxHamiltonian, circuitData=circuitData, signalType=solutionDict['signalType'], otherx=otherx)
 
     # Change the simulation settings and create the timestamps for where the evolution is to be evaluated.
     options = solver.Options()
@@ -437,7 +531,12 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
     initialState = Qobj(basis(D, initialStateIndex), dims=[[N, N, N], [1, 1, 1]])
 
     # Time evolve the initial state.
-    result = sesolve(hamiltonian, initialState, timeStamps, [], options=options, args={x0name: x[0], x1name: x[1], 'omegaphi': x[2], 'omegatb0': circuitData['frequencies'][2], 'operationTime': x[3], 'omegaTBTh': omegaTBDC, 'riseTime': solutionDict['riseTime']})
+    if solutionDict['comboSignal']:
+        args = {x0name: x[0], x1name+'s': [x[1], otherx[1]], 'omegaPhis': [2*np.pi*x[2], 2*np.pi*otherx[2]], 'omegatb0': circuitData['frequencies'][2], 'operationTimes': [x[3], otherx[3]], 'omegaTBTh': omegaTBDC, 'riseTime': solutionDict['riseTime']}
+    else:
+        args = {x0name: x[0], x1name: x[1], 'omegaPhi': 2*np.pi*x[2], 'omegatb0': circuitData['frequencies'][2], 'operationTime': x[3], 'omegaTBTh': omegaTBDC, 'riseTime': solutionDict['riseTime']}
+    
+    result = sesolve(hamiltonian, initialState, timeStamps, [], options=options, args=args)
     states = result.states
 
     # Transform into the rotating frame.
@@ -461,7 +560,8 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
     expectationValues = expect(projectionOperators, states)
 
     # Plot the expectation values.
-    plt.figure(figsize=(8, 7))
+    fig = plt.figure(figsize=(8, 7))
+    ax = fig.add_subplot()
     
     eigenEnergyDict = getFromjson(eigenenergiesPath)
     if solutionDict['signalType'] == 'arccos':
@@ -473,16 +573,16 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
 
     linestyle = ['-', '--', '-.', ':']
     for index, values in enumerate(expectationValues):
-        plt.plot(timeStamps, values, ls=linestyle[math.floor(index / 10) % 4])
+        ax.plot(timeStamps, values, ls=linestyle[math.floor(index / 10) % 4])
 
-    plt.grid()
-    plt.ylim([0, 1.1])
-    plt.xlim([0, timeStamps[-1]])
-    leg = plt.legend(labels, fontsize=19, loc='center right')
-    plt.xlabel("Tid efter grindstart [ns]", fontsize=26)
-    plt.ylabel("Population", fontsize=26)
-    plt.xticks(fontsize=16)
-    plt.yticks(fontsize=16)
+    ax.grid()
+    ax.set_ylim([0, 1.1])
+    ax.set_xlim([0, timeStamps[-1]])
+    leg = ax.legend(labels, fontsize=19, loc='center right')
+    ax.set_xlabel("Time elapsed since gate start [ns]", fontsize=26)
+    ax.set_ylabel("Population", fontsize=26)
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.tick_params(axis='both', which='minor', labelsize=16)
     plt.tight_layout()
     for legobj in leg.legendHandles:
         legobj.set_linewidth(5.0)
@@ -545,7 +645,12 @@ def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False, plot=True):
         x0name = 'theta'
         x1name = 'delta'
     
-    x = (solutionDict[x0name], solutionDict[x1name], solutionDict['omegaPhi'], solutionDict['modulationTime'])
+    if solutionDict['comboSignal']:
+        x = [solutionDict[x0name], solutionDict[x1name+'s'][0], solutionDict['omegaPhis'][0], solutionDict['modulationTimes'][0]]
+        otherx = [solutionDict[x0name], solutionDict[x1name+'s'][1], solutionDict['omegaPhis'][1], solutionDict['modulationTimes'][1]]
+    else:
+        x = [solutionDict[x0name], solutionDict[x1name], solutionDict['omegaPhi'], solutionDict['modulationTime']]
+        otherx = None
     
     circuitData = getCircuitData(solutionDict)
 
@@ -557,7 +662,9 @@ def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False, plot=True):
             raise Exception("Fidelities not previously generated.")
     else:
         indices = np.linspace(-116, -1, 116).astype(int)
-        F, times = getGateFidelity(x, gateType=solutionDict['gateType'], N=4, tIndices=indices, circuitData=circuitData, signalType=solutionDict['signalType'])
+        gateType = solutionDict['gateType']
+        
+        F, times = getGateFidelity(x, gateType=gateType, N=4, tIndices=indices, circuitData=circuitData, signalType=solutionDict['signalType'], otherx=otherx)
 
     if plot:
         fig = plt.figure(figsize=(8, 7))
@@ -565,13 +672,18 @@ def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False, plot=True):
 
         ax.plot(times, F)
         ax.plot([x[-1], x[-1]], [0, 1], 'r--')
+        if solutionDict['comboSignal']:
+            ax.plot([otherx[-1], otherx[-1]], [0, 1], 'g--')
         ax.grid()
         ax.set_ylim([0.99, 1])
         ax.set_xlim([times[0], times[-1]])
-        ax.legend(["Fidelitet", "$t_{MOD}$"], fontsize=19, loc="lower right")
+        if solutionDict['comboSignal']:
+            ax.legend(["Fidelity", "$t_{MOD}$ for gate component 1", "$t_{MOD}$ for gate component 2"], fontsize=19, loc="lower right")
+        else:
+            ax.legend(["Fidelity", "$t_{MOD}$"], fontsize=19, loc="lower right")
         #ax.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
-        ax.set_xlabel("Tid efter grindstart [ns]", fontsize=26)
-        ax.set_ylabel("Fidelitet", fontsize=26)
+        ax.set_xlabel("Time elapsed since gate start [ns]", fontsize=26)
+        ax.set_ylabel("Fidelity", fontsize=26)
         ax.tick_params(axis='both', which='major', labelsize=16)
         ax.tick_params(axis='both', which='minor', labelsize=16)
         plt.tight_layout()

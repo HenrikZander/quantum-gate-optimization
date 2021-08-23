@@ -9,7 +9,7 @@ from plotting import *
 from dataManager import *
 import os
 
-dirPath = "Results/Qubit Pair 01/Solutions"
+dirPath = "Results/Qubit Pair 03/Solutions"
 directory = os.fsencode(dirPath)
 
 for file in os.listdir(directory):
@@ -19,8 +19,7 @@ for file in os.listdir(directory):
         filePath = dirPath + "/" + filename
         solDict = getFromjson(filePath)
 
-        if solDict['delta'] > .18:
-            print(filename)
-        #print(solDict['delta'])
+        print(filename)
+        print(solDict['gateFidelity'])
 
 

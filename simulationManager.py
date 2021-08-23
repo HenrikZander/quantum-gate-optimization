@@ -101,6 +101,67 @@ def getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex):
     return usedLabels
 
 
+def plotOmegaTBvariations(solutionPath):
+    solutionDict = getFromjson(fileName=solutionPath)
+    circuitData = getCircuitData(solutionDict)
+
+    if solutionDict['signalType'] == 'cos':
+        x0name = 'theta'
+        x1name = 'delta'
+    elif solutionDict['signalType'] == 'arccos':
+        x0name = 'dcAmplitude'
+        x1name = 'acAmplitude'
+    
+    if solutionDict['comboSignal']:
+        x = [solutionDict[x0name], solutionDict[x1name+'s'][0], solutionDict['omegaPhis'][0], solutionDict['modulationTimes'][0]]
+        otherx = [solutionDict[x0name], solutionDict[x1name+'s'][1], solutionDict['omegaPhis'][1], solutionDict['modulationTimes'][1]]
+        simulationTime = int(max(x[-1], otherx[-1])) + 10
+        omegaTBDC = model.coeffomegaTB(circuitData['frequencies'][2], x[0], signalType=solutionDict['signalType'])
+        args = {x0name: x[0], x1name+'s': [x[1], otherx[1]], 'omegaPhis': [2*np.pi*x[2], 2*np.pi*otherx[2]], 'omegatb0': circuitData['frequencies'][2], 'operationTimes': [x[3], otherx[3]], 'omegaTBTh': omegaTBDC, 'riseTime': solutionDict['riseTime']}
+        if solutionDict['signalType'] == 'cos':
+            omegaTBfun = model.omegaTBComboCosSinBox
+        elif solutionDict['signalType'] == 'arccos':
+            omegaTBfun = model.omegaTBComboArccosSinBox
+    else:
+        x = [solutionDict[x0name], solutionDict[x1name], solutionDict['omegaPhi'], solutionDict['modulationTime']]
+        otherx = None
+        simulationTime = int(x[-1]) + 10
+        omegaTBDC = model.coeffomegaTB(circuitData['frequencies'][2], x[0], signalType=solutionDict['signalType'])
+        args = {x0name: x[0], x1name: x[1], 'omegaPhi': 2*np.pi*x[2], 'omegatb0': circuitData['frequencies'][2], 'operationTime': x[3], 'omegaTBTh': omegaTBDC, 'riseTime': solutionDict['riseTime']}
+        if solutionDict['signalType'] == 'cos':
+            omegaTBfun = model.omegaTBSinBox
+        elif solutionDict['signalType'] == 'arccos':
+            omegaTBfun = model.omegaTBArccosSinBox
+
+    timeStamps = np.linspace(0, simulationTime, simulationTime*20)
+
+    oTBs = []
+    for t in timeStamps:
+        oTBs.append(omegaTBfun(t, args))
+    
+    fig = plt.figure(figsize=(8, 7))
+    ax = fig.add_subplot()
+
+    ax.plot(timeStamps, oTBs)
+    ax.plot([x[-1], x[-1]], [-50, 50], 'r--')
+    if solutionDict['comboSignal']:
+        ax.plot([otherx[-1], otherx[-1]], [-50, 50], 'g--')
+    ax.grid()
+    ax.set_ylim([-20, 20])
+    ax.set_xlim([timeStamps[0], timeStamps[-1]])
+    if solutionDict['comboSignal']:
+        ax.legend(["Deviation in $\omega_{TB}$ [Grad/s]", "$t_{MOD}$ for gate component 1", "$t_{MOD}$ for gate component 2"], fontsize=19, loc="lower right")
+    else:
+        ax.legend(["Deviation in $\omega_{TB}$ [Grad/s]", "$t_{MOD}$"], fontsize=19, loc="lower right")
+    #ax.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
+    ax.set_xlabel("Time elapsed since gate start [ns]", fontsize=26)
+    ax.set_ylabel("$\omega_{TB}$", fontsize=26)
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.tick_params(axis='both', which='minor', labelsize=16)
+    plt.tight_layout()
+    plt.show()
+
+
 def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=True, rotatingFrame=True, initialStateIndex=1, highestProjectionIndex=12, N=4):
     """
     This function simulates the population transfers between 
@@ -126,24 +187,32 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
     # Load a solution from a file and create a list x defining the control signal, converting omegaPhi from GHz to Grad/s.
     solutionDict = getFromjson(fileName=solutionPath)
 
-    if solutionDict['signalType'] == 'arccos':
-        x0name = 'dcAmplitude'
-        x1name = 'acAmplitude'
-    elif solutionDict['signalType'] == 'cos':
+    if solutionDict['signalType'] == 'cos':
         x0name = 'theta'
         x1name = 'delta'
+    elif solutionDict['signalType'] == 'arccos':
+        x0name = 'dcAmplitude'
+        x1name = 'acAmplitude'
     
-    x = [solutionDict[x0name], solutionDict[x1name], 2*np.pi*solutionDict['omegaPhi'], solutionDict['modulationTime']]
-
+    if solutionDict['comboSignal']:
+        x = [solutionDict[x0name], solutionDict[x1name+'s'][0], solutionDict['omegaPhis'][0], solutionDict['modulationTimes'][0]]
+        otherx = [solutionDict[x0name], solutionDict[x1name+'s'][1], solutionDict['omegaPhis'][1], solutionDict['modulationTimes'][1]]
+    else:
+        x = [solutionDict[x0name], solutionDict[x1name], solutionDict['omegaPhi'], solutionDict['modulationTime']]
+        otherx = None
+    
     # Load circuit data into a dictionary and change units from GHz to Grad/s.
     circuitData = getCircuitData(solutionDict)
-
+    
     # Calculate the dimension of the tensor states and set the simulation time.
     D = N**3
-    simulationTime = int(x[-1]) + 10
+    if solutionDict['comboSignal']:
+        simulationTime = int(max(x[-1], otherx[-1])) + 10
+    else:
+        simulationTime = int(x[-1]) + 10
 
     # Calculate the eigenstates and eigenenergies of the bare basis hamiltonian.
-    hamiltonianBareBasis = model.getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData, signalType=solutionDict['signalType'])
+    hamiltonianBareBasis = model.getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData, signalType=solutionDict['signalType'], otherx=otherx)
 
     # Calculate the tunable bus frequency when only the DC part of the flux is active.
     omegaTBDC = model.coeffomegaTB(circuitData['frequencies'][2], x[0], signalType=solutionDict['signalType'])
@@ -154,11 +223,11 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
     # Get eigenindices.
     eigIndices = model.getIndices(N, eigenStatesAndEnergies[1])
 
-    # Calculate the unitary for transforming the hamiltonian to the eigen basis.
+    # Calculate the unitary for transforming the hamiltonian to the eigenbasis.
     eigenBasisUnitary = model.getEBUnitary(eigenStatesAndEnergies, N, D)
 
-    # Get the hamiltonian that has a sinusodially modulated AC flux and also is in the eigen basis.
-    hamiltonian = model.getHamiltonian(x, N=N, eigEs=eigenStatesAndEnergies[0], U_e=eigenBasisUnitary, sinBoxHamiltonian=sinBoxHamiltonian, circuitData=circuitData, signalType=solutionDict['signalType'])
+    # Get the hamiltonian that has a sinusodially modulated AC flux and also is in the eigenbasis.
+    hamiltonian = model.getHamiltonian(x, N=N, eigEs=eigenStatesAndEnergies[0], U_e=eigenBasisUnitary, sinBoxHamiltonian=sinBoxHamiltonian, circuitData=circuitData, signalType=solutionDict['signalType'], otherx=otherx)
 
     # Change the simulation settings and create the timestamps for where the evolution is to be evaluated.
     options = solver.Options()
@@ -169,7 +238,12 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
     initialState = Qobj(basis(D, initialStateIndex), dims=[[N, N, N], [1, 1, 1]])
 
     # Time evolve the initial state.
-    result = sesolve(hamiltonian, initialState, timeStamps, [], options=options, args={x0name: x[0], x1name: x[1], 'omegaphi': x[2], 'omegatb0': circuitData['frequencies'][2], 'operationTime': x[3], 'omegaTBTh': omegaTBDC, 'riseTime': solutionDict['riseTime']})
+    if solutionDict['comboSignal']:
+        args = {x0name: x[0], x1name+'s': [x[1], otherx[1]], 'omegaPhis': [2*np.pi*x[2], 2*np.pi*otherx[2]], 'omegatb0': circuitData['frequencies'][2], 'operationTimes': [x[3], otherx[3]], 'omegaTBTh': omegaTBDC, 'riseTime': solutionDict['riseTime']}
+    else:
+        args = {x0name: x[0], x1name: x[1], 'omegaPhi': 2*np.pi*x[2], 'omegatb0': circuitData['frequencies'][2], 'operationTime': x[3], 'omegaTBTh': omegaTBDC, 'riseTime': solutionDict['riseTime']}
+    
+    result = sesolve(hamiltonian, initialState, timeStamps, [], options=options, args=args)
     states = result.states
 
     # Transform into the rotating frame.
@@ -212,7 +286,7 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
     ax.set_ylim([0, 1.1])
     ax.set_xlim([0, timeStamps[-1]])
     leg = ax.legend(labels, fontsize=19, loc='center right')
-    ax.set_xlabel("Tid efter grindstart [ns]", fontsize=26)
+    ax.set_xlabel("Time elapsed since gate start [ns]", fontsize=26)
     ax.set_ylabel("Population", fontsize=26)
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.tick_params(axis='both', which='minor', labelsize=16)
@@ -232,7 +306,12 @@ def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False, plot=True):
         x0name = 'theta'
         x1name = 'delta'
     
-    x = (solutionDict[x0name], solutionDict[x1name], solutionDict['omegaPhi'], solutionDict['modulationTime'])
+    if solutionDict['comboSignal']:
+        x = [solutionDict[x0name], solutionDict[x1name+'s'][0], solutionDict['omegaPhis'][0], solutionDict['modulationTimes'][0]]
+        otherx = [solutionDict[x0name], solutionDict[x1name+'s'][1], solutionDict['omegaPhis'][1], solutionDict['modulationTimes'][1]]
+    else:
+        x = [solutionDict[x0name], solutionDict[x1name], solutionDict['omegaPhi'], solutionDict['modulationTime']]
+        otherx = None
     
     circuitData = getCircuitData(solutionDict)
 
@@ -244,21 +323,28 @@ def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False, plot=True):
             raise Exception("Fidelities not previously generated.")
     else:
         indices = np.linspace(-116, -1, 116).astype(int)
-        F, times = model.getGateFidelity(x, gateType=solutionDict['gateType'], N=4, tIndices=indices, circuitData=circuitData, signalType=solutionDict['signalType'])
-    
+        gateType = solutionDict['gateType']
+        
+        F, times = model.getGateFidelity(x, gateType=gateType, N=4, tIndices=indices, circuitData=circuitData, signalType=solutionDict['signalType'], otherx=otherx)
+
     if plot:
         fig = plt.figure(figsize=(8, 7))
         ax = fig.add_subplot()
 
         ax.plot(times, F)
         ax.plot([x[-1], x[-1]], [0, 1], 'r--')
+        if solutionDict['comboSignal']:
+            ax.plot([otherx[-1], otherx[-1]], [0, 1], 'g--')
         ax.grid()
         ax.set_ylim([0.99, 1])
         ax.set_xlim([times[0], times[-1]])
-        ax.legend(["Fidelitet", "$t_{MOD}$"], fontsize=19, loc="lower right")
+        if solutionDict['comboSignal']:
+            ax.legend(["Fidelity", "$t_{MOD}$ for gate component 1", "$t_{MOD}$ for gate component 2"], fontsize=19, loc="lower right")
+        else:
+            ax.legend(["Fidelity", "$t_{MOD}$"], fontsize=19, loc="lower right")
         #ax.title("Grindfidelitet kring $t_{MOD}$", fontsize=17)
-        ax.set_xlabel("Tid efter grindstart [ns]", fontsize=26)
-        ax.set_ylabel("Fidelitet", fontsize=26)
+        ax.set_xlabel("Time elapsed since gate start [ns]", fontsize=26)
+        ax.set_ylabel("Fidelity", fontsize=26)
         ax.tick_params(axis='both', which='major', labelsize=16)
         ax.tick_params(axis='both', which='minor', labelsize=16)
         plt.tight_layout()

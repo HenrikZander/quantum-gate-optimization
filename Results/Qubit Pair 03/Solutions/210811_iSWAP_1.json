@@ -14,6 +14,7 @@
         0.05574
     ],
     "creationTime": "2021-08-11 19:52:12",
+    "comboSignal": false,
     "signalType": "arccos",
     "gateType": "iSWAP",
     "nOptimizationLvls": 4,
