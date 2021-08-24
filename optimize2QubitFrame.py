@@ -339,7 +339,7 @@ def updateX0X1Labels(event):
 
 def presetBoundaryConditions():
     boundaryWindow.updateStaticPresets()
-    boundaryWindow.selectPresetWindow(root)
+    boundaryWindow.selectPresetWindow(root, selectedGate.get())
 
 
 def setBoundaryDefault():

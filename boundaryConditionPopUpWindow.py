@@ -42,6 +42,9 @@ def initiateGlobalVariables(root):
     global presetName
     presetName = StringVar(root)
 
+    global gate
+    gate = StringVar(root)
+
     global x0LowerNew
     global x0UpperNew
     x0LowerNew = DoubleVar(root)
@@ -146,6 +149,14 @@ def getBfromThetaDelta(theta,delta):
         acAmplitude = 1/2 * ( np.sqrt(np.abs(np.cos(np.pi * (theta + delta)))) - np.sqrt(np.abs(np.cos(np.pi * (theta - delta)))) )
     return acAmplitude
 
+
+def loadSelectionPreview(event):
+    selection = event.widget.curselection()
+    if selection:
+        index = selection[0]
+        setVariablesToPreset(index)
+
+
 ######################################################################################################################################################################
 # Functions for dynamically updating certain default presets
 
@@ -244,7 +255,7 @@ def updateStaticPresets():
 # The pop up window that lets the user select a preset boundary condition.
 
 
-def selectPresetWindow(root):
+def selectPresetWindow(root, selectedGate):
     global suppliedRoot
     global pop
     suppliedRoot = root
@@ -253,7 +264,7 @@ def selectPresetWindow(root):
     pop.title("Boundary condition manager")
 
     height = 500
-    width = 450
+    width = 935
 
     pop.geometry(str(width)+"x"+str(height))
     pop.resizable(width=False, height=False)
@@ -262,6 +273,8 @@ def selectPresetWindow(root):
     pop.iconphoto(False, programIcon)
     
     initiateGlobalVariables(suppliedRoot)
+    gate.set(selectedGate)
+
     generateBoundaryManager(pop, height, width)
     loadAllPresets()
 
@@ -313,13 +326,21 @@ def interactWithPresetWindow(index, addNew=False):
 
 
 def generateBoundaryManager(pop, height, width):
-    windowTitleFrame = Frame(pop, width=width*0.85, height=height*0.05)
+    leftFrame = Frame(pop, height=height, width=width*0.4)# , background="green")
+    leftFrame.pack_propagate(0)
+    leftFrame.grid(row=0, column=0)
+
+    rightFrame = Frame(pop, height=height, width=width*0.6)# , background="red")
+    rightFrame.pack_propagate(0)
+    rightFrame.grid(row=0, column=1)
+
+    windowTitleFrame = Frame(leftFrame, width=width*0.4, height=height*0.05)
     windowTitleFrame.pack()
 
     windowTitle = Label(windowTitleFrame, text="Available presets:", font=('Helvetica', 10))
-    windowTitle.place(anchor="w", relx=0, rely=0.5)
+    windowTitle.place(anchor="center", relx=0.5, rely=0.5)
 
-    listboxFrame = Frame(pop)
+    listboxFrame = Frame(leftFrame)
     listboxFrame.pack()
 
     global presetsBox
@@ -329,7 +350,9 @@ def generateBoundaryManager(pop, height, width):
     listboxScrollbar.pack(side=RIGHT, fill=Y)
     presetsBox.pack()
 
-    buttonFrameOuter = Frame(pop, width=width*0.85, height=height*0.1)
+    presetsBox.bind("<<ListboxSelect>>", loadSelectionPreview)
+
+    buttonFrameOuter = Frame(leftFrame, width=width*0.4, height=height*0.1)
     buttonFrameOuter.pack()
 
     buttonFrameInner = Frame(buttonFrameOuter)
@@ -343,6 +366,23 @@ def generateBoundaryManager(pop, height, width):
 
     editPresetButton = Button(buttonFrameInner, text="Edit Preset", padx=3, pady=3, background="#21e4d7", relief=FLAT, command=editPreset)
     editPresetButton.pack(side=LEFT, padx=4, pady=4)
+
+    selectionPreview(rightFrame, height, width)
+
+
+def selectionPreview(parentWidget, height, width):
+    entryCharacterWidth = 6
+    width = width*0.58
+
+    parameterFrame = LabelFrame(parentWidget, text="Parameters of selected preset: ", width=width, height=height*0.32)
+    parameterFrame.grid_propagate(0)
+    parameterFrame.place(anchor="nw", relx=0.02, rely=0.05)
+
+    width = width*0.95
+    generateX0InputWidgets(parameterFrame, height, width, entryCharacterWidth, readOnlyState=True)
+    generateX1InputWidgets(parameterFrame, height, width, entryCharacterWidth, readOnlyState=True)
+    generateOmegaInputWidgets(parameterFrame, height, width, entryCharacterWidth, readOnlyState=True)
+    generateModulationTimeInputWidgets(parameterFrame, height, width, entryCharacterWidth, readOnlyState=True)
 
 
 def generateBoundaryPresetPreview(parentWidget, height, width, edit=False):
@@ -480,11 +520,16 @@ def loadAllPresets():
     global presetsBox
     presetsBox.delete(0,END)
     
+    selectedGate = gate.get()
     configData = dataManager.getFromjson("config.json")
     presetList = configData["boundaryPresets"]
 
     for item in presetList:
-        presetsBox.insert(END, item[0])
+        try:
+            if item[6] == selectedGate:
+                presetsBox.insert(END, item[0])
+        except:
+            presetsBox.insert(END, item[0])
 
 
 def addPreset(name, boundaryValues):
@@ -531,11 +576,16 @@ def deletePreset(index):
 # Functions that help generate the widgets in the creator/editor window.
 
 
-def generateX0InputWidgets(parentWidget, height, width, entryCharacterWidth):
+def generateX0InputWidgets(parentWidget, height, width, entryCharacterWidth, readOnlyState=False):
+    if readOnlyState:
+        state = "readonly"
+    else:
+        state = NORMAL
+
     x0InputFrameOuter = Frame(parentWidget, height=35, width=width)# , background="yellow")
     x0InputFrameOuter.grid(row=0, column=0)
 
-    x0InputFrameInner = Frame(x0InputFrameOuter)  # , background="blue")
+    x0InputFrameInner = Frame(x0InputFrameOuter)# , background="blue")
     x0InputFrameInner.place(anchor="e", relx=0.9, rely=0.5)
 
     x0Label = Label(x0InputFrameInner, textvariable=gui.x0LabelVar)
@@ -544,17 +594,22 @@ def generateX0InputWidgets(parentWidget, height, width, entryCharacterWidth):
     lowerX0Label = Label(x0InputFrameInner, text="Lower limit:")
     lowerX0Label.pack(side=LEFT)
 
-    lowerX0Entry = Entry(x0InputFrameInner, width=entryCharacterWidth, textvariable=x0LowerNew)
+    lowerX0Entry = Entry(x0InputFrameInner, width=entryCharacterWidth, textvariable=x0LowerNew, state=state)
     lowerX0Entry.pack(side=LEFT, padx=(0, 5))
 
     upperX0Label = Label(x0InputFrameInner, text="Upper limit:")
     upperX0Label.pack(side=LEFT)
 
-    upperX0Entry = Entry(x0InputFrameInner, width=entryCharacterWidth, textvariable=x0UpperNew)
+    upperX0Entry = Entry(x0InputFrameInner, width=entryCharacterWidth, textvariable=x0UpperNew, state=state)
     upperX0Entry.pack(side=LEFT)
 
 
-def generateX1InputWidgets(parentWidget, height, width, entryCharacterWidth):
+def generateX1InputWidgets(parentWidget, height, width, entryCharacterWidth, readOnlyState=False):
+    if readOnlyState:
+        state = "readonly"
+    else:
+        state = NORMAL
+    
     x1InputFrameOuter = Frame(parentWidget, height=35, width=width)# , background="green")
     x1InputFrameOuter.grid(row=1, column=0)
 
@@ -567,17 +622,22 @@ def generateX1InputWidgets(parentWidget, height, width, entryCharacterWidth):
     lowerX1Label = Label(x1InputFrameInner, text="Lower limit:")
     lowerX1Label.pack(side=LEFT)
 
-    lowerX1Entry = Entry(x1InputFrameInner, width=entryCharacterWidth, textvariable=x1LowerNew)
+    lowerX1Entry = Entry(x1InputFrameInner, width=entryCharacterWidth, textvariable=x1LowerNew, state=state)
     lowerX1Entry.pack(side=LEFT, padx=(0, 5))
 
     upperX1Label = Label(x1InputFrameInner, text="Upper limit:")
     upperX1Label.pack(side=LEFT)
 
-    upperX1Entry = Entry(x1InputFrameInner, width=entryCharacterWidth, textvariable=x1UpperNew)
+    upperX1Entry = Entry(x1InputFrameInner, width=entryCharacterWidth, textvariable=x1UpperNew, state=state)
     upperX1Entry.pack(side=LEFT)
 
 
-def generateOmegaInputWidgets(parentWidget, height, width, entryCharacterWidth):
+def generateOmegaInputWidgets(parentWidget, height, width, entryCharacterWidth, readOnlyState=False):
+    if readOnlyState:
+        state = "readonly"
+    else:
+        state = NORMAL
+    
     omegaPhiInputFrameOuter = Frame(parentWidget, height=35, width=width)# , background="yellow")
     omegaPhiInputFrameOuter.grid(row=2, column=0)
 
@@ -590,17 +650,22 @@ def generateOmegaInputWidgets(parentWidget, height, width, entryCharacterWidth):
     lowerOmegaPhiLabel = Label(omegaPhiInputFrameInner, text="Lower limit:")
     lowerOmegaPhiLabel.pack(side=LEFT)
 
-    lowerOmegaPhiEntry = Entry(omegaPhiInputFrameInner, width=entryCharacterWidth, textvariable=omegaPhiLowerNew)
+    lowerOmegaPhiEntry = Entry(omegaPhiInputFrameInner, width=entryCharacterWidth, textvariable=omegaPhiLowerNew, state=state)
     lowerOmegaPhiEntry.pack(side=LEFT, padx=(0, 5))
 
     upperOmegaPhiLabel = Label(omegaPhiInputFrameInner, text="Upper limit:")
     upperOmegaPhiLabel.pack(side=LEFT)
 
-    upperOmegaPhiEntry = Entry(omegaPhiInputFrameInner, width=entryCharacterWidth, textvariable=omegaPhiUpperNew)
+    upperOmegaPhiEntry = Entry(omegaPhiInputFrameInner, width=entryCharacterWidth, textvariable=omegaPhiUpperNew, state=state)
     upperOmegaPhiEntry.pack(side=LEFT)
 
 
-def generateModulationTimeInputWidgets(parentWidget, height, width, entryCharacterWidth):
+def generateModulationTimeInputWidgets(parentWidget, height, width, entryCharacterWidth, readOnlyState=False):
+    if readOnlyState:
+        state = "readonly"
+    else:
+        state = NORMAL
+    
     modulationTimeInputFrameOuter = Frame(parentWidget, height=35, width=width)# , background="green")
     modulationTimeInputFrameOuter.grid(row=4, column=0, columnspan=3)
 
@@ -613,13 +678,13 @@ def generateModulationTimeInputWidgets(parentWidget, height, width, entryCharact
     lowerModulationTimeLabel = Label(modulationTimeInputFrameInner, text="Lower limit:")
     lowerModulationTimeLabel.pack(side=LEFT)
 
-    lowerModulationTimeEntry = Entry(modulationTimeInputFrameInner, width=entryCharacterWidth, textvariable=modulationTimeLowerNew)
+    lowerModulationTimeEntry = Entry(modulationTimeInputFrameInner, width=entryCharacterWidth, textvariable=modulationTimeLowerNew, state=state)
     lowerModulationTimeEntry.pack(side=LEFT, padx=(0, 5))
 
     upperModulationTimeLabel = Label(modulationTimeInputFrameInner, text="Upper limit:")
     upperModulationTimeLabel.pack(side=LEFT)
 
-    upperModulationTimeEntry = Entry(modulationTimeInputFrameInner, width=entryCharacterWidth, textvariable=modulationTimeUpperNew)
+    upperModulationTimeEntry = Entry(modulationTimeInputFrameInner, width=entryCharacterWidth, textvariable=modulationTimeUpperNew, state=state)
     upperModulationTimeEntry.pack(side=LEFT)
 
 
