@@ -42,6 +42,9 @@ def initiateGlobalVariables(root):
     global presetName
     presetName = StringVar(root)
 
+    global gate
+    gate = StringVar(root)
+
     global x0LowerNew
     global x0UpperNew
     x0LowerNew = DoubleVar(root)
@@ -252,7 +255,7 @@ def updateStaticPresets():
 # The pop up window that lets the user select a preset boundary condition.
 
 
-def selectPresetWindow(root):
+def selectPresetWindow(root, selectedGate):
     global suppliedRoot
     global pop
     suppliedRoot = root
@@ -270,6 +273,8 @@ def selectPresetWindow(root):
     pop.iconphoto(False, programIcon)
     
     initiateGlobalVariables(suppliedRoot)
+    gate.set(selectedGate)
+
     generateBoundaryManager(pop, height, width)
     loadAllPresets()
 
@@ -515,11 +520,16 @@ def loadAllPresets():
     global presetsBox
     presetsBox.delete(0,END)
     
+    selectedGate = gate.get()
     configData = dataManager.getFromjson("config.json")
     presetList = configData["boundaryPresets"]
 
     for item in presetList:
-        presetsBox.insert(END, item[0])
+        try:
+            if item[6] == selectedGate:
+                presetsBox.insert(END, item[0])
+        except:
+            presetsBox.insert(END, item[0])
 
 
 def addPreset(name, boundaryValues):
