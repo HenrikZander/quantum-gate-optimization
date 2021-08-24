@@ -146,6 +146,14 @@ def getBfromThetaDelta(theta,delta):
         acAmplitude = 1/2 * ( np.sqrt(np.abs(np.cos(np.pi * (theta + delta)))) - np.sqrt(np.abs(np.cos(np.pi * (theta - delta)))) )
     return acAmplitude
 
+
+def loadSelectionPreview(event):
+    selection = event.widget.curselection()
+    if selection:
+        index = selection[0]
+        setVariablesToPreset(index)
+
+
 ######################################################################################################################################################################
 # Functions for dynamically updating certain default presets
 
@@ -253,7 +261,7 @@ def selectPresetWindow(root):
     pop.title("Boundary condition manager")
 
     height = 500
-    width = 450
+    width = 935
 
     pop.geometry(str(width)+"x"+str(height))
     pop.resizable(width=False, height=False)
@@ -313,13 +321,21 @@ def interactWithPresetWindow(index, addNew=False):
 
 
 def generateBoundaryManager(pop, height, width):
-    windowTitleFrame = Frame(pop, width=width*0.85, height=height*0.05)
+    leftFrame = Frame(pop, height=height, width=width*0.4)# , background="green")
+    leftFrame.pack_propagate(0)
+    leftFrame.grid(row=0, column=0)
+
+    rightFrame = Frame(pop, height=height, width=width*0.6)# , background="red")
+    rightFrame.pack_propagate(0)
+    rightFrame.grid(row=0, column=1)
+
+    windowTitleFrame = Frame(leftFrame, width=width*0.4, height=height*0.05)
     windowTitleFrame.pack()
 
     windowTitle = Label(windowTitleFrame, text="Available presets:", font=('Helvetica', 10))
-    windowTitle.place(anchor="w", relx=0, rely=0.5)
+    windowTitle.place(anchor="center", relx=0.5, rely=0.5)
 
-    listboxFrame = Frame(pop)
+    listboxFrame = Frame(leftFrame)
     listboxFrame.pack()
 
     global presetsBox
@@ -329,7 +345,9 @@ def generateBoundaryManager(pop, height, width):
     listboxScrollbar.pack(side=RIGHT, fill=Y)
     presetsBox.pack()
 
-    buttonFrameOuter = Frame(pop, width=width*0.85, height=height*0.1)
+    presetsBox.bind("<<ListboxSelect>>", loadSelectionPreview)
+
+    buttonFrameOuter = Frame(leftFrame, width=width*0.4, height=height*0.1)
     buttonFrameOuter.pack()
 
     buttonFrameInner = Frame(buttonFrameOuter)
@@ -343,6 +361,23 @@ def generateBoundaryManager(pop, height, width):
 
     editPresetButton = Button(buttonFrameInner, text="Edit Preset", padx=3, pady=3, background="#21e4d7", relief=FLAT, command=editPreset)
     editPresetButton.pack(side=LEFT, padx=4, pady=4)
+
+    selectionPreview(rightFrame, height, width)
+
+
+def selectionPreview(parentWidget, height, width):
+    entryCharacterWidth = 6
+    width = width*0.58
+
+    parameterFrame = LabelFrame(parentWidget, text="Parameters of selected preset: ", width=width, height=height*0.32)
+    parameterFrame.grid_propagate(0)
+    parameterFrame.place(anchor="nw", relx=0.02, rely=0.05)
+
+    width = width*0.95
+    generateX0InputWidgets(parameterFrame, height, width, entryCharacterWidth)
+    generateX1InputWidgets(parameterFrame, height, width, entryCharacterWidth)
+    generateOmegaInputWidgets(parameterFrame, height, width, entryCharacterWidth)
+    generateModulationTimeInputWidgets(parameterFrame, height, width, entryCharacterWidth)
 
 
 def generateBoundaryPresetPreview(parentWidget, height, width, edit=False):
@@ -535,7 +570,7 @@ def generateX0InputWidgets(parentWidget, height, width, entryCharacterWidth):
     x0InputFrameOuter = Frame(parentWidget, height=35, width=width)# , background="yellow")
     x0InputFrameOuter.grid(row=0, column=0)
 
-    x0InputFrameInner = Frame(x0InputFrameOuter)  # , background="blue")
+    x0InputFrameInner = Frame(x0InputFrameOuter)# , background="blue")
     x0InputFrameInner.place(anchor="e", relx=0.9, rely=0.5)
 
     x0Label = Label(x0InputFrameInner, textvariable=gui.x0LabelVar)
