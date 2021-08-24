@@ -89,7 +89,7 @@ x_210715_CZ_1_4lvl = [4.28265258e-01, 2.28050495e-02, 4.28583819e+00, 1.15226156
 x_210716_CZ_2_4lvl = [4.03140410e-01, 2.95892756e-02, 4.14970423e+00, 1.06035386e+02]
 
 # Solution to use in simulations:
-solName = "210823_combo_SWAP_1"
+solName = "210806_CZ_2"
 
 circuitFolder = 'Results/Qubit Pair 03'
 solPath = circuitFolder + '/Solutions/' + solName + '.json'
@@ -117,7 +117,7 @@ def main():
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=200, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
-    # simulatePopTransfer(solutionPath=solPath, eigenenergiesPath=eigEnPath, initialStateIndex=1, highestProjectionIndex=12)
+    simulatePopTransfer(solutionPath=solPath, eigenenergiesPath=eigEnPath, initialStateIndex=5, highestProjectionIndex=12)
     # plotFidelity(solutionPath=solPath, useSavedPlot=False, saveToFile=True)
     # deltaPulsePlot()
     # testPlotStates()

@@ -19,7 +19,8 @@ for file in os.listdir(directory):
         filePath = dirPath + "/" + filename
         solDict = getFromjson(filePath)
 
-        print(filename)
-        print(solDict['gateFidelity'])
+        if solDict['gateType'] == 'CZ':
+            print(filename)
+            print(solDict['gateFidelity'])
 
 
