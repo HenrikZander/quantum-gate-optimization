@@ -212,8 +212,11 @@ def disableStartSimulationButton():
 def toggleInitialStateSelection():
     if selectedSimulationOutput.get() == "popTrans":
         selectEigenstateIndex.config(state=NORMAL)
+        selectEnergyLevels.config(state="readonly")
+
     else:
         selectEigenstateIndex.config(state=DISABLED)
+        selectEnergyLevels.config(state=DISABLED)
 
 
 def startSimulation():
@@ -222,13 +225,12 @@ def startSimulation():
 
 
 def loadSolution():
-    solutionFilePath = filedialog.askopenfilename(title="Select solution", defaultextension='.json', filetypes=[("JSON files (.json)", '*.json')])
+    solutionFilePath = filedialog.askopenfilename(title="Select solution", defaultextension='.json', filetypes=[("JSON files (.json)", '*.json')], initialdir="./Results")
     if solutionFilePath:
         try:
             solutionData = dataManager.getFromjson(solutionFilePath)
             setCircuitVariables(solutionData)
             writeSolutionParameterStatus(solutionData)
-            print("Fine so far!")
             enableStartSimulationButton()
         except:
             print("Exception!")
@@ -489,6 +491,7 @@ def generateSelectEnergyLevels(settingsFrame):
     selectEnergyLevelsTitle = Label(selectEnergyLevelsFrameInner, text="Number of energy levels per qubit:")
     selectEnergyLevelsTitle.pack(side=LEFT, padx=(0, 5))
 
+    global selectEnergyLevels
     selectEnergyLevels = ttk.Spinbox(selectEnergyLevelsFrameInner, from_=2, to=7, textvariable=energyLevels, width=4, state="readonly")
     selectEnergyLevels.set(3)
     selectEnergyLevels.pack(side=LEFT)

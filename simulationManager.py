@@ -55,7 +55,8 @@ def simulate(solutionData, guiData):
             process = Thread(target=generateFidelityData, args=((solutionPath,)))
             process.start()
     elif guiData["stabilityPlot"]:
-        pass
+        # ToDo: Make sure this works and change to pdf generation later on.
+        getRobustnessPlot(solutionPath, checkX0=False, checkX1=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[5e-4, 1e-3, 2e-3, 4e0], useSavedPlot=False, saveToFile=False)
     
     ################################################################################
 
@@ -64,7 +65,7 @@ def generateFidelityData(solutionPath):
     gui.disableStartSimulationButton()
     gui.writeStatus("Fidelity data not available. Generating fidelity data!")
 
-    process = Thread(target=plotFidelity, args=((solutionPath, False, True, False)))
+    process = Thread(target=plotFidelity, args=((solutionPath, False, True, False, 5)))
     process.start()
     process.join()
 
@@ -296,7 +297,7 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
     plt.show()
 
 
-def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False, plot=True):
+def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False, plot=True, energyLevels=4):
     solutionDict = getFromjson(fileName=solutionPath)
 
     if solutionDict['signalType'] == 'arccos':
@@ -325,7 +326,7 @@ def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False, plot=True):
         indices = np.linspace(-116, -1, 116).astype(int)
         gateType = solutionDict['gateType']
         
-        F, times = model.getGateFidelity(x, gateType=gateType, N=4, tIndices=indices, circuitData=circuitData, signalType=solutionDict['signalType'], otherx=otherx)
+        F, times = model.getGateFidelity(x, gateType=gateType, N=energyLevels, tIndices=indices, circuitData=circuitData, signalType=solutionDict['signalType'], otherx=otherx)
 
     if plot:
         fig = plt.figure(figsize=(8, 7))
@@ -363,13 +364,13 @@ def getRobustnessPlot(solutionPath, checkX0=False, checkX1=False, checkOmegaPhi=
     if solutionDict['signalType'] == 'arccos':
         x0name = 'dcAmplitude'
         x1name = 'acAmplitude'
-        axlabel_x0 = "Avvikelse från hittat $A$"
-        axlabel_x1 = "Avvikelse från hittat $B$"
+        axlabel_x0 = "Deviation from optimal $A$ [1]"
+        axlabel_x1 = "Deviation from optimal $B$ [1]"
     elif solutionDict['signalType'] == 'cos':
         x0name = 'theta'
         x1name = 'delta'
-        axlabel_x0 = "Avvikelse från hittat $\Theta$ [$\Phi_0$]"
-        axlabel_x1 = "Avvikelse från hittat $\delta$ [$\Phi_0$]"
+        axlabel_x0 = "Deviation from optimal $\Theta$ [$\Phi_0$]"
+        axlabel_x1 = "Deviation from optimal $\delta$ [$\Phi_0$]"
     
     x = [solutionDict[x0name], solutionDict[x1name], solutionDict['omegaPhi'], solutionDict['modulationTime']]
     circuitData = getCircuitData(solutionDict)
@@ -400,7 +401,7 @@ def getRobustnessPlot(solutionPath, checkX0=False, checkX1=False, checkOmegaPhi=
         plt.xticks(fontsize=16)
         plt.yticks(fontsize=16)
 
-        axlabels = [axlabel_x0, axlabel_x1, "Avvikelse från hittat $\omega_\Phi$ [MHz]", "Avvikelse från hittat $t_{MOD}$ [ns]"]
+        axlabels = [axlabel_x0, axlabel_x1, "Deviation from optimal $\omega_\Phi$ [MHz]", "Deviation from optimal $t_{MOD}$ [ns]"]
         legendStrs = [legendStr_x0, legendStr_x1, "$\omega_\Phi = %.1f$" %(x[2]*1000), "$t_{MOD} = %.1f$" %x[3]]
         # maxDevs = [3e-4, 1e-3, 2*np.pi * 8e-3, 40e0] # Testing extended bounds, looking for chevrony stuff
 
@@ -438,10 +439,10 @@ def getRobustnessPlot(solutionPath, checkX0=False, checkX1=False, checkOmegaPhi=
             
             plt.plot(deviations, fidelities, 'b-')
             plt.plot([0, 0], [0, 1], 'r--')
-            plt.legend(["Fidelitet", legendStrs[xIndex]], fontsize=19, loc="upper right")
+            plt.legend(["Fidelity", legendStrs[xIndex]], fontsize=19, loc="upper right")
             plt.grid()
             plt.xlabel(axlabels[xIndex], fontsize=26)
-            plt.ylabel("Fidelitet", fontsize=26)
+            plt.ylabel("Fidelity", fontsize=26)
             plt.xlim([deviations[0], deviations[-1]])
             plt.ylim([0.99, 1])
             plt.tight_layout()
