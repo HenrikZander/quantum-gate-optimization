@@ -209,6 +209,13 @@ def disableStartSimulationButton():
 # Button callbacks
 
 
+def toggleInitialStateSelection():
+    if selectedSimulationOutput.get() == "popTrans":
+        selectEigenstateIndex.config(state=NORMAL)
+    else:
+        selectEigenstateIndex.config(state=DISABLED)
+
+
 def startSimulation():
     solutionData = dataManager.getFromjson(solutionPath.get())
     simulateSolution(solutionData)
@@ -315,14 +322,14 @@ def generateSimulationOutputSelection(parent):
     selectSimulationOutputFrameInner = LabelFrame(selectSimulationOutputFrameOuter, text="Simulation output: ")
     selectSimulationOutputFrameInner.place(anchor='n', relx=0.5, rely=0)
 
-    selectPopulationTransfer = Radiobutton(selectSimulationOutputFrameInner, text="Population Transfer", value="popTrans", variable=selectedSimulationOutput)
+    selectPopulationTransfer = Radiobutton(selectSimulationOutputFrameInner, text="Population Transfer", value="popTrans", variable=selectedSimulationOutput, command=toggleInitialStateSelection)
     selectPopulationTransfer.select()
     selectPopulationTransfer.pack(side=LEFT)
 
-    selectFidelityPlot = Radiobutton(selectSimulationOutputFrameInner, text="Fidelity Plot", value="fidelity", variable=selectedSimulationOutput)
+    selectFidelityPlot = Radiobutton(selectSimulationOutputFrameInner, text="Fidelity Plot", value="fidelity", variable=selectedSimulationOutput, command=toggleInitialStateSelection)
     selectFidelityPlot.pack(side=LEFT)
 
-    selectStabilityPlot = Radiobutton(selectSimulationOutputFrameInner, text="Stability Plot", value="stability", variable=selectedSimulationOutput)
+    selectStabilityPlot = Radiobutton(selectSimulationOutputFrameInner, text="Stability Plot", value="stability", variable=selectedSimulationOutput, command=toggleInitialStateSelection)
     selectStabilityPlot.pack(side=LEFT)
 
     ######################### Select eigenstate index #########################
@@ -333,9 +340,10 @@ def generateSimulationOutputSelection(parent):
     selectEigenstateIndexFrameInner = Frame(selectEigenstateIndexFrameOuter)  # , background="orange")
     selectEigenstateIndexFrameInner.place(anchor="center", relx=0.5, rely=0.5)
 
-    selectEigenstateIndexTitle = Label(selectEigenstateIndexFrameInner, text="Initial eigenstate index (used for population transfer):")
+    selectEigenstateIndexTitle = Label(selectEigenstateIndexFrameInner, text="Initial eigenstate index (0 = lowest energy state):")
     selectEigenstateIndexTitle.pack(side=LEFT, padx=(0, 5))
 
+    global selectEigenstateIndex
     selectEigenstateIndex = ttk.Spinbox(selectEigenstateIndexFrameInner, from_=0, to=100000, textvariable=eigenstateIndex, width=6)
     selectEigenstateIndex.set(0)
     selectEigenstateIndex.pack(side=LEFT)
