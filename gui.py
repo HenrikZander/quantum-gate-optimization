@@ -132,7 +132,7 @@ def mainMenu(parentWidget, height=height, width=width):
     threeQubitButton = Button(mainMenuFrame, text="Three Qubit Gates", command=openThreeQubitWindow, padx=3, pady=3, background="#21e4d7", relief=FLAT, font=('Helvetica', 12))
     threeQubitButton.pack(pady=10)
 
-    copyrightLabel = Label(mainMenuFrame, text="Copyright © Henrik Zander, Emil Ingelsten 2021; All rights reserved.")
+    copyrightLabel = Label(mainMenuFrame, text="Copyright © 2021 Henrik Zander, Emil Ingelsten. All rights reserved.")
     copyrightLabel.pack(side=BOTTOM)
 
     ####################################################################################
