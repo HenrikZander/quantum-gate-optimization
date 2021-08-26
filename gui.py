@@ -27,6 +27,7 @@ import math
 import platform
 import optimize2QubitFrame
 import simulate2QubitFrame
+from PIL import ImageTk,Image
 
 ######################################################################################################################################################################
 # Global variables
@@ -45,19 +46,38 @@ def main():
 
     root = Tk()
     height, width = calculateWindowSize(root)
+
     root.title("GateSide")
     root.geometry(str(width)+"x"+str(math.ceil(height*1.04)))
     root.resizable(width=False, height=False)
     programIcon = PhotoImage(file = "./assets/Gateside_Logomark.png")
     root.iconphoto(False, programIcon)
 
-    twoQubit(root, height, width)
+    global programNotepad
+    programNotepad = ttk.Notebook(root, height=height, width=width)
+    programNotepad.pack()
+
+    mainMenu(programNotepad, height=height, width=width)
+    # twoQubit(root, programNotepad, height, width)
 
     root.mainloop()
 
 
 ######################################################################################################################################################################
-# Function that calculate the height of the window.
+# Button callback functions.
+
+
+def openTwoQubitWindow():
+    closeAllTabs()
+    twoQubit(root, programNotepad, height, width)
+
+
+def openThreeQubitWindow():
+    closeAllTabs()
+
+
+######################################################################################################################################################################
+# Helper functions for the window generation.
 
 
 def calculateWindowSize(root):
@@ -79,28 +99,52 @@ def calculateWindowSize(root):
     return height, width
 
 
+def closeAllTabs():
+    global programNotepad
+    tabs = programNotepad.tabs()
+
+    for tab in tabs[1:]:
+        programNotepad.forget(tab)
+
+
 ######################################################################################################################################################################
 # Functions that are used to generate different windows.
 
 
-def mainMenu():
-    pass
-
-
-def twoQubit(root, height, width):
-    twoQubitNotepad = ttk.Notebook(root, height=height, width=width)
-    twoQubitNotepad.pack()
-
-    mainMenuFrame = Frame(twoQubitNotepad, height=height, width=width , background="green")
+def mainMenu(parentWidget, height=height, width=width):
+    mainMenuFrame = Frame(parentWidget, height=height, width=width)
     mainMenuFrame.place(anchor="center", relx=0.5, rely=0.5)
 
-    optimizeFrame = optimize2QubitFrame.optimizeControlFrame(root, twoQubitNotepad, height, width)
+    parentWidget.add(mainMenuFrame, text="Main Menu")
 
-    simulateFrame = simulate2QubitFrame.simulateControlFrame(root, twoQubitNotepad, height, width)
+    ####################################################################################
+    # Generation of actual main menu widgets.
+    ####################################################################################
+
+    mainMenuLogo = ImageTk.PhotoImage(Image.open("./assets/gateside_logo.png").resize((400,100)))
+    mainMenuLogoLabel = Label(mainMenuFrame, image=mainMenuLogo)
+    mainMenuLogoLabel.image = mainMenuLogo
+    mainMenuLogoLabel.pack(pady=30)
+
+    twoQubitButton = Button(mainMenuFrame, text="Two Qubit Gates", command=openTwoQubitWindow, padx=3, pady=3, background="#21e4d7", relief=FLAT, font=('Helvetica', 12))
+    twoQubitButton.pack(pady=10)
+
+    threeQubitButton = Button(mainMenuFrame, text="Three Qubit Gates", command=openThreeQubitWindow, padx=3, pady=3, background="#21e4d7", relief=FLAT, font=('Helvetica', 12))
+    threeQubitButton.pack(pady=10)
+
+    copyrightLabel = Label(mainMenuFrame, text="Copyright © 2021 Henrik Zander, Emil Ingelsten. All rights reserved.")
+    copyrightLabel.pack(side=BOTTOM)
+
+    ####################################################################################
+    return mainMenuFrame
+
+
+def twoQubit(root, notepad, height, width):
+    optimizeFrame = optimize2QubitFrame.optimizeControlFrame(root, notepad, height, width)
+    simulateFrame = simulate2QubitFrame.simulateControlFrame(root, notepad, height, width)
     
-    twoQubitNotepad.add(mainMenuFrame, text="Main Menu")
-    twoQubitNotepad.add(optimizeFrame, text="Optimize")
-    twoQubitNotepad.add(simulateFrame, text="Simulate")
+    notepad.add(optimizeFrame, text="Optimize")
+    notepad.add(simulateFrame, text="Simulate")
 
 
 ######################################################################################################################################################################
