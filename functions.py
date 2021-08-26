@@ -231,19 +231,21 @@ def getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex):
     theta = -abs(theta)
     labelsList = []
     eigenIndices = []
+    knownThetas = eigenEnergyDict['Thetas']
+
     for label in eigenEnergyDict:
-        knownThetas = eigenEnergyDict[label][0]
-        knownEigInds = eigenEnergyDict[label][3]
-        for i, kTh in enumerate(knownThetas):
-            if (kTh > theta):
-                iAfter = i
-                iBefore = i-1
-                break
-        if (knownEigInds[iBefore] == knownEigInds[iAfter]):
-            eigenIndices.append(knownEigInds[iAfter])
-        else:
-            eigenIndices.append(-knownEigInds[iAfter])
-        labelsList.append(label)
+        if (label != "circuit") and (label != "Thetas"):
+            knownEigInds = eigenEnergyDict[label][2]
+            for i, kTh in enumerate(knownThetas):
+                if (kTh > theta):
+                    iAfter = i
+                    iBefore = i-1
+                    break
+            if (knownEigInds[iBefore] == knownEigInds[iAfter]):
+                eigenIndices.append(knownEigInds[iAfter])
+            else:
+                eigenIndices.append(-knownEigInds[iAfter])
+            labelsList.append(label)
     usedLabels = ["" for _ in range(maxUsedIndex+1)]
     #print(eigenIndices)
     for i, ei in enumerate(eigenIndices):
@@ -253,6 +255,7 @@ def getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex):
             usedLabels[ei] = labelsList[i]
         else:
             usedLabels[abs(ei)] = "|???>"
+        #print(usedLabels)
     return usedLabels
 
 
@@ -395,7 +398,7 @@ def getCircuitData(solutionDict, convertToGradPerSecond=True):
 
 
 def plotOmegaTBvariations(solutionPath):
-    solutionDict = getFromjson(fileName=solutionPath)
+    solutionDict = getFromjson(solutionPath)
     circuitData = getCircuitData(solutionDict)
 
     if solutionDict['signalType'] == 'cos':
@@ -478,7 +481,7 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
         return
 
     # Load a solution from a file and create a list x defining the control signal, converting omegaPhi from GHz to Grad/s.
-    solutionDict = getFromjson(fileName=solutionPath)
+    solutionDict = getFromjson(solutionPath)
 
     if solutionDict['signalType'] == 'cos':
         x0name = 'theta'
@@ -568,8 +571,8 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
         theta = np.arccos(x[0] ** 2) / np.pi
     elif solutionDict['signalType'] == 'cos':
         theta = x[0]
-    maxUsedIndex = highestProjectionIndex
-    labels = getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex)
+    
+    labels = getEigenstateLabels(eigenEnergyDict, theta, maxUsedIndex=highestProjectionIndex)
 
     linestyle = ['-', '--', '-.', ':']
     for index, values in enumerate(expectationValues):
@@ -636,7 +639,7 @@ def plotFidelityOld(x=None, iSWAP=False, CZ=False, xName=None, useSavedPlot=Fals
 '''
 
 def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False, plot=True):
-    solutionDict = getFromjson(fileName=solutionPath)
+    solutionDict = getFromjson(solutionPath)
 
     if solutionDict['signalType'] == 'arccos':
         x0name = 'dcAmplitude'
@@ -1136,35 +1139,37 @@ def plotEigenenergies(solutionPath, eigenenergiesPath, N=3, simPoints=200, numOf
         x0name = 'theta'
         x1name = 'delta'
     
-    x = [solutionDict[x0name], solutionDict[x1name], solutionDict['omegaPhi'], solutionDict['modulationTime']]
+    #x = [solutionDict[x0name], solutionDict[x1name], solutionDict['omegaPhi'], solutionDict['modulationTime']]
     circuitData = getCircuitData(solutionDict)
 
     if solutionDict['signalType'] == 'arccos':
-        th = - np.arccos(x[0] ** 2) / np.pi
+        th = - np.arccos(solutionDict[x0name] ** 2) / np.pi
     elif solutionDict['signalType'] == 'cos':
-        th = - abs(x[0])
+        th = - abs(solutionDict[x0name])
 
     if (useSavedPlot and saveToFile):
         print("Re-saving something in a json file that's already saved there is rather pointless, don't ya think?")
         saveToFile = False
 
+
     if (useSavedPlot):
         eigenEnergyDict = getFromjson(eigenenergiesPath)
-        energyOfEigenstate = [eigenEnergyDict[key] for key in eigenEnergyDict]
+        energyOfEigenstate = [eigenEnergyDict[key] for key in eigenEnergyDict if (key != "Thetas") and (key != "circuit")]
+        thetas = eigenEnergyDict['Thetas']
     else:
         if numOfEnergyLevels is None:
             numOfEnergyLevels = N**3
         
-        energyOfEigenstate = [ [ [], [], (k, k, k), [] ] for k in range(N**3)]
+        energyOfEigenstate = [ [ (k, k, k), [], [] ] for k in range(N**3)]
 
         i = 0
         for q1 in range(N):
             for q2 in range(N):
                 for qTB in range(N):
-                    energyOfEigenstate[i][2] = (q1,q2,qTB)
+                    energyOfEigenstate[i][0] = (q1,q2,qTB)
                     i = i + 1
 
-        HBareBasisComponents = getHamiltonian(x, N=N, getBBHamiltonianComps=True, circuitData=circuitData, signalType=solutionDict['signalType'])
+        HBareBasisComponents = getHamiltonian([th], N=N, getBBHamiltonianComps=True, circuitData=circuitData, signalType=solutionDict['signalType'])
         thetas = np.linspace(-0.5, 0, simPoints)
         
         for i, theta in enumerate(thetas):
@@ -1176,7 +1181,7 @@ def plotEigenenergies(solutionPath, eigenenergiesPath, N=3, simPoints=200, numOf
                 _, state, energyIndex = entry
                 energy = eigenStatesAndEnergiesBareBasis[0][energyIndex]
 
-                saveEnergyAndFlux(energyOfEigenstate, state, theta, energy, energyIndex)
+                saveEnergyAndFlux(energyOfEigenstate, state, energy, energyIndex)
 
             statusBar((i+1)*100/simPoints)
 
@@ -1185,14 +1190,23 @@ def plotEigenenergies(solutionPath, eigenenergiesPath, N=3, simPoints=200, numOf
     # Plot energies!
     print("Plotting!")
     linestyle = ['-', '--', '-.', ':']
-    labels = []
+    labelsOrdered = []
     plt.figure(figsize=(8, 7))
 
-    for index, item in enumerate(energyOfEigenstate):
-        flux, energy, state, _ = item
-        if not (len(flux) == 0):
-            plt.plot(flux, [e/(2*np.pi) for e in energy], ls=linestyle[math.floor(index / 10) % 4])
-            labels.append(indexToString(state))
+    # Find the index in thetas corresponding to (just above) th
+    thetaIndex = 0
+    for i, theta in enumerate(thetas):
+        if theta > th:
+            thetaIndex = i
+            break
+    
+    # Reorder energyOfEigenstate according to rising energy at Phi = th
+    energyOfEigenstateOrdered = sorted(energyOfEigenstate, key=lambda stateEnergiesIndices: stateEnergiesIndices[2][thetaIndex])
+
+    for index, item in enumerate(energyOfEigenstateOrdered):
+        state, energy, _ = item
+        plt.plot(thetas, [e/(2*np.pi) for e in energy], ls=linestyle[math.floor(index / 10) % 4])
+        labelsOrdered.append(indexToString(state))
 
     plt.plot([th, th], [-30, 30], 'r--')
     plt.xlabel('Magnetic Flux [$\Phi$]', fontsize=16)
@@ -1201,14 +1215,18 @@ def plotEigenenergies(solutionPath, eigenenergiesPath, N=3, simPoints=200, numOf
     plt.ylim([-1, 15])
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
-    leg = plt.legend(labels, bbox_to_anchor=(1.1, 1), fontsize=10, loc="upper right")
+    leg = plt.legend(labelsOrdered, bbox_to_anchor=(1.1, 1), fontsize=10, loc="upper right")
     for legobj in leg.legendHandles:
         legobj.set_linewidth(2.0)
     plt.show()
     ############################
     if (saveToFile):
-        eigenEnergyDict = {labels[i]: item for i, item in enumerate(energyOfEigenstate)}
-        dumpTojson(eigenEnergyDict, eigenenergiesPath)
+        eeDict = {}
+        eeDict['circuit'] = getCircuitData(solutionDict, convertToGradPerSecond=False)
+        eeDict['Thetas'] = thetas.tolist()
+        updateDict = {indexToString(item[0]): item for item in energyOfEigenstate}
+        eeDict.update(updateDict)
+        dumpTojson(eeDict, eigenenergiesPath)
 
 '''
 def findEigenIndex(x, eigenStateIndex=0, N=4, printResult=False):
@@ -1250,12 +1268,11 @@ def indexToString(indexTuple):
     return f'|{indexTuple[0]}{indexTuple[1]}{indexTuple[2]}>'
 
 
-def saveEnergyAndFlux(itemList, state, flux, energy, energyIndex):
+def saveEnergyAndFlux(itemList, state, energy, energyIndex):
     for item in itemList:
-        if item[2] == state:
-            item[0].append(flux)
+        if item[0] == state:
             item[1].append(energy)
-            item[3].append(energyIndex)
+            item[2].append(energyIndex)
             break
 
 ######################################################################################################################################################################

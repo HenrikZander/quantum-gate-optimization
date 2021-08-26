@@ -52,14 +52,14 @@ def evaluateResult(x, fun, resultList, N=5):
 # Functions that handle data loading and dumping to json-files.
 
 
-def getFromjson(fileName):
-    with open(fileName, 'r') as jsonFile:
+def getFromjson(filePath):
+    with open(filePath, 'r') as jsonFile:
         jsonDict = json.load(jsonFile)
     return jsonDict
 
 
-def dumpTojson(data, fileName):
-    with open(fileName, 'w') as jsonFile:
+def dumpTojson(data, filePath):
+    with open(filePath, 'w') as jsonFile:
         json.dump(data, jsonFile, ensure_ascii=False, indent=4)
 
 

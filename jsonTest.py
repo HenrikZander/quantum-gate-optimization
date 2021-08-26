@@ -9,6 +9,7 @@ from plotting import *
 from dataManager import *
 import os
 
+'''
 dirPath = "Results/Qubit Pair 03/Solutions"
 directory = os.fsencode(dirPath)
 
@@ -22,5 +23,22 @@ for file in os.listdir(directory):
         if solDict['gateType'] == 'CZ':
             print(filename)
             print(solDict['gateFidelity'])
+'''
+dirPath = "Results/Qubit Pair 03"
+directory = os.fsencode(dirPath)
+
+for file in os.listdir(directory):
+    filename = os.fsdecode(file)
+
+    if filename == "eigenenergies.json":
+        filePath = dirPath + "/" + filename
+        eigDict = getFromjson(filePath)
+
+        for key in eigDict:
+            if (key != "circuit") and (key != "Thetas"):
+                #del eigDict[key][0]
+                eigDict[key][0], eigDict[key][1] = eigDict[key][1], eigDict[key][0]
+        
+        dumpTojson(eigDict, filePath)
 
 
