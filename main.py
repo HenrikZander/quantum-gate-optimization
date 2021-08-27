@@ -96,13 +96,13 @@ solPath = circuitFolder + '/Solutions/' + solName + '.json'
 eigEnPath = circuitFolder + '/eigenenergies.json'
 solDict = getFromjson(solPath)
 
-
+'''
 # Additional solution, to be combined with the first one.
 otherSolName = "210823_iSWAP_1"
 
 otherSolPath = circuitFolder + '/Solutions/' + otherSolName + '.json'
 otherSolDict = getFromjson(otherSolPath)
-
+'''
 ######################################################################################################################################################################
 # The main function that auto-runs on compilation.
 
@@ -117,12 +117,12 @@ def main():
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=200, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=170, runDE=True)
     # optimizeGate(CZ=True, energyLevels=4, maxAllowedGateTime=140, runDE=True)
-    # simulatePopTransfer(solutionPath=solPath, eigenenergiesPath=eigEnPath, initialStateIndex=2, highestProjectionIndex=12)
+    simulatePopTransfer(solutionPath=solPath, eigenenergiesPath=eigEnPath, initialStateIndex=2, highestProjectionIndex=12)
     # plotFidelity(solutionPath=solPath, useSavedPlot=False, saveToFile=True)
     # deltaPulsePlot()
     # testPlotStates()
     # testEigenstateOrder()
-    # plotEigenenergies(solutionPath=solPath, eigenenergiesPath=eigEnPath, N=4, simPoints=500, numOfEnergyLevels=None, useSavedPlot=False, saveToFile=True)
+    # plotEigenenergies(solutionPath=solPath, eigenenergiesPath=eigEnPath, N=4, simPoints=500, numOfEnergyLevels=None, useSavedPlot=True, saveToFile=False)
     # test()
     # getRobustnessPlot(solutionPath=solPath, useSavedPlot=False, saveToFile=True, checkOpTime=True, nPointsList=[33], maxDevs=[0.003, 0.006, 0.004, 10])
     # generateComboSolutionFile(Path(solPath), Path(otherSolPath), comboGateType='SWAP')

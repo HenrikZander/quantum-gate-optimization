@@ -160,11 +160,9 @@ def generateComboSolutionFile(solPath1, solPath2, comboGateType, comboSolPath=No
     circuitData1 = getCircuitData(solDict1, convertToGradPerSecond=False)
     circuitData2 = getCircuitData(solDict2, convertToGradPerSecond=False)
 
-    for key in circuitData2:
-        for index, value in enumerate(circuitData2[key]):
-            if not math.isclose(value, circuitData1[key][index]):
-                print("The two provided solutions must use the same circuit parameters!")
-                return
+    if not areCircuitDatasIdentical(circuitData1, circuitData2):
+        print("The two provided solutions must use the same circuit parameters!")
+        return
 
     if solDict1['signalType'] == 'arccos':
         x0name = 'dcAmplitude'
@@ -209,6 +207,14 @@ def generateComboSolutionFile(solPath1, solPath2, comboGateType, comboSolPath=No
 
             solNumber += 1
     dumpTojson(circuitData1, comboSolPath)
+
+
+def areCircuitDatasIdentical(circuitData1, circuitData2):
+    for key in circuitData2:
+            for index, value in enumerate(circuitData2[key]):
+                if not math.isclose(value, circuitData1[key][index]):
+                    return False
+    return True
 
 def saveResToFile(result, algorithmName, iterations, runtime, algorithmDE=False, algorithmSHG=False, fileName="result.txt", dateAndTime=datetime.today()):
     resultFile = open(fileName, "a")
