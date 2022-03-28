@@ -1,0 +1,47 @@
+{
+    "frequencies": [
+        4.7381,
+        4.1762,
+        8.96
+    ],
+    "anharmonicities": [
+        -0.221,
+        -0.23,
+        -0.08
+    ],
+    "couplings": [
+        0.0545,
+        0.05552
+    ],
+    "creationTime": "2022-03-22 21:03:53",
+    "comboSignal": false,
+    "signalType": "cos",
+    "gateType": "iSWAP",
+    "nOptimizationLvls": 4,
+    "riseTime": 25,
+    "theta": -0.39110295188642746,
+    "delta": 0.06493799186210152,
+    "omegaPhi": 0.5627811495644689,
+    "modulationTime": 97.00237500424005,
+    "gateFidelity": null,
+    "times": null,
+    "fidelitiesAtTimes": null,
+    "deviations": [
+        [],
+        [],
+        [],
+        []
+    ],
+    "fidelities1D_Dev": [
+        [],
+        [],
+        [],
+        []
+    ],
+    "fidelities2D_Theta_delta": null,
+    "fidelities2D_Theta_omegaPhi": null,
+    "fidelities2D_Theta_opTime": null,
+    "fidelities2D_delta_omegaPhi": null,
+    "fidelities2D_delta_opTime": null,
+    "fidelities2D_omegaPhi_opTime": null
+}

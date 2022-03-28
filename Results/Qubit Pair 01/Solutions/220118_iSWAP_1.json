@@ -1,0 +1,47 @@
+{
+    "frequencies": [
+        4.7381,
+        4.1762,
+        8.96
+    ],
+    "anharmonicities": [
+        -0.221,
+        -0.23,
+        -0.08
+    ],
+    "couplings": [
+        0.0545,
+        0.05552
+    ],
+    "creationTime": "2022-01-18 18:46:14",
+    "comboSignal": false,
+    "signalType": "arccos",
+    "gateType": "iSWAP",
+    "nOptimizationLvls": 4,
+    "riseTime": 25,
+    "dcAmplitude": 0.5718053430364379,
+    "acAmplitude": 0.20775737871024585,
+    "omegaPhi": 0.5593465924553521,
+    "modulationTime": 95.5765576052174,
+    "gateFidelity": null,
+    "times": null,
+    "fidelitiesAtTimes": null,
+    "deviations": [
+        [],
+        [],
+        [],
+        []
+    ],
+    "fidelities1D_Dev": [
+        [],
+        [],
+        [],
+        []
+    ],
+    "fidelities2D_Theta_delta": null,
+    "fidelities2D_Theta_omegaPhi": null,
+    "fidelities2D_Theta_opTime": null,
+    "fidelities2D_delta_omegaPhi": null,
+    "fidelities2D_delta_opTime": null,
+    "fidelities2D_omegaPhi_opTime": null
+}
