@@ -278,13 +278,13 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
     # Optimization using the Differential Evolution algorithm.
     if runDE: #  constraints=(nlc),
         startTime = time.time()
-        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred', maxiter=100000, args=argumentsToOptimizer, polish=True)
+        resDE = scipy.optimize.differential_evolution(costFunction, bounds, callback=callbackDE, workers=-1, updating='deferred', maxiter=100000, args=argumentsToOptimizer, polish=False)
         timeDE = time.time() - startTime
         message += f'The optimizaton using the \"Differential Evolution\"-algorithm took {round(timeDE,2)}s to execute and ended on a minimum of {resDE.fun} at the point {resDE.x}.\n'
         message += f'Function evaluations performed: {resDE.nfev}\n'
 
         ## Start of modified code snippet from the polishing done by scipy.differential_evolution
-        polish_method = 'L-BFGS-B'
+        polish_method = 'Nelder-Mead' #'L-BFGS-B'
 
         # We aren't currently using constraints
         '''
@@ -299,11 +299,12 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
                                 " infeasible solution", UserWarning)
         '''
         # Manual polish, no constraints
+        print('Finished!\nPolishing solution.')
         polStart = time.time()
         resPol = scipy.optimize.minimize(costFunction,
                             np.copy(resDE.x),
                             method=polish_method,
-                            bounds=bounds, #self.limits.T,
+                            bounds=bounds, # We likely do not really need bounds when polishing
                             args=argumentsToOptimizer)
                             #callback=callbackDE) # Perhaps we want callback?
                             # constraints=self.constraints)
@@ -314,6 +315,7 @@ def findMinimum(costFunction, bounds, argumentsToOptimizer, runSHG=False, runDA=
         totTime = time.time()-startTime
         message += f'Total time elapsed: {round(totTime,2)}s\n'
         message += f'Total number of function evaluations: {resDE.nfev + resPol.nfev}\n'
+
         # Polished solution is only accepted if there is an improvement in
         # cost function, the polishing was successful and the solution lies
         # within the bounds.
