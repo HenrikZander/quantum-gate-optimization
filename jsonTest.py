@@ -9,6 +9,9 @@ from plotting import *
 from dataManager import *
 import os
 
+bounds = ([0., 1.],[-2.0, 3],[3, 4])
+print(np.asarray(bounds)[:,1])
+
 '''
 dirPath = "Results/Qubit Pair 03/Solutions"
 directory = os.fsencode(dirPath)
@@ -23,6 +26,7 @@ for file in os.listdir(directory):
         if solDict['gateType'] == 'CZ':
             print(filename)
             print(solDict['gateFidelity'])
+'''
 '''
 dirPath = "Results/Qubit Pair 03"
 directory = os.fsencode(dirPath)
@@ -40,5 +44,5 @@ for file in os.listdir(directory):
                 eigDict[key][0], eigDict[key][1] = eigDict[key][1], eigDict[key][0]
         
         dumpTojson(eigDict, filePath)
-
+'''
 
