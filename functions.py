@@ -23,9 +23,6 @@ import os
 from qutip import *
 import numpy as np
 import matplotlib.pyplot as plt
-import time
-import random
-import scipy
 from numba import njit
 
 from plotting import *
@@ -35,7 +32,6 @@ import json
 from datetime import datetime
 import math
 from dataManager import *
-import copy
 
 ######################################################################################################################################################################
 # Global variables
@@ -75,8 +71,8 @@ def getSolutionNameList():
     return [xName for xName in solsDict]
 '''
 
-def createSolName(ymd, gateType, solNumber):
-    return ymd + "_" + gateType + "_" + str(solNumber)
+def createSolName(date, gateType, solNumber):
+    return date + "_" + gateType + "_" + str(solNumber)
 
 
 def addNewSolution(x, gateType, N, solNumber=1, creationTime=datetime.today(), folder='Demo Circuit', circuitFile=None, circuitData=None, riseTime=25, signalType=None):
@@ -716,18 +712,19 @@ def deltaPulsePlot():
     y = []
 
     for time in x:
-        y.append(sinBox(time, operationTime))
+        y.append(sinBox(time, operationTime, 25))
 
     plt.plot(x, y)
     plt.plot([25, 25], [0, 1.1], 'r--', [operationTime-25, operationTime-25], [0, 1.1], 'r--')
-    plt.xlabel('Tid [ns]', fontsize=16)
-    plt.ylabel('Del av full amplitud, $\delta(t) / \delta_0$', fontsize=16)
+    plt.xlabel('Time [ns]', fontsize=15)
+    plt.ylabel('Normalized amplitude, $\delta(t) / \delta_0$', fontsize=15)
+    plt.title("Amplitude Modulation Envelope", fontsize=18)
     plt.xlim([0, operationTime])
     plt.ylim([0, 1.1])
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
     plt.annotate('', xy=(0, 0.5), xytext=(25, 0.5), arrowprops=dict(arrowstyle='<->'))
-    plt.annotate("$t_{Stig}$", xy=(6, 0.53), fontsize=18)
+    plt.annotate("$t_{Rise}$", xy=(5, 0.53), fontsize=18)
     plt.annotate('', xy=(operationTime-25, 0.5), xytext=(operationTime, 0.5), arrowprops=dict(arrowstyle='<->'))
     plt.annotate("$t_{Fall}$", xy=(operationTime-10, 0.53), fontsize=18)
     plt.show()

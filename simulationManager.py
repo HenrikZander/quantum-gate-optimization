@@ -307,7 +307,7 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
 
 
 def plotFidelity(solutionPath, useSavedPlot=False, saveToFile=False, plot=True, energyLevels=4):
-    solutionDict = getFromjson(fileName=solutionPath)
+    solutionDict = getFromjson(solutionPath)
 
     if solutionDict['signalType'] == 'arccos':
         x0name = 'dcAmplitude'
