@@ -70,7 +70,7 @@ def initiateGlobalVariables(root, givenHeight):
     global resultFolderPath
     solutionPath = StringVar(root)
     resultFolderPath = StringVar(root)
-    resultFolderPath.set("C:/Gateside/Results")
+    resultFolderPath.set("/Users/emilingelsten/Documents/KA-kod/quantum-gate-optimization/Results/5Q4C_minZZ_approx/Solutions") # C:/Gateside/Results
     
     global selectedSimulationOutput
     selectedSimulationOutput = StringVar(root)
