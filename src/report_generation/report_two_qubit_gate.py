@@ -93,33 +93,40 @@ def insertSignalParameters(pdf, result):
         pdf.image(str((equationsDirectory / "cos-signal.png").resolve()), w = 60)
         pdf.ln(5)
 
-        """# Insert picture of tunable bus frequency
-        pdf.cell(0, 5, "Approximate Frequency of the Tunable Bus:", ln=True, border=debug)
-        pdf.image(str((equationsDirectory / "tunable-bus-frequency.png").resolve()), w = 60)
-        pdf.ln(4) """
+    elif result["signalType"] == 'arccos':
 
-        # Insert picture of amplitude modulation
-        pdf.cell(0, 5, "Amplitude Modulation:", ln=True, border=debug)
-        pdf.image(str((equationsDirectory / "delta_modulation.png").resolve()), x=11, w = 32)
+        # Make the text underlined
+        pdf.set_font('helvetica', 'U', 12)
+
+        # Insert picture of the signal shape
+        pdf.cell(0, 5, "Signal Shape:", ln=True, border=debug)
+        pdf.image(str((equationsDirectory / "cos-signal.png").resolve()), w = 60) # ToDo: Change this picture to the correct one.
         pdf.ln(5)
 
-        # Insert title for the 'Optimal Signal'-subsection
-        pdf.cell(0, 5, "Parameters of Optimal Signal:", ln=True, border=debug)
-        pdf.ln(2)
+    """# Insert picture of tunable bus frequency
+    pdf.cell(0, 5, "Approximate Frequency of the Tunable Bus:", ln=True, border=debug)
+    pdf.image(str((equationsDirectory / "tunable-bus-frequency.png").resolve()), w = 60)
+    pdf.ln(4) """
 
-        # Create the body text
-        body_txt = f'   : {round(result["theta"], 5)} [      ]\n   : {round(result["delta"], 5)} [      ]\n     : {round(result["omegaPhi"], 5)} GHz\nTotal Modulation Time of       : {round(result["modulationTime"], 5)} ns\nRise Time of Modulation (0 to 100%): {result["riseTime"]} ns'
+    # Insert picture of amplitude modulation
+    pdf.cell(0, 5, "Amplitude Modulation:", ln=True, border=debug)
+    pdf.image(str((equationsDirectory / "delta_modulation.png").resolve()), x=11, w = 32)
+    pdf.ln(5)
 
-        # Insert the latex pictures of the variables
-        pdf.image(str((symbolsDirectory / "Theta.png").resolve()), x = 11, y = 197.5, w = 4)
-        pdf.image(str((symbolsDirectory / "Phi_0.png").resolve()), x = 36.5, y = 197.5, w = 6)
-        pdf.image(str((symbolsDirectory / "delta_0.png").resolve()), x = 11, y = 202.5, w = 4)
-        pdf.image(str((symbolsDirectory / "Phi_0.png").resolve()), x = 35, y = 202.5, w = 6)
-        pdf.image(str((symbolsDirectory / "omega_Phi.png").resolve()), x = 11, y = 208, w = 6)
-        pdf.image(str((symbolsDirectory / "delta_t.png").resolve()), x = 59, y = 212, w = 7)
+    # Insert title for the 'Optimal Signal'-subsection
+    pdf.cell(0, 5, "Parameters of Optimal Signal:", ln=True, border=debug)
+    pdf.ln(2)
 
-    elif result["signalType"] == 'arccos':
-        pass # ToDO: Add code for the arccos signal
+    # Create the body text
+    body_txt = f'   : {round(result["theta"], 5)} [      ]\n   : {round(result["delta"], 5)} [      ]\n     : {round(result["omegaPhi"], 5)} GHz\nTotal Modulation Time of       : {round(result["modulationTime"], 5)} ns\nRise Time of Modulation (0 to 100%): {result["riseTime"]} ns'
+
+    # Insert the latex pictures of the variables
+    pdf.image(str((symbolsDirectory / "Theta.png").resolve()), x = 11, y = 197.5, w = 4)
+    pdf.image(str((symbolsDirectory / "Phi_0.png").resolve()), x = 36.5, y = 197.5, w = 6)
+    pdf.image(str((symbolsDirectory / "delta_0.png").resolve()), x = 11, y = 202.5, w = 4)
+    pdf.image(str((symbolsDirectory / "Phi_0.png").resolve()), x = 35, y = 202.5, w = 6)
+    pdf.image(str((symbolsDirectory / "omega_Phi.png").resolve()), x = 11, y = 208, w = 6)
+    pdf.image(str((symbolsDirectory / "delta_t.png").resolve()), x = 59, y = 212, w = 7)
 
     # Change back the body text font
     pdf.set_font('helvetica', '', 12)

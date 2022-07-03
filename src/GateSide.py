@@ -32,4 +32,5 @@ path = "C:\\Users\\henri\\Desktop\\WACQT\\quantum-gate-optimization\\Results\\Qu
 # 210728_iSWAP_1.json
 
 graph_generator.plotFidelity(path, 'temp\\fig1.jpeg')
+
 report_generator.generateReport2(path)

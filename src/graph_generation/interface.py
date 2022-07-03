@@ -60,4 +60,11 @@ def plotFidelity(solutionPath, saveLocationPath, saveGraph=True):
         return
 
 
+def plotPopulation(solutionPath, saveLocationPath, saveGraph=True):
+    
+    if not os.path.isfile(solutionPath):
+        raise Exception("Provided path does not point at a file!")
+
+    solution = getFromjson(solutionPath)
+
 ######################################################################################################################################################################

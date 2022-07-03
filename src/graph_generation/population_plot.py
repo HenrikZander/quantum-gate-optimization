@@ -166,4 +166,5 @@ def simulatePopTransfer(solutionPath, eigenenergiesPath=None, sinBoxHamiltonian=
         legobj.set_linewidth(5.0)
     plt.show()
 
+
 ######################################################################################################################################################################
