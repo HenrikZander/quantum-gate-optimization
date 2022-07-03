@@ -47,6 +47,13 @@ def simulate(solutionData, guiData):
     ############################## Generate the plots ##############################
 
     if guiData["populationTransferPlot"]:
+        wantEigEnPlot = True
+        if not eigenenergiesPath.is_file():
+            # ToDo: Make it possible to run plotEigenenergies via gui properly.
+            print("No eigenenergies.json found. Generating.")
+            plotEigenenergies(solutionPath, eigenenergiesPath, N=energyLevels, simPoints=500, numOfEnergyLevels=None, useSavedPlot=False, saveToFile=True)
+        elif wantEigEnPlot:
+            plotEigenenergies(solutionPath, eigenenergiesPath, N=energyLevels, simPoints=500, numOfEnergyLevels=None, useSavedPlot=True, saveToFile=False)
         simulatePopTransfer(solutionPath, eigenenergiesPath, initialStateIndex=eigenstateIndex, highestProjectionIndex=max(12, eigenstateIndex+5), N=energyLevels)
     elif guiData["fidelityPlot"]:
         try:
@@ -56,7 +63,7 @@ def simulate(solutionData, guiData):
             process.start()
     elif guiData["stabilityPlot"]:
         # ToDo: Make sure this works and change to pdf generation later on.
-        getRobustnessPlot(solutionPath, checkX0=False, checkX1=False, checkOmegaPhi=False, checkOpTime=False, nPointsList=[9], maxDevs=[5e-4, 1e-3, 2e-3, 4e0], useSavedPlot=False, saveToFile=False)
+        getRobustnessPlot(solutionPath, checkX0=False, checkX1=True, checkOmegaPhi=True, checkOpTime=False, nPointsList=[9], maxDevs=[5e-4, 5e-3, 5e-3, 4e0], useSavedPlot=False, saveToFile=True) # 1e-2?/1e-3 standard for Bmax/deltaMax
     
     ################################################################################
 
@@ -494,10 +501,10 @@ def getRobustnessPlot(solutionPath, checkX0=False, checkX1=False, checkOmegaPhi=
                         statusBar((j*nPointsList[0] + (i+1))*100/(nPointsList[0]*nPointsList[1]))
                 fidelities2D = np.array(fidelities).reshape(nPointsList[1], nPointsList[0])
 
-            nyTicks = nxTicks = 9
+            nyTicks = nxTicks = 5
 
             xlocs = np.linspace(0,nPointsList[0]-1,nxTicks)
-            xticks = np.linspace(iDeviations[0], iDeviations[-1], nxTicks)
+            xticks = np.around(np.linspace(iDeviations[0], iDeviations[-1], nxTicks), 6) # This is suboptimal
             plt.xticks(xlocs,xticks)
             ylocs = np.linspace(0,nPointsList[1]-1,nyTicks)
             yticks = np.linspace(jDeviations[0], jDeviations[-1], nyTicks)

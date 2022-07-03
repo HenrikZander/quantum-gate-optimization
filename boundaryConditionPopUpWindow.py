@@ -11,11 +11,11 @@
 
 # File name: boundaryConditionPopUpWindow.py
 
-# Author(s): Henrik Zander
+# Author(s): Henrik Zander, Emil Ingelsten
 
 # Date created: 29 July 2021
 
-# Copyright 2021, Henrik Zander, All rights reserved.
+# Copyright 2022, Henrik Zander & Emil Ingelsten, All rights reserved.
 
 ######################################################################################################################################################################
 
@@ -118,6 +118,8 @@ def setVariablesToPreset(index, copy=False):
 
         x1LowerNew.set(parameterValues[3][0])
         x1UpperNew.set(parameterValues[3][1])
+    else:
+        print("Signaltype not supported! Must be either arccos or cos!")
 
     omegaPhiLowerNew.set(parameterValues[4][0])
     omegaPhiUpperNew.set(parameterValues[4][1])
@@ -525,10 +527,7 @@ def loadAllPresets():
     presetList = configData["boundaryPresets"]
 
     for item in presetList:
-        try:
-            if item[6] == selectedGate:
-                presetsBox.insert(END, item[0])
-        except:
+        if item[6] in [selectedGate, "common"]:
             presetsBox.insert(END, item[0])
 
 
@@ -538,15 +537,24 @@ def addPreset(name, boundaryValues):
             boundaryValues[0][i] = - 1/np.pi * np.arccos(boundaryValues[0][i] ** 2)
         # OBS: Jag sparar här BBounds som om de vore deltaBounds, eftersom jag ovan valde att använda ett preset:s deltaBounds som BBounds rakt av.
     configData = dataManager.getFromjson("config.json")
-    configData["boundaryPresets"].append([name, True, *boundaryValues])
+    configData["boundaryPresets"].append([name, True, *boundaryValues, gate.get()])
     dataManager.dumpTojson(configData, "config.json")
 
     loadAllPresets()
 
 
 def getPreset(index):
+    # Get list of presets from config.json
     configData = dataManager.getFromjson("config.json")
-    return configData["boundaryPresets"][index]
+    presetList = configData["boundaryPresets"]
+    # Only care about common presets and presets specific to the currently selected gate
+    try:
+        selectedGate = gate.get()
+    except: # One could perhaps argue for choosing "common" instead of "iSWAP" as the default here, but I don't think it matters that much /Emil
+        selectedGate = "iSWAP"
+    presetList[:] = [preset for preset in presetList if preset[6] in [selectedGate, "common"]]
+    #print(presetList)
+    return presetList[index]
 
 
 def changePreset(index, newBoundaryValues):
